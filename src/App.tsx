@@ -1,16 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useAppStore } from './store/appStore'
 import { getDb } from './lib/db'
 import { seedIfNeeded, forkTemplate } from './lib/seed'
 import { PEAK_STRENGTH_TEMPLATE } from './lib/templates'
-
-interface ProgramRow {
-  id: string
-  name: string
-  block_num: number
-  current_week: number
-  current_day: number
-}
+import { useProgram } from './hooks/useProgram'
+import { useTrainingMaxes } from './hooks/useTrainingMaxes'
+import { WorkoutView } from './components/workout/WorkoutView'
+import { SettingsPanel } from './components/settings/SettingsPanel'
 
 interface TemplateRow {
   id: string
@@ -28,18 +24,17 @@ export default function App() {
   useEffect(() => {
     async function init() {
       try {
-        const db = await getDb()
+        await getDb()
         await seedIfNeeded()
         setDbReady(true)
 
-        // Check for active program
-        const programs = await db.select<ProgramRow[]>(
-          `SELECT id, name, block_num, current_week, current_day FROM programs WHERE is_active = 1 LIMIT 1`,
+        const db = await getDb()
+        const programs = await db.select<Array<{ id: string }>>(
+          `SELECT id FROM programs WHERE is_active = 1 LIMIT 1`,
         )
         if (programs.length > 0) {
           setActiveProgramId(programs[0].id)
         } else {
-          // Load templates for selection
           const tpls = await db.select<TemplateRow[]>(
             `SELECT id, name, author, description, days_per_week FROM program_templates`,
           )
@@ -65,12 +60,10 @@ export default function App() {
     )
   }
 
-  // No active program — show template selector
   if (!activeProgramId) {
     return <TemplateSelector templates={templates} />
   }
 
-  // Active program — show main app
   return <MainApp programId={activeProgramId} />
 }
 
@@ -136,21 +129,35 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
 }
 
 function MainApp({ programId }: { programId: string }) {
-  const [program, setProgram] = useState<ProgramRow | null>(null)
+  const { program, loading, reload, setCurrentDay, setCurrentWeek } = useProgram(programId)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
-  useEffect(() => {
-    async function load() {
-      const db = await getDb()
-      const rows = await db.select<ProgramRow[]>(
-        `SELECT id, name, block_num, current_week, current_day FROM programs WHERE id = ?`,
-        [programId],
-      )
-      if (rows.length > 0) setProgram(rows[0])
-    }
-    load()
-  }, [programId])
+  const allExercises = useMemo(
+    () => (program?.days ?? []).flatMap((d) => d.exercises),
+    [program?.days],
+  )
+  const { getEffectiveMax, reload: reloadMaxes } = useTrainingMaxes(allExercises)
 
-  if (!program) {
+  const waveExercises = useMemo(
+    () => allExercises.filter((e) => e.isWave),
+    [allExercises],
+  )
+
+  const handleWeekChange = useCallback(
+    async (week: number) => {
+      await setCurrentWeek(week)
+      await reload()
+    },
+    [setCurrentWeek, reload],
+  )
+
+  const handleAdvance = useCallback(async () => {
+    await reload()
+    await reloadMaxes()
+  }, [reload, reloadMaxes])
+
+  if (loading || !program) {
     return (
       <div className="flex items-center justify-center h-screen bg-bg text-muted font-mono text-sm">
         Loading program...
@@ -159,40 +166,45 @@ function MainApp({ programId }: { programId: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-text font-mono text-sm">
+    <div className="min-h-screen bg-bg text-text font-mono text-[13px] pb-24 max-w-[500px] mx-auto">
       {/* Title bar drag region */}
-      <div
-        data-tauri-drag-region
-        className="h-8 flex items-center justify-center select-none"
-      >
-        <span className="text-faint text-xs">
-          <span className="text-accent font-bold">PEAK</span>
-          <span className="text-dim"> TRACKER</span>
-        </span>
-      </div>
+      <div data-tauri-drag-region className="h-8 select-none" />
 
-      {/* Placeholder content — will be replaced with full workout view in Phase 2 */}
-      <div className="max-w-3xl mx-auto px-4 pb-20">
-        <div className="border-b border-border pb-4 mb-6">
-          <h1 className="text-bright text-lg font-bold">{program.name}</h1>
-          <p className="text-muted text-xs mt-1">
-            Block {program.block_num} · Week {program.current_week + 1}
-          </p>
-        </div>
+      <WorkoutView
+        programId={programId}
+        blockNum={program.blockNum}
+        currentWeek={program.currentWeek}
+        currentDay={program.currentDay}
+        days={program.days}
+        onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false); setShowHistory(false) }}
+        onOpenSettings={() => { setShowSettings(!showSettings); setShowHistory(false) }}
+        onOpenHistory={() => { setShowHistory(!showHistory); setShowSettings(false) }}
+        settingsOpen={showSettings}
+        historyOpen={showHistory}
+      />
 
-        <div className="bg-card border border-border rounded-lg p-6 text-center">
-          <div className="text-accent text-4xl mb-4">&#x1F3CB;</div>
-          <div className="text-bright font-semibold mb-2">Program Ready</div>
-          <div className="text-muted text-xs leading-relaxed max-w-sm mx-auto">
-            Database initialized with {program.name} template.
-            Workout logging UI will be built in Phase 2.
+      {/* Settings panel */}
+      {showSettings && (
+        <SettingsPanel
+          programId={programId}
+          blockNum={program.blockNum}
+          currentWeek={program.currentWeek}
+          waveExercises={waveExercises}
+          getEffectiveMax={getEffectiveMax}
+          onWeekChange={handleWeekChange}
+          onAdvance={handleAdvance}
+        />
+      )}
+
+      {/* History placeholder */}
+      {showHistory && (
+        <div className="px-4 py-4 border-b border-border bg-card">
+          <div className="text-xs font-semibold text-accent mb-3">LIFT HISTORY</div>
+          <div className="text-center py-8 text-faint text-xs">
+            Charts will be built in Phase 4.
           </div>
         </div>
-
-        <div className="mt-6 text-center text-faint text-xs">
-          Block {program.block_num} · Week {program.current_week + 1}
-        </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -1,0 +1,27 @@
+import type { DayWithExercises } from '../../types/program'
+
+interface DayTabsProps {
+  days: DayWithExercises[]
+  currentDay: number
+  onSelectDay: (index: number) => void
+}
+
+export function DayTabs({ days, currentDay, onSelectDay }: DayTabsProps) {
+  return (
+    <div className="flex gap-1">
+      {days.map((d, i) => (
+        <button
+          key={d.id}
+          onClick={() => onSelectDay(i)}
+          className={`flex-1 py-2 border-none rounded-md text-[11px] font-semibold tracking-wide transition-all ${
+            i === currentDay
+              ? 'bg-[#21262d] text-accent'
+              : 'bg-transparent text-faint hover:text-muted'
+          }`}
+        >
+          {d.name}
+        </button>
+      ))}
+    </div>
+  )
+}
