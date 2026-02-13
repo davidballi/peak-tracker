@@ -82,8 +82,6 @@ export async function importFromPwa(jsonString: string, programId: string): Prom
     dayIdByIndex.set(row.day_index, row.id)
   }
 
-  // Wrap all writes in a transaction
-  await db.execute('BEGIN TRANSACTION')
   try {
     // Import set logs
     if (data.logs && typeof data.logs === 'object') {
@@ -212,9 +210,7 @@ export async function importFromPwa(jsonString: string, programId: string): Prom
       }
     }
 
-    await db.execute('COMMIT')
   } catch (err) {
-    await db.execute('ROLLBACK')
     result.errors.push(`Import failed: ${err instanceof Error ? err.message : String(err)}`)
   }
 

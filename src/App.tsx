@@ -28,6 +28,7 @@ export default function App() {
   const { dbReady, setDbReady, activeProgramId, setActiveProgramId } = useAppStore()
   const [loading, setLoading] = useState(true)
   const [templates, setTemplates] = useState<TemplateRow[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -50,12 +51,22 @@ export default function App() {
         }
       } catch (err) {
         console.error('Failed to initialize database:', err)
+        setError(String(err))
       } finally {
         setLoading(false)
       }
     }
     init()
   }, [setDbReady, setActiveProgramId])
+
+  if (error) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: '#0d1117', color: '#e94560', padding: '60px 20px 20px', fontFamily: 'monospace', fontSize: '13px', whiteSpace: 'pre-wrap', overflow: 'auto' }}>
+        <div style={{ color: '#f5a623', fontWeight: 'bold', fontSize: '16px', marginBottom: '16px' }}>INIT FAILED</div>
+        <div>{error}</div>
+      </div>
+    )
+  }
 
   if (loading || !dbReady) {
     return (

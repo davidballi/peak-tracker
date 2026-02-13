@@ -3,6 +3,8 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "platforms": ["iOS"],
+  "windows": ["main"],
+  "webviews": ["main"],
   "permissions": [
     "core:default",
     "sql:default",

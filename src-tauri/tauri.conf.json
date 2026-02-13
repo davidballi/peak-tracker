@@ -12,7 +12,16 @@
   "app": {
     "security": {
       "csp": null
-    }
+    },
+    "windows": [
+      {
+        "title": "Peak Tracker",
+        "fullscreen": false,
+        "resizable": true,
+        "width": 390,
+        "height": 844
+      }
+    ]
   },
   "bundle": {
     "active": true,

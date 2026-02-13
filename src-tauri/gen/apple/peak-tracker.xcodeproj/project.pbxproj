@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0F39227D9FCE546188682382 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5F026C9E12D90E5405653384 /* WebKit.framework */; };
+		388BFDCF00E88D02B63A249D /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = 805968F096F9D773144D1FDC /* libapp.a */; };
 		4FC27A8E21C3D06D13390EF8 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4FCECA8A2D0A5BF35A2E1305 /* MetalKit.framework */; };
 		534AB35BB50BA746CE227BAD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4F54DD6900564C24EAB31AAA /* Assets.xcassets */; };
 		6F7556A7D81840ACC6B14335 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 010EC21DA7F49D20A222191B /* libapp.a */; };
@@ -35,6 +36,7 @@
 		4F54DD6900564C24EAB31AAA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4FCECA8A2D0A5BF35A2E1305 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		5F026C9E12D90E5405653384 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		805968F096F9D773144D1FDC /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 		974B91D82821E0425345521D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		9FD70BA330B61B3422D927A3 /* peak-tracker_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "peak-tracker_iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1EDFDD647A20C1F4EAA7477 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -75,6 +77,14 @@
 				20D7E08063F8A99AE6633F47 /* peak-tracker */,
 			);
 			path = Sources;
+			sourceTree = "<group>";
+		};
+		1E2BA4654040B03B12A5464D /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+				9F2740657D62FC6885C26EF2 /* debug */,
+			);
+			path = arm64;
 			sourceTree = "<group>";
 		};
 		20D7E08063F8A99AE6633F47 /* peak-tracker */ = {
@@ -128,9 +138,18 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		9F2740657D62FC6885C26EF2 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				805968F096F9D773144D1FDC /* libapp.a */,
+			);
+			path = debug;
+			sourceTree = "<group>";
+		};
 		AA820E1408157E80805543E1 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
+				1E2BA4654040B03B12A5464D /* arm64 */,
 			);
 			path = Externals;
 			sourceTree = "<group>";
@@ -148,6 +167,13 @@
 				7A95041AB49AAE41041EFFD8 /* Frameworks */,
 				329B5D5893955ACE5EF9260A /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		"TEMP_40BE3CEC-FCEE-459E-B8BE-8FC410FDAD64" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -209,6 +235,7 @@
 				534AB35BB50BA746CE227BAD /* Assets.xcassets in Resources */,
 				B94CB832700318A15FCD7E14 /* LaunchScreen.storyboard in Resources */,
 				DEC2A7216182E9ADE5B37F56 /* assets in Resources */,
+				388BFDCF00E88D02B63A249D /* libapp.a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
