@@ -178,7 +178,7 @@ function MainApp({ programId }: { programId: string }) {
     if (!program) return
     const db = await getDb()
 
-    // Auto-calculate new TMs from week 3 (index 2) logs
+    // Auto-calculate new TMs from week 3 (index 2) completed logs
     for (const ex of waveExercises) {
       const currentMax = getEffectiveMax(ex.id)
       let bestE1rm = currentMax
@@ -187,7 +187,8 @@ function MainApp({ programId }: { programId: string }) {
         `SELECT sl.weight, sl.reps FROM set_logs sl
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
-           AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0`,
+           AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0
+           AND sl.is_completed = 1`,
         [programId, ex.id, program.blockNum],
       )
 
@@ -196,9 +197,14 @@ function MainApp({ programId }: { programId: string }) {
         if (e1rm > bestE1rm) bestE1rm = e1rm
       }
 
-      const newTm = bestE1rm > currentMax
-        ? roundToNearest5(bestE1rm)
-        : roundToNearest5(currentMax + 5)
+      let newTm: number
+      if (bestE1rm > currentMax) {
+        // Cap at 20% increase per block for safety
+        const capped = Math.min(bestE1rm, currentMax * 1.2)
+        newTm = roundToNearest5(capped)
+      } else {
+        newTm = roundToNearest5(currentMax + 5)
+      }
 
       await db.execute(
         `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,

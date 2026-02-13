@@ -77,6 +77,9 @@ export async function forkTemplate(templateId: string): Promise<string> {
   )
   if (templates.length === 0) throw new Error(`Template ${templateId} not found`)
 
+  await db.execute('BEGIN TRANSACTION')
+  try {
+
   // Deactivate all existing programs
   await db.execute(`UPDATE programs SET is_active = 0`)
 
@@ -176,7 +179,12 @@ export async function forkTemplate(templateId: string): Promise<string> {
     }
   }
 
+  await db.execute('COMMIT')
   return programId
+  } catch (err) {
+    await db.execute('ROLLBACK')
+    throw err
+  }
 }
 
 /**

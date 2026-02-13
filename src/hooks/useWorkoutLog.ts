@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { v4 as uuid } from 'uuid'
 import { getDb } from '../lib/db'
+import { validateWeight, validateReps } from '../lib/calc'
 
 interface SetLogRow {
   id: string
@@ -92,7 +93,8 @@ export function useWorkoutLog(
     async (exerciseId: string, setIndex: number, field: 'weight' | 'reps', value: string) => {
       if (!workoutLogId) return
       const key = `${exerciseId}_${setIndex}`
-      const numVal = value === '' ? null : parseFloat(value)
+      const raw = value === '' ? null : parseFloat(value)
+      const numVal = field === 'weight' ? validateWeight(raw) : validateReps(raw)
 
       // Optimistic update
       setSetLogs((prev) => {

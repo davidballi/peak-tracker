@@ -1,8 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { v4 as uuid } from 'uuid'
 import { getDb } from '../../lib/db'
-import { estimatedOneRepMax, roundToNearest5 } from '../../lib/calc'
+import { estimatedOneRepMax, roundToNearest5, validateWeight } from '../../lib/calc'
+import { ConfirmModal } from '../ui/ConfirmModal'
 import type { ExerciseWithWave } from '../../types/program'
+
+const MAX_TM_INCREASE_RATIO = 1.2 // 20% cap per block
 
 interface SettingsPanelProps {
   programId: string
@@ -26,11 +29,14 @@ export function SettingsPanel({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
   const [advancing, setAdvancing] = useState(false)
+  const advancingRef = useRef(false)
+  const [showBlockConfirm, setShowBlockConfirm] = useState(false)
 
   const handleSaveMax = useCallback(
     async (exerciseId: string) => {
-      const val = parseInt(editValue)
-      if (!val || val <= 0) {
+      const raw = parseFloat(editValue)
+      const val = validateWeight(raw)
+      if (val === null || val <= 0) {
         setEditingId(null)
         return
       }
@@ -40,61 +46,77 @@ export function SettingsPanel({
         [uuid(), exerciseId, val, blockNum],
       )
       setEditingId(null)
-      // Trigger reload by calling onAdvance handler (which reloads program data)
       onAdvance()
     },
     [editValue, blockNum, onAdvance],
   )
 
   const handleAdvanceWeek = useCallback(async () => {
-    if (advancing) return
+    if (advancingRef.current) return
+    advancingRef.current = true
     setAdvancing(true)
 
-    const db = await getDb()
+    try {
+      const db = await getDb()
 
-    if (currentWeek < 3) {
-      // Simple advance
-      const nextWeek = currentWeek + 1
-      await db.execute(`UPDATE programs SET current_week = ? WHERE id = ?`, [nextWeek, programId])
-      onWeekChange(nextWeek)
-    } else {
-      // Advance to new block — auto-calculate TMs
-      for (const ex of waveExercises) {
-        const currentMax = getEffectiveMax(ex.id)
-        let bestE1rm = currentMax
+      if (currentWeek < 3) {
+        const nextWeek = currentWeek + 1
+        await db.execute(`UPDATE programs SET current_week = ? WHERE id = ?`, [nextWeek, programId])
+        onWeekChange(nextWeek)
+      } else {
+        // Advance to new block — auto-calculate TMs with safety cap
+        for (const ex of waveExercises) {
+          const currentMax = getEffectiveMax(ex.id)
+          let bestE1rm = currentMax
 
-        // Scan week 3 (index 2) set logs for this exercise
-        const rows = await db.select<Array<{ weight: number; reps: number }>>(
-          `SELECT sl.weight, sl.reps FROM set_logs sl
-           JOIN workout_logs wl ON sl.workout_log_id = wl.id
-           WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
-             AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0`,
-          [programId, ex.id, blockNum],
-        )
+          const rows = await db.select<Array<{ weight: number; reps: number }>>(
+            `SELECT sl.weight, sl.reps FROM set_logs sl
+             JOIN workout_logs wl ON sl.workout_log_id = wl.id
+             WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
+               AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0
+               AND sl.is_completed = 1`,
+            [programId, ex.id, blockNum],
+          )
 
-        for (const r of rows) {
-          const e1rm = estimatedOneRepMax(r.weight, r.reps)
-          if (e1rm > bestE1rm) bestE1rm = e1rm
+          for (const r of rows) {
+            const e1rm = estimatedOneRepMax(r.weight, r.reps)
+            if (e1rm > bestE1rm) bestE1rm = e1rm
+          }
+
+          let newTm: number
+          if (bestE1rm > currentMax) {
+            // Cap at MAX_TM_INCREASE_RATIO of current max
+            const capped = Math.min(bestE1rm, currentMax * MAX_TM_INCREASE_RATIO)
+            newTm = roundToNearest5(capped)
+          } else {
+            newTm = roundToNearest5(currentMax + 5)
+          }
+
+          await db.execute(
+            `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,
+            [uuid(), ex.id, newTm, blockNum + 1],
+          )
         }
 
-        // New TM: best e1RM if improved, or +5 lb
-        const newTm = bestE1rm > currentMax ? roundToNearest5(bestE1rm) : roundToNearest5(currentMax + 5)
         await db.execute(
-          `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,
-          [uuid(), ex.id, newTm, blockNum + 1],
+          `UPDATE programs SET block_num = block_num + 1, current_week = 0 WHERE id = ?`,
+          [programId],
         )
+        onAdvance()
       }
-
-      // Increment block, reset week
-      await db.execute(
-        `UPDATE programs SET block_num = block_num + 1, current_week = 0 WHERE id = ?`,
-        [programId],
-      )
-      onAdvance()
+    } finally {
+      advancingRef.current = false
+      setAdvancing(false)
     }
+  }, [currentWeek, programId, blockNum, waveExercises, getEffectiveMax, onAdvance, onWeekChange])
 
-    setAdvancing(false)
-  }, [currentWeek, programId, blockNum, waveExercises, getEffectiveMax, onAdvance, onWeekChange, advancing])
+  const handleAdvanceClick = useCallback(() => {
+    if (currentWeek >= 3) {
+      setShowBlockConfirm(true)
+    } else {
+      handleAdvanceWeek()
+    }
+  }, [currentWeek, handleAdvanceWeek])
 
   return (
     <div className="px-4 py-4 border-b border-border bg-card">
@@ -167,7 +189,7 @@ export function SettingsPanel({
 
       {/* Advance button */}
       <button
-        onClick={handleAdvanceWeek}
+        onClick={handleAdvanceClick}
         disabled={advancing}
         className="w-full py-2.5 border-none rounded-md cursor-pointer bg-[#238636] text-white text-xs font-semibold font-mono disabled:opacity-50"
       >
@@ -177,6 +199,17 @@ export function SettingsPanel({
         <div className="text-[10px] text-muted mt-1.5 text-center">
           New block auto-calculates updated maxes from your logs.
         </div>
+      )}
+
+      {showBlockConfirm && (
+        <ConfirmModal
+          title="Start New Block?"
+          message="This will advance to the next training block and auto-calculate new training maxes from your Week 3 logs."
+          detail="TM increases are capped at 20% per block for safety."
+          confirmLabel="Start New Block"
+          onConfirm={() => { setShowBlockConfirm(false); handleAdvanceWeek() }}
+          onCancel={() => setShowBlockConfirm(false)}
+        />
       )}
     </div>
   )

@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 import { getDb } from '../../lib/db'
 import { CATEGORY_CONFIG } from '../../lib/constants'
 import { ExerciseEditor, type ExerciseFormData } from './ExerciseEditor'
+import { ConfirmModal } from '../ui/ConfirmModal'
 
 interface ProgramBuilderProps {
   programId: string
@@ -39,6 +40,8 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
   const [editingDay, setEditingDay] = useState<string | null>(null)
   const [dayEditValue, setDayEditValue] = useState({ subtitle: '', focus: '' })
   const [programName, setProgramName] = useState('')
+  const [pendingDeleteDay, setPendingDeleteDay] = useState<{ id: string; name: string; logCount: number } | null>(null)
+  const [pendingDeleteExercise, setPendingDeleteExercise] = useState<{ id: string; dayId: string; name: string; logCount: number } | null>(null)
 
   const loadProgram = useCallback(async () => {
     const db = await getDb()
@@ -83,10 +86,19 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
     setSelectedDay(newIndex)
   }
 
+  async function confirmDeleteDay(dayId: string) {
+    const db = await getDb()
+    const day = days.find((d) => d.id === dayId)
+    const logs = await db.select<Array<{ cnt: number }>>(
+      `SELECT COUNT(*) as cnt FROM workout_logs WHERE day_id = ?`,
+      [dayId],
+    )
+    setPendingDeleteDay({ id: dayId, name: day?.subtitle || day?.name || 'this day', logCount: logs[0]?.cnt ?? 0 })
+  }
+
   async function handleDeleteDay(dayId: string) {
     const db = await getDb()
     await db.execute(`DELETE FROM days WHERE id = ?`, [dayId])
-    // Reindex remaining days
     const remaining = days.filter((d) => d.id !== dayId)
     for (let i = 0; i < remaining.length; i++) {
       await db.execute(`UPDATE days SET day_index = ? WHERE id = ?`, [i, remaining[i].id])
@@ -155,10 +167,19 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
     await loadProgram()
   }
 
+  async function confirmDeleteExercise(exerciseId: string, dayId: string) {
+    const db = await getDb()
+    const ex = (exercises.get(dayId) ?? []).find((e) => e.id === exerciseId)
+    const logs = await db.select<Array<{ cnt: number }>>(
+      `SELECT COUNT(*) as cnt FROM set_logs WHERE exercise_id = ?`,
+      [exerciseId],
+    )
+    setPendingDeleteExercise({ id: exerciseId, dayId, name: ex?.name || 'this exercise', logCount: logs[0]?.cnt ?? 0 })
+  }
+
   async function handleDeleteExercise(exerciseId: string, dayId: string) {
     const db = await getDb()
     await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
-    // Reindex
     const remaining = (exercises.get(dayId) ?? []).filter((e) => e.id !== exerciseId)
     for (let i = 0; i < remaining.length; i++) {
       await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [i, remaining[i].id])
@@ -254,7 +275,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
                 </button>
                 {days.length > 1 && (
                   <button
-                    onClick={() => handleDeleteDay(currentDay.id)}
+                    onClick={() => confirmDeleteDay(currentDay.id)}
                     className="text-[10px] text-faint bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
                   >
                     Delete
@@ -316,7 +337,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDeleteExercise(ex.id, currentDay.id)}
+                    onClick={() => confirmDeleteExercise(ex.id, currentDay.id)}
                     className="text-[10px] text-faint bg-transparent border border-border rounded px-2.5 py-1.5 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
                   >
                     x
@@ -336,6 +357,32 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
             </button>
           )}
         </div>
+      )}
+
+      {/* Confirm delete day */}
+      {pendingDeleteDay && (
+        <ConfirmModal
+          title="Delete Day?"
+          message={`Delete "${pendingDeleteDay.name}" and all its exercises?`}
+          detail={pendingDeleteDay.logCount > 0 ? `This will also delete ${pendingDeleteDay.logCount} workout log(s) and all associated set data.` : undefined}
+          confirmLabel="Delete Day"
+          danger
+          onConfirm={() => { handleDeleteDay(pendingDeleteDay.id); setPendingDeleteDay(null) }}
+          onCancel={() => setPendingDeleteDay(null)}
+        />
+      )}
+
+      {/* Confirm delete exercise */}
+      {pendingDeleteExercise && (
+        <ConfirmModal
+          title="Delete Exercise?"
+          message={`Delete "${pendingDeleteExercise.name}"?`}
+          detail={pendingDeleteExercise.logCount > 0 ? `This will also delete ${pendingDeleteExercise.logCount} set log(s) and all associated data.` : undefined}
+          confirmLabel="Delete"
+          danger
+          onConfirm={() => { handleDeleteExercise(pendingDeleteExercise.id, pendingDeleteExercise.dayId); setPendingDeleteExercise(null) }}
+          onCancel={() => setPendingDeleteExercise(null)}
+        />
       )}
 
       {/* Exercise editor modal */}

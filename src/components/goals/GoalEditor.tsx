@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getDb } from '../../lib/db'
+import { MAX_WEIGHT, MAX_REPS } from '../../lib/calc'
 import type { GoalType } from '../../types/goal'
 import type { GoalWithProgress } from '../../hooks/useGoals'
 
@@ -43,15 +44,17 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
 
   function handleSubmit() {
     const val = parseFloat(targetValue)
-    if (!val || val <= 0 || !exerciseId) return
+    if (!Number.isFinite(val) || val <= 0 || !exerciseId) return
+    const maxVal = goalType === 'reps' ? MAX_REPS : MAX_WEIGHT
+    const clamped = Math.min(val, maxVal)
 
     if (editingGoal) {
       onUpdate(editingGoal.id, {
-        targetValue: val,
+        targetValue: clamped,
         deadline: deadline || null,
       })
     } else {
-      onSave(exerciseId, goalType, val, deadline || null)
+      onSave(exerciseId, goalType, clamped, deadline || null)
     }
     onClose()
   }
