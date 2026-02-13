@@ -17,6 +17,8 @@ interface WorkoutViewProps {
   onSelectDay: (index: number) => void
   onOpenSettings: () => void
   onOpenHistory: () => void
+  onAdvanceWeek: () => void
+  onAdvanceBlock: () => void
   settingsOpen: boolean
   historyOpen: boolean
 }
@@ -30,6 +32,8 @@ export function WorkoutView({
   onSelectDay,
   onOpenSettings,
   onOpenHistory,
+  onAdvanceWeek,
+  onAdvanceBlock,
   settingsOpen,
   historyOpen,
 }: WorkoutViewProps) {
@@ -114,7 +118,7 @@ export function WorkoutView({
             </span>
             <button
               onClick={onOpenSettings}
-              className={`border rounded-md px-2 py-1 text-[11px] cursor-pointer ${
+              className={`min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[11px] ${
                 settingsOpen
                   ? 'bg-[#f5a62320] border-accent text-accent'
                   : 'bg-transparent border-[#30363d] text-muted'
@@ -177,6 +181,32 @@ export function WorkoutView({
             }
           />
         ))}
+      </div>
+
+      {/* Progression footer */}
+      <div className="px-4 pt-4 pb-6">
+        {currentDay < days.length - 1 ? (
+          <button
+            onClick={() => onSelectDay(currentDay + 1)}
+            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-xs font-semibold font-mono cursor-pointer hover:border-accent transition-colors"
+          >
+            Next Day →
+          </button>
+        ) : currentWeek < 3 ? (
+          <button
+            onClick={onAdvanceWeek}
+            className="w-full py-3 border-none rounded-lg bg-[#238636] text-white text-xs font-semibold font-mono cursor-pointer"
+          >
+            Advance to Week {currentWeek + 2} →
+          </button>
+        ) : (
+          <button
+            onClick={onAdvanceBlock}
+            className="w-full py-3 border-none rounded-lg bg-accent text-bg text-xs font-semibold font-mono cursor-pointer"
+          >
+            Start New Block →
+          </button>
+        )}
       </div>
 
       {/* Note modal */}

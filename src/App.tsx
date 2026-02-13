@@ -1,7 +1,9 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { v4 as uuid } from 'uuid'
 import { useAppStore } from './store/appStore'
 import { getDb } from './lib/db'
 import { seedIfNeeded, forkTemplate } from './lib/seed'
+import { estimatedOneRepMax, roundToNearest5 } from './lib/calc'
 import { PEAK_STRENGTH_TEMPLATE } from './lib/templates'
 import { useProgram } from './hooks/useProgram'
 import { useTrainingMaxes } from './hooks/useTrainingMaxes'
@@ -166,6 +168,54 @@ function MainApp({ programId }: { programId: string }) {
     await reloadMaxes()
   }, [reload, reloadMaxes])
 
+  const handleAdvanceWeek = useCallback(async () => {
+    if (!program) return
+    const nextWeek = program.currentWeek + 1
+    await setCurrentWeek(nextWeek)
+    await setCurrentDay(0)
+    await reload()
+  }, [program, setCurrentWeek, setCurrentDay, reload])
+
+  const handleAdvanceBlock = useCallback(async () => {
+    if (!program) return
+    const db = await getDb()
+
+    // Auto-calculate new TMs from week 3 (index 2) logs
+    for (const ex of waveExercises) {
+      const currentMax = getEffectiveMax(ex.id)
+      let bestE1rm = currentMax
+
+      const rows = await db.select<Array<{ weight: number; reps: number }>>(
+        `SELECT sl.weight, sl.reps FROM set_logs sl
+         JOIN workout_logs wl ON sl.workout_log_id = wl.id
+         WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
+           AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0`,
+        [programId, ex.id, program.blockNum],
+      )
+
+      for (const r of rows) {
+        const e1rm = estimatedOneRepMax(r.weight, r.reps)
+        if (e1rm > bestE1rm) bestE1rm = e1rm
+      }
+
+      const newTm = bestE1rm > currentMax
+        ? roundToNearest5(bestE1rm)
+        : roundToNearest5(currentMax + 5)
+
+      await db.execute(
+        `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,
+        [uuid(), ex.id, newTm, program.blockNum + 1],
+      )
+    }
+
+    await db.execute(
+      `UPDATE programs SET block_num = block_num + 1, current_week = 0, current_day = 0 WHERE id = ?`,
+      [programId],
+    )
+    await reload()
+    await reloadMaxes()
+  }, [program, programId, waveExercises, getEffectiveMax, reload, reloadMaxes])
+
   if (loading || !program) {
     return (
       <div className="flex items-center justify-center h-screen bg-bg text-muted font-mono text-sm">
@@ -200,6 +250,8 @@ function MainApp({ programId }: { programId: string }) {
               onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false) }}
               onOpenSettings={() => setShowSettings(!showSettings)}
               onOpenHistory={() => {}}
+              onAdvanceWeek={handleAdvanceWeek}
+              onAdvanceBlock={handleAdvanceBlock}
               settingsOpen={showSettings}
               historyOpen={false}
             />

@@ -5,7 +5,8 @@ import type { ProgramTemplate, TemplateExercise } from '../types/template'
 
 /**
  * Seed a program template into the database.
- * Inserts into program_templates + all child tables.
+ * Uses deterministic IDs so that double-calls (e.g. React StrictMode)
+ * produce identical rows and INSERT OR IGNORE is truly idempotent.
  */
 async function seedTemplate(template: ProgramTemplate): Promise<void> {
   const db = await getDb()
@@ -19,39 +20,39 @@ async function seedTemplate(template: ProgramTemplate): Promise<void> {
     const day = template.days[di]
     for (let ei = 0; ei < day.exercises.length; ei++) {
       const ex: TemplateExercise = day.exercises[ei]
-      const etId = uuid()
+      const etId = `${template.id}_d${di}_e${ei}`
       await db.execute(
         `INSERT OR IGNORE INTO exercise_templates (id, template_id, day_index, day_name, day_subtitle, day_focus, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [etId, template.id, di, day.name, day.subtitle, day.focus, ei, ex.id, ex.name, ex.category, ex.sets, ex.reps, ex.defaultWeight, ex.note, ex.isWave ? 1 : 0],
       )
 
       if (ex.isWave && ex.wave) {
-        const wcId = uuid()
+        const wcId = `${etId}_wc`
         await db.execute(
-          `INSERT INTO wave_config_templates (id, exercise_template_id, base_max) VALUES (?, ?, ?)`,
+          `INSERT OR IGNORE INTO wave_config_templates (id, exercise_template_id, base_max) VALUES (?, ?, ?)`,
           [wcId, etId, ex.wave.baseMax],
         )
 
         for (let wi = 0; wi < ex.wave.warmup.length; wi++) {
           const w = ex.wave.warmup[wi]
           await db.execute(
-            `INSERT INTO wave_warmup_templates (id, wave_config_id, set_index, reps, percentage) VALUES (?, ?, ?, ?, ?)`,
-            [uuid(), wcId, wi, w.reps, w.pct],
+            `INSERT OR IGNORE INTO wave_warmup_templates (id, wave_config_id, set_index, reps, percentage) VALUES (?, ?, ?, ?, ?)`,
+            [`${wcId}_wu${wi}`, wcId, wi, w.reps, w.pct],
           )
         }
 
         for (let wki = 0; wki < ex.wave.weeks.length; wki++) {
           const wk = ex.wave.weeks[wki]
-          const wwId = uuid()
+          const wwId = `${wcId}_wk${wki}`
           await db.execute(
-            `INSERT INTO wave_week_templates (id, wave_config_id, week_index, label) VALUES (?, ?, ?, ?)`,
+            `INSERT OR IGNORE INTO wave_week_templates (id, wave_config_id, week_index, label) VALUES (?, ?, ?, ?)`,
             [wwId, wcId, wki, wk.label],
           )
           for (let si = 0; si < wk.sets.length; si++) {
             const s = wk.sets[si]
             await db.execute(
-              `INSERT INTO wave_week_set_templates (id, wave_week_id, set_index, reps, percentage, is_backoff) VALUES (?, ?, ?, ?, ?, ?)`,
-              [uuid(), wwId, si, s.reps, s.pct, s.backoff ? 1 : 0],
+              `INSERT OR IGNORE INTO wave_week_set_templates (id, wave_week_id, set_index, reps, percentage, is_backoff) VALUES (?, ?, ?, ?, ?, ?)`,
+              [`${wwId}_s${si}`, wwId, si, s.reps, s.pct, s.backoff ? 1 : 0],
             )
           }
         }
@@ -180,6 +181,7 @@ export async function forkTemplate(templateId: string): Promise<string> {
 
 /**
  * Run on first launch: seed built-in templates if they don't exist.
+ * Also cleans up duplicate rows left by earlier UUID-based seeding.
  */
 export async function seedIfNeeded(): Promise<void> {
   const db = await getDb()
@@ -198,5 +200,90 @@ export async function seedIfNeeded(): Promise<void> {
   )
   if (existing2.length === 0) {
     await seedTemplate(FIVE_THREE_ONE_TEMPLATE)
+  }
+
+  // Clean up duplicates from earlier UUID-based seeding.
+  // Keep deterministic IDs (contain '_d'), delete random UUID dupes.
+  await cleanupDuplicateTemplates(db)
+}
+
+/**
+ * Remove duplicate exercise_templates (and their children) that were
+ * created by the old UUID-based seeding running twice under StrictMode.
+ * Also cleans up duplicate exercises in already-forked programs.
+ */
+async function cleanupDuplicateTemplates(db: Awaited<ReturnType<typeof getDb>>): Promise<void> {
+  for (const templateId of [PEAK_STRENGTH_TEMPLATE.id, FIVE_THREE_ONE_TEMPLATE.id]) {
+    // Find duplicate exercise_templates: same (template_id, day_index, exercise_index)
+    // but with UUID-style IDs (not our deterministic pattern)
+    const dupes = await db.select<Array<{ id: string }>>(
+      `SELECT et.id FROM exercise_templates et
+       WHERE et.template_id = ?
+         AND et.id NOT LIKE ?
+         AND EXISTS (
+           SELECT 1 FROM exercise_templates et2
+           WHERE et2.template_id = et.template_id
+             AND et2.day_index = et.day_index
+             AND et2.exercise_index = et.exercise_index
+             AND et2.id LIKE ?
+         )`,
+      [templateId, `${templateId}_%`, `${templateId}_%`],
+    )
+
+    if (dupes.length === 0) continue
+
+    const dupeIds = dupes.map((d) => d.id)
+
+    // Delete orphaned wave children for these exercise_templates
+    for (const etId of dupeIds) {
+      const wcs = await db.select<Array<{ id: string }>>(
+        `SELECT id FROM wave_config_templates WHERE exercise_template_id = ?`,
+        [etId],
+      )
+      for (const wc of wcs) {
+        const wks = await db.select<Array<{ id: string }>>(
+          `SELECT id FROM wave_week_templates WHERE wave_config_id = ?`,
+          [wc.id],
+        )
+        for (const wk of wks) {
+          await db.execute(`DELETE FROM wave_week_set_templates WHERE wave_week_id = ?`, [wk.id])
+        }
+        await db.execute(`DELETE FROM wave_week_templates WHERE wave_config_id = ?`, [wc.id])
+        await db.execute(`DELETE FROM wave_warmup_templates WHERE wave_config_id = ?`, [wc.id])
+      }
+      await db.execute(`DELETE FROM wave_config_templates WHERE exercise_template_id = ?`, [etId])
+      await db.execute(`DELETE FROM exercise_templates WHERE id = ?`, [etId])
+    }
+  }
+
+  // Clean up duplicate exercises in already-forked programs.
+  // Keep the first exercise per (day_id, exercise_index) by rowid.
+  const dupeExercises = await db.select<Array<{ id: string }>>(
+    `SELECT e.id FROM exercises e
+     WHERE e.rowid NOT IN (
+       SELECT MIN(e2.rowid) FROM exercises e2 GROUP BY e2.day_id, e2.exercise_index
+     )`,
+  )
+
+  for (const ex of dupeExercises) {
+    // Delete wave children
+    const wcs = await db.select<Array<{ id: string }>>(
+      `SELECT id FROM wave_configs WHERE exercise_id = ?`,
+      [ex.id],
+    )
+    for (const wc of wcs) {
+      const wks = await db.select<Array<{ id: string }>>(
+        `SELECT id FROM wave_weeks WHERE wave_config_id = ?`,
+        [wc.id],
+      )
+      for (const wk of wks) {
+        await db.execute(`DELETE FROM wave_week_sets WHERE wave_week_id = ?`, [wk.id])
+      }
+      await db.execute(`DELETE FROM wave_weeks WHERE wave_config_id = ?`, [wc.id])
+      await db.execute(`DELETE FROM wave_warmups WHERE wave_config_id = ?`, [wc.id])
+    }
+    await db.execute(`DELETE FROM wave_configs WHERE exercise_id = ?`, [ex.id])
+    await db.execute(`DELETE FROM training_maxes WHERE exercise_id = ?`, [ex.id])
+    await db.execute(`DELETE FROM exercises WHERE id = ?`, [ex.id])
   }
 }
