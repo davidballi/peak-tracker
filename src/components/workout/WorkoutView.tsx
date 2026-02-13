@@ -102,7 +102,7 @@ export function WorkoutView({
   return (
     <>
       {/* Sticky header */}
-      <div className="px-4 pt-1 pb-3 border-b border-border sticky top-8 bg-bg z-[100]">
+      <div className="px-4 pt-1 pb-3 border-b border-border sticky top-0 bg-bg z-[100]">
         <div className="flex justify-between items-center mb-2">
           <div>
             <span className="text-accent font-bold text-[15px] tracking-wider">PEAK</span>
@@ -112,16 +112,6 @@ export function WorkoutView({
             <span className="text-dim text-[11px]">
               Block {blockNum} · Wk {currentWeek + 1}
             </span>
-            <button
-              onClick={onOpenHistory}
-              className={`border rounded-md px-2 py-1 text-[11px] cursor-pointer ${
-                historyOpen
-                  ? 'bg-[#f5a62320] border-accent text-accent'
-                  : 'bg-transparent border-[#30363d] text-muted'
-              }`}
-            >
-              📊
-            </button>
             <button
               onClick={onOpenSettings}
               className={`border rounded-md px-2 py-1 text-[11px] cursor-pointer ${
@@ -216,12 +206,6 @@ export function WorkoutView({
         />
       )}
 
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-bg border-t border-border py-2.5 px-4 flex justify-center">
-        <div className="text-[10px] text-faint text-center">
-          Peak Strength Style · Block {blockNum}
-        </div>
-      </div>
     </>
   )
 }

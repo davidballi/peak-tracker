@@ -125,3 +125,112 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
     },
   ],
 }
+
+/**
+ * Wendler's 5/3/1 template — classic 4-day periodization.
+ * Week 1: 5/5/5+  Week 2: 3/3/3+  Week 3: 5/3/1+  Deload: 5/5/5
+ */
+export const FIVE_THREE_ONE_TEMPLATE: ProgramTemplate = {
+  id: '531-classic-v1',
+  name: "Wendler's 5/3/1",
+  author: 'Jim Wendler',
+  description: 'Classic 4-day strength program. Each day focuses on one main lift with 5/3/1 wave loading and Boring But Big accessories.',
+  days: [
+    {
+      id: '531_day1',
+      name: 'Day 1',
+      subtitle: 'Squat Day',
+      focus: 'Squat + Leg Accessories',
+      exercises: [
+        {
+          id: '531_squat', name: 'Back Squat', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: '', isWave: true,
+          wave: {
+            warmup: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 3, pct: 0.60 }],
+            weeks: [
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.65 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.85 }] },
+              { label: 'Wk2 (3s)', sets: [{ reps: 3, pct: 0.70 }, { reps: 3, pct: 0.80 }, { reps: 3, pct: 0.90 }] },
+              { label: 'Wk3 (1s)', sets: [{ reps: 5, pct: 0.75 }, { reps: 3, pct: 0.85 }, { reps: 1, pct: 0.95 }] },
+              { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
+            ],
+            baseMax: 300,
+          },
+        },
+        { id: '531_squat_bbb', name: 'Squat (BBB 5x10)', category: 'acc', sets: 5, reps: 10, defaultWeight: 150, note: 'Boring But Big. 50-60% TM.' },
+        { id: '531_leg_curl', name: 'Leg Curl', category: 'acc', sets: 5, reps: 10, defaultWeight: 90, note: '' },
+        { id: '531_ab1', name: 'Hanging Leg Raise', category: 'acc', sets: 5, reps: 15, defaultWeight: 0, note: '' },
+      ],
+    },
+    {
+      id: '531_day2',
+      name: 'Day 2',
+      subtitle: 'Bench Day',
+      focus: 'Bench Press + Push Accessories',
+      exercises: [
+        {
+          id: '531_bench', name: 'Bench Press', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: '', isWave: true,
+          wave: {
+            warmup: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 3, pct: 0.60 }],
+            weeks: [
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.65 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.85 }] },
+              { label: 'Wk2 (3s)', sets: [{ reps: 3, pct: 0.70 }, { reps: 3, pct: 0.80 }, { reps: 3, pct: 0.90 }] },
+              { label: 'Wk3 (1s)', sets: [{ reps: 5, pct: 0.75 }, { reps: 3, pct: 0.85 }, { reps: 1, pct: 0.95 }] },
+              { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
+            ],
+            baseMax: 225,
+          },
+        },
+        { id: '531_bench_bbb', name: 'Bench Press (BBB 5x10)', category: 'acc', sets: 5, reps: 10, defaultWeight: 115, note: 'Boring But Big. 50-60% TM.' },
+        { id: '531_db_row', name: 'DB Row', category: 'acc', sets: 5, reps: 10, defaultWeight: 60, note: '' },
+        { id: '531_ab2', name: 'Ab Wheel Rollout', category: 'acc', sets: 5, reps: 10, defaultWeight: 0, note: '' },
+      ],
+    },
+    {
+      id: '531_day3',
+      name: 'Day 3',
+      subtitle: 'Deadlift Day',
+      focus: 'Deadlift + Posterior Chain',
+      exercises: [
+        {
+          id: '531_deadlift', name: 'Deadlift', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: '', isWave: true,
+          wave: {
+            warmup: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 3, pct: 0.60 }],
+            weeks: [
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.65 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.85 }] },
+              { label: 'Wk2 (3s)', sets: [{ reps: 3, pct: 0.70 }, { reps: 3, pct: 0.80 }, { reps: 3, pct: 0.90 }] },
+              { label: 'Wk3 (1s)', sets: [{ reps: 5, pct: 0.75 }, { reps: 3, pct: 0.85 }, { reps: 1, pct: 0.95 }] },
+              { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
+            ],
+            baseMax: 365,
+          },
+        },
+        { id: '531_dl_bbb', name: 'Deadlift (BBB 5x10)', category: 'acc', sets: 5, reps: 10, defaultWeight: 185, note: 'Boring But Big. 50-60% TM.' },
+        { id: '531_leg_raise', name: 'Hanging Leg Raise', category: 'acc', sets: 5, reps: 15, defaultWeight: 0, note: '' },
+        { id: '531_good_morning', name: 'Good Morning', category: 'acc', sets: 3, reps: 10, defaultWeight: 95, note: '' },
+      ],
+    },
+    {
+      id: '531_day4',
+      name: 'Day 4',
+      subtitle: 'OHP Day',
+      focus: 'OHP + Shoulder/Back Accessories',
+      exercises: [
+        {
+          id: '531_ohp', name: 'OHP', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: '', isWave: true,
+          wave: {
+            warmup: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 3, pct: 0.60 }],
+            weeks: [
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.65 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.85 }] },
+              { label: 'Wk2 (3s)', sets: [{ reps: 3, pct: 0.70 }, { reps: 3, pct: 0.80 }, { reps: 3, pct: 0.90 }] },
+              { label: 'Wk3 (1s)', sets: [{ reps: 5, pct: 0.75 }, { reps: 3, pct: 0.85 }, { reps: 1, pct: 0.95 }] },
+              { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
+            ],
+            baseMax: 155,
+          },
+        },
+        { id: '531_ohp_bbb', name: 'OHP (BBB 5x10)', category: 'acc', sets: 5, reps: 10, defaultWeight: 80, note: 'Boring But Big. 50-60% TM.' },
+        { id: '531_chinup', name: 'Chin-ups', category: 'acc', sets: 5, reps: 10, defaultWeight: 0, note: '' },
+        { id: '531_face_pull', name: 'Face Pull', category: 'acc', sets: 5, reps: 15, defaultWeight: 0, note: '' },
+      ],
+    },
+  ],
+}

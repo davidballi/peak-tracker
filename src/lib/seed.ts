@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid'
 import { getDb } from './db'
-import { PEAK_STRENGTH_TEMPLATE } from './templates'
+import { PEAK_STRENGTH_TEMPLATE, FIVE_THREE_ONE_TEMPLATE } from './templates'
 import type { ProgramTemplate, TemplateExercise } from '../types/template'
 
 /**
@@ -183,11 +183,20 @@ export async function forkTemplate(templateId: string): Promise<string> {
  */
 export async function seedIfNeeded(): Promise<void> {
   const db = await getDb()
-  const existing = await db.select<Array<{ id: string }>>(
+
+  const existing1 = await db.select<Array<{ id: string }>>(
     `SELECT id FROM program_templates WHERE id = ?`,
     [PEAK_STRENGTH_TEMPLATE.id],
   )
-  if (existing.length === 0) {
+  if (existing1.length === 0) {
     await seedTemplate(PEAK_STRENGTH_TEMPLATE)
+  }
+
+  const existing2 = await db.select<Array<{ id: string }>>(
+    `SELECT id FROM program_templates WHERE id = ?`,
+    [FIVE_THREE_ONE_TEMPLATE.id],
+  )
+  if (existing2.length === 0) {
+    await seedTemplate(FIVE_THREE_ONE_TEMPLATE)
   }
 }
