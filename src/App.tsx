@@ -7,7 +7,7 @@ import { estimatedOneRepMax, roundToNearest5 } from './lib/calc'
 import { PEAK_STRENGTH_TEMPLATE } from './lib/templates'
 import { useProgram } from './hooks/useProgram'
 import { useTrainingMaxes } from './hooks/useTrainingMaxes'
-import { Sidebar } from './components/layout/Sidebar'
+import { BottomNav } from './components/layout/BottomNav'
 import { WorkoutView } from './components/workout/WorkoutView'
 import { SettingsPanel } from './components/settings/SettingsPanel'
 import { HistoryView } from './components/history/HistoryView'
@@ -15,8 +15,6 @@ import { ProgramBuilder } from './components/programs/ProgramBuilder'
 import { ProgramBrowser } from './components/programs/ProgramBrowser'
 import { GoalsView } from './components/goals/GoalsView'
 import { DashboardView } from './components/dashboard/DashboardView'
-
-const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
 
 interface TemplateRow {
   id: string
@@ -94,7 +92,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg text-text font-mono">
+    <div className="flex items-center justify-center min-h-screen bg-bg text-text font-mono pt-[env(safe-area-inset-top)]">
       <div className="max-w-md w-full px-6">
         <div className="text-center mb-10">
           <h1 className="text-2xl font-bold">
@@ -109,7 +107,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
               key={t.id}
               onClick={() => handleFork(t.id)}
               disabled={forking}
-              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent transition-colors disabled:opacity-50"
+              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-bright font-semibold text-sm">{t.name}</span>
@@ -123,7 +121,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
             <button
               onClick={() => handleFork(PEAK_STRENGTH_TEMPLATE.id)}
               disabled={forking}
-              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent transition-colors disabled:opacity-50"
+              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
               <div className="text-bright font-semibold text-sm mb-1">Peak Strength</div>
               <div className="text-muted text-xs mb-1">Garage Strength</div>
@@ -292,17 +290,13 @@ function MainApp({ programId }: { programId: string }) {
   }
 
   return (
-    <div className={`h-screen flex flex-col bg-bg text-text font-mono text-[13px]${IS_IOS ? ' ios-safe-area' : ''}`}>
-      {!IS_IOS && <div data-tauri-drag-region className="h-8 select-none shrink-0" />}
-
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-[500px] mx-auto pb-8">
-            {renderContent()}
-          </div>
+    <div className="h-screen flex flex-col bg-bg text-text font-mono text-[13px] pt-[env(safe-area-inset-top)]">
+      <div className="flex-1 overflow-y-auto pb-[calc(60px+env(safe-area-inset-bottom))]">
+        <div className="max-w-[500px] mx-auto pb-8">
+          {renderContent()}
         </div>
       </div>
+      <BottomNav />
     </div>
   )
 }

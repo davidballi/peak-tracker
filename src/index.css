@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  touch-action: manipulation;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
@@ -20,27 +24,4 @@ input[type='number']::-webkit-outer-spin-button {
 }
 input[type='number'] {
   -moz-appearance: textfield;
-}
-
-/* iOS safe area insets */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .ios-safe-area {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-}
-
-/* Custom scrollbar for macOS feel */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #21262d;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #30363d;
 }

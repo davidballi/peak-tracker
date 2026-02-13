@@ -37,13 +37,13 @@ export function SetRow({
           <span className="text-[11px] text-danger font-semibold">Clear?</span>
           <button
             onClick={() => { onClear(exerciseId, set.index); setConfirmClear(false) }}
-            className="bg-danger border-none rounded-[5px] text-white px-3 py-1 text-[11px] font-semibold cursor-pointer"
+            className="bg-danger border-none rounded-[5px] text-white px-3 py-1 text-[11px] font-semibold cursor-pointer min-h-[44px]"
           >
             Yes
           </button>
           <button
             onClick={() => setConfirmClear(false)}
-            className="bg-[#21262d] border-none rounded-[5px] text-muted px-2.5 py-1 text-[11px] cursor-pointer"
+            className="bg-[#21262d] border-none rounded-[5px] text-muted px-2.5 py-1 text-[11px] cursor-pointer min-h-[44px]"
           >
             No
           </button>
@@ -62,13 +62,15 @@ export function SetRow({
         {/* Checkbox */}
         <button
           onClick={() => onToggleComplete(exerciseId, set.index)}
-          className={`w-6 h-6 rounded-[5px] border-[1.5px] flex items-center justify-center cursor-pointer shrink-0 text-[13px] ${
+          className={`min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer shrink-0`}
+        >
+          <span className={`w-7 h-7 rounded-[5px] border-[1.5px] flex items-center justify-center text-[13px] ${
             isCompleted
               ? 'border-success bg-[#2ea04330] text-success'
               : 'border-[#30363d] bg-transparent text-transparent'
-          }`}
-        >
-          ✓
+          }`}>
+            ✓
+          </span>
         </button>
 
         {/* Label */}
@@ -89,9 +91,10 @@ export function SetRow({
         <div className="flex-1 flex items-center gap-0.5">
           <input
             type="number"
+            inputMode="decimal"
             value={displayWeight ?? ''}
             onChange={(e) => onWeightChange(exerciseId, set.index, e.target.value)}
-            className={`w-full bg-bg border border-border rounded px-1.5 py-[5px] text-[13px] font-mono text-right focus:border-accent outline-none ${
+            className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[16px] font-mono text-right focus:border-accent outline-none ${
               isCompleted ? 'text-success' : 'text-bright'
             }`}
           />
@@ -104,9 +107,10 @@ export function SetRow({
         <div className="w-[50px] flex items-center gap-0.5">
           <input
             type="number"
+            inputMode="decimal"
             value={displayReps ?? ''}
             onChange={(e) => onRepsChange(exerciseId, set.index, e.target.value)}
-            className={`w-full bg-bg border border-border rounded px-1.5 py-[5px] text-[13px] font-mono text-right focus:border-accent outline-none ${
+            className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[16px] font-mono text-right focus:border-accent outline-none ${
               isCompleted ? 'text-success' : 'text-bright'
             }`}
           />
@@ -120,7 +124,7 @@ export function SetRow({
         {(hasData || isCompleted) && (
           <button
             onClick={() => setConfirmClear(true)}
-            className="bg-transparent border-none cursor-pointer p-0.5 text-[11px] text-faint shrink-0 leading-none opacity-50 hover:opacity-100"
+            className="bg-transparent border-none cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center text-[11px] text-faint shrink-0 leading-none opacity-50 hover:opacity-100 active:opacity-100"
           >
             ✕
           </button>

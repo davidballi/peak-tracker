@@ -188,7 +188,7 @@ export function WorkoutView({
         {currentDay < days.length - 1 ? (
           <button
             onClick={() => onSelectDay(currentDay + 1)}
-            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-xs font-semibold font-mono cursor-pointer hover:border-accent transition-colors"
+            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-xs font-semibold font-mono cursor-pointer hover:border-accent active:border-accent transition-colors"
           >
             Next Day →
           </button>

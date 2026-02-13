@@ -49,7 +49,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
           <div className="text-[14px] font-bold text-accent">
             {initial ? 'Edit Exercise' : 'Add Exercise'}
           </div>
-          <button onClick={onClose} className="bg-transparent border-none text-dim text-xl cursor-pointer p-1">
+          <button onClick={onClose} className="bg-transparent border-none text-dim text-xl cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center">
             x
           </button>
         </div>
@@ -75,7 +75,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
               <button
                 key={cat}
                 onClick={() => setData({ ...data, category: cat })}
-                className={`flex-1 py-1.5 rounded text-[10px] font-mono border-none cursor-pointer ${
+                className={`flex-1 py-2.5 min-h-[44px] rounded text-[10px] font-mono border-none cursor-pointer ${
                   cat === data.category ? 'font-bold' : 'bg-[#21262d] text-muted'
                 }`}
                 style={
@@ -110,9 +110,10 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
             <label className="text-[11px] text-muted block mb-1">Base Training Max (lb)</label>
             <input
               type="number"
+              inputMode="decimal"
               value={data.baseMax || ''}
               onChange={(e) => setData({ ...data, baseMax: parseInt(e.target.value) || 0 })}
-              className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[13px] font-mono focus:border-accent outline-none"
+              className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
               placeholder="e.g. 315"
             />
             <div className="text-[10px] text-faint mt-1">
@@ -126,27 +127,30 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
               <label className="text-[11px] text-muted block mb-1">Sets</label>
               <input
                 type="number"
+                inputMode="decimal"
                 value={data.sets}
                 onChange={(e) => setData({ ...data, sets: parseInt(e.target.value) || 0 })}
-                className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[13px] font-mono focus:border-accent outline-none"
+                className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[16px] font-mono focus:border-accent outline-none"
               />
             </div>
             <div>
               <label className="text-[11px] text-muted block mb-1">Reps</label>
               <input
                 type="number"
+                inputMode="decimal"
                 value={data.reps}
                 onChange={(e) => setData({ ...data, reps: parseInt(e.target.value) || 0 })}
-                className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[13px] font-mono focus:border-accent outline-none"
+                className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[16px] font-mono focus:border-accent outline-none"
               />
             </div>
             <div>
               <label className="text-[11px] text-muted block mb-1">Weight (lb)</label>
               <input
                 type="number"
+                inputMode="decimal"
                 value={data.defaultWeight || ''}
                 onChange={(e) => setData({ ...data, defaultWeight: parseInt(e.target.value) || 0 })}
-                className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[13px] font-mono focus:border-accent outline-none"
+                className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
               />
             </div>
           </div>

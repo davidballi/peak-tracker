@@ -83,7 +83,7 @@ export function ExerciseCard({
         </div>
         <button
           onClick={onNoteClick}
-          className={`bg-transparent border-none cursor-pointer p-[2px_4px] text-[14px] shrink-0 transition-opacity ${
+          className={`bg-transparent border-none cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center text-[18px] shrink-0 transition-opacity ${
             exerciseNote ? 'opacity-100' : 'opacity-30 grayscale'
           }`}
         >

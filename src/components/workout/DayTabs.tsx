@@ -13,10 +13,10 @@ export function DayTabs({ days, currentDay, onSelectDay }: DayTabsProps) {
         <button
           key={d.id}
           onClick={() => onSelectDay(i)}
-          className={`flex-1 py-2 border-none rounded-md text-[11px] font-semibold tracking-wide transition-all ${
+          className={`flex-1 py-2.5 border-none rounded-md text-[11px] font-semibold tracking-wide transition-all ${
             i === currentDay
               ? 'bg-[#21262d] text-accent'
-              : 'bg-transparent text-faint hover:text-muted'
+              : 'bg-transparent text-faint hover:text-muted active:text-muted'
           }`}
         >
           {d.name}

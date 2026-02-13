@@ -51,7 +51,7 @@ export function NoteModal({
           </div>
           <button
             onClick={onClose}
-            className="bg-transparent border-none text-dim text-xl cursor-pointer p-1"
+            className="bg-transparent border-none text-dim text-xl cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             ×
           </button>
@@ -66,7 +66,7 @@ export function NoteModal({
               : 'Notes for this exercise — form cues, repeat weight, etc.'
           }
           autoFocus
-          className="w-full min-h-[100px] bg-bg border border-[#30363d] rounded-lg text-bright p-3 text-[13px] font-mono resize-y leading-relaxed focus:border-accent outline-none"
+          className="w-full min-h-[100px] bg-bg border border-[#30363d] rounded-lg text-bright p-3 text-[16px] font-mono resize-y leading-relaxed focus:border-accent outline-none"
         />
 
         {previousNotes.length > 0 && (

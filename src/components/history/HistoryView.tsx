@@ -94,7 +94,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
               className={`px-2.5 py-1 rounded-md text-[11px] font-mono border-none cursor-pointer transition-colors ${
                 selectedExerciseId === ml.exerciseId
                   ? 'text-bg font-bold'
-                  : 'bg-[#21262d] text-muted hover:text-bright'
+                  : 'bg-[#21262d] text-muted hover:text-bright active:text-bright'
               }`}
               style={selectedExerciseId === ml.exerciseId ? { background: ml.color } : undefined}
             >
@@ -107,7 +107,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
               loadAllLiftsOverlay()
             }}
             className={`px-2.5 py-1 rounded-md text-[11px] font-mono border-none cursor-pointer transition-colors ${
-              showOverlay ? 'bg-accent text-bg font-bold' : 'bg-[#21262d] text-muted hover:text-bright'
+              showOverlay ? 'bg-accent text-bg font-bold' : 'bg-[#21262d] text-muted hover:text-bright active:text-bright'
             }`}
           >
             All Lifts

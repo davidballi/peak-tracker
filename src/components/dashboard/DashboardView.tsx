@@ -105,7 +105,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
       <div className="grid grid-cols-2 gap-2 mb-5">
         <button
           onClick={() => setCurrentView('workout')}
-          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent transition-colors"
+          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
           <div className="text-[14px] mb-1">&#127947;&#65039;</div>
           <div className="text-[12px] font-semibold text-bright">Start Workout</div>
@@ -113,7 +113,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
         </button>
         <button
           onClick={() => setCurrentView('history')}
-          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent transition-colors"
+          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
           <div className="text-[14px] mb-1">&#128200;</div>
           <div className="text-[12px] font-semibold text-bright">View History</div>

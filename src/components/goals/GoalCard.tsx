@@ -63,13 +63,13 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
       <div className="flex gap-2">
         <button
           onClick={() => onEdit(goal)}
-          className="text-[10px] text-muted bg-transparent border border-border rounded px-2 py-1 cursor-pointer hover:text-bright"
+          className="text-[10px] text-muted bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-bright active:text-bright"
         >
           Edit
         </button>
         <button
           onClick={() => onDelete(goal.id)}
-          className="text-[10px] text-faint bg-transparent border border-border rounded px-2 py-1 cursor-pointer hover:text-danger"
+          className="text-[10px] text-faint bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
         >
           Delete
         </button>

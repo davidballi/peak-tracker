@@ -70,7 +70,7 @@ export function SetLogList({ entries, onDelete }: SetLogListProps) {
                   ) : (
                     <button
                       onClick={() => setConfirmId(entry.id)}
-                      className="text-faint hover:text-danger bg-transparent border-none cursor-pointer text-[11px] p-0.5"
+                      className="text-faint hover:text-danger active:text-danger bg-transparent border-none cursor-pointer text-[11px] min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >
                       x
                     </button>

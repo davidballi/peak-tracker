@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Peak Tracker is a macOS desktop app for tracking workouts with wave-loaded periodization (Garage Strength / Peak Strength style). Built with **Tauri v2 + React 18 + TypeScript + Vite + Tailwind CSS + SQLite**.
+Peak Tracker is an iOS app for tracking workouts with wave-loaded periodization (Garage Strength / Peak Strength style). Built with **Tauri v2 + React 18 + TypeScript + Vite + Tailwind CSS + SQLite**.
 
 The original PWA version is preserved as `index.pwa.html` for reference. All new development happens on the `dev` branch.
 
@@ -14,22 +14,22 @@ The original PWA version is preserved as `index.pwa.html` for reference. All new
 # Install dependencies
 npm install
 
-# Run development build (Vite + Tauri)
-npm run tauri dev
+# Run on iOS Simulator
+npm run tauri ios dev
 
-# Build for production
-npm run tauri build
+# Build for iOS
+npm run tauri ios build
 
-# Frontend only (no Tauri)
+# Frontend only (no Tauri, for quick iteration)
 npm run dev
 ```
 
-Requires: Node.js, Rust (via rustup), Cargo.
+Requires: Node.js, Rust (via rustup), Xcode 15+.
 
 ## Architecture
 
 ### Tech Stack
-- **Desktop wrapper:** Tauri v2 (Rust, native macOS WebView)
+- **Mobile wrapper:** Tauri v2 (Rust, native iOS WebView)
 - **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
 - **State:** Zustand (UI state) + SQLite (persistent data via `@tauri-apps/plugin-sql`)
 - **Charts:** Recharts
@@ -40,12 +40,12 @@ Requires: Node.js, Rust (via rustup), Cargo.
 ```
 src/
   components/          # React components organized by feature
-    layout/            # AppShell, Sidebar, TitleBar
+    layout/            # BottomNav (tab bar)
     workout/           # DayTabs, ExerciseCard, SetRow, etc.
     history/           # Charts, StatCards, SetLogList
     programs/          # ProgramBrowser, ProgramBuilder, editors
     goals/             # GoalCard, GoalEditor
-    settings/          # SettingsView, TrainingMaxEditor, BlockManager
+    settings/          # SettingsPanel
     dashboard/         # DashboardView
     ui/                # Shared: Button, Input, Modal, Card, Badge
   hooks/               # Custom React hooks (useWorkout, useExerciseSets, etc.)
@@ -62,14 +62,15 @@ src/
     goal.ts            # StrengthGoal
     template.ts        # ProgramTemplate, TemplateExercise, etc.
   store/               # Zustand stores
-    appStore.ts        # activeProgramId, sidebarCollapsed, dbReady
+    appStore.ts        # activeProgramId, currentView, dbReady
     workoutStore.ts    # activeWorkoutLogId, completedSets, noteModal
 src-tauri/
   src/lib.rs           # Tauri app setup with SQL plugin + migrations
   migrations/          # SQLite migration files
   Cargo.toml           # Rust dependencies
-  tauri.conf.json      # Tauri config (window, bundle, identifier)
+  tauri.conf.json      # Tauri config (bundle, identifier)
   capabilities/        # Tauri permission capabilities
+  gen/apple/           # Xcode project config
 ```
 
 ### Data Model (SQLite)

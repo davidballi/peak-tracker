@@ -108,7 +108,7 @@ export function SettingsPanel({
             <button
               key={w}
               onClick={() => onWeekChange(w)}
-              className={`flex-1 py-1.5 border-none rounded text-[11px] font-mono cursor-pointer ${
+              className={`flex-1 py-2.5 min-h-[44px] border-none rounded text-[11px] font-mono cursor-pointer ${
                 w === currentWeek
                   ? 'bg-accent text-bg'
                   : 'bg-[#21262d] text-muted'
@@ -135,9 +135,10 @@ export function SettingsPanel({
                 <div className="flex gap-1">
                   <input
                     type="number"
+                    inputMode="decimal"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    className="w-[60px] bg-bg border border-[#30363d] rounded text-accent px-1.5 py-0.5 text-xs font-mono"
+                    className="w-[70px] bg-bg border border-[#30363d] rounded text-accent px-1.5 py-1.5 text-[16px] font-mono"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveMax(ex.id)
@@ -146,7 +147,7 @@ export function SettingsPanel({
                   />
                   <button
                     onClick={() => handleSaveMax(ex.id)}
-                    className="bg-success border-none rounded text-white px-2 py-0.5 text-[11px] cursor-pointer"
+                    className="bg-success border-none rounded text-white px-3 py-1.5 min-h-[44px] text-[11px] cursor-pointer"
                   >
                     ✓
                   </button>
@@ -154,7 +155,7 @@ export function SettingsPanel({
               ) : (
                 <button
                   onClick={() => { setEditingId(ex.id); setEditValue(String(mx)) }}
-                  className="bg-transparent border border-[#30363d] rounded text-accent px-2.5 py-0.5 text-xs cursor-pointer font-mono"
+                  className="bg-transparent border border-[#30363d] rounded text-accent px-2.5 py-1.5 min-h-[44px] text-xs cursor-pointer font-mono"
                 >
                   {mx} lb
                 </button>

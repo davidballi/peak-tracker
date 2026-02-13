@@ -66,7 +66,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
           <div className="text-[14px] font-bold text-accent">
             {editingGoal ? 'Edit Goal' : 'New Goal'}
           </div>
-          <button onClick={onClose} className="bg-transparent border-none text-dim text-xl cursor-pointer p-1">
+          <button onClick={onClose} className="bg-transparent border-none text-dim text-xl cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center">
             x
           </button>
         </div>
@@ -96,7 +96,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
                 <button
                   key={gt}
                   onClick={() => setGoalType(gt)}
-                  className={`flex-1 py-1.5 rounded text-[11px] font-mono border-none cursor-pointer ${
+                  className={`flex-1 py-2.5 min-h-[44px] rounded text-[11px] font-mono border-none cursor-pointer ${
                     gt === goalType ? 'bg-accent text-bg' : 'bg-[#21262d] text-muted'
                   }`}
                 >
@@ -114,9 +114,10 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
           </label>
           <input
             type="number"
+            inputMode="decimal"
             value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)}
-            className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[13px] font-mono focus:border-accent outline-none"
+            className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
             placeholder={goalType === 'reps' ? 'e.g. 10' : 'e.g. 350'}
             autoFocus
           />
