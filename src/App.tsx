@@ -14,6 +14,8 @@ import { ProgramBrowser } from './components/programs/ProgramBrowser'
 import { GoalsView } from './components/goals/GoalsView'
 import { DashboardView } from './components/dashboard/DashboardView'
 
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+
 interface TemplateRow {
   id: string
   name: string
@@ -238,9 +240,8 @@ function MainApp({ programId }: { programId: string }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg text-text font-mono text-[13px]">
-      {/* Title bar drag region */}
-      <div data-tauri-drag-region className="h-8 select-none shrink-0" />
+    <div className={`h-screen flex flex-col bg-bg text-text font-mono text-[13px]${IS_IOS ? ' ios-safe-area' : ''}`}>
+      {!IS_IOS && <div data-tauri-drag-region className="h-8 select-none shrink-0" />}
 
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />

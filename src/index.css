@@ -22,6 +22,14 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 
+/* iOS safe area insets */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .ios-safe-area {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* Custom scrollbar for macOS feel */
 ::-webkit-scrollbar {
   width: 6px;

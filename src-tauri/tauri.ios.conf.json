@@ -1,0 +1,10 @@
+{
+  "app": {
+    "windows": [
+      {
+        "title": "Peak Tracker",
+        "fullscreen": false
+      }
+    ]
+  }
+}
