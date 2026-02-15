@@ -104,7 +104,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
       <div className="grid grid-cols-2 gap-2 mb-5">
         <button
           onClick={() => setCurrentView('workout')}
-          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
+          className="p-3 bg-card border border-border-elevated rounded-lg shadow-card cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
           <div className="text-[14px] mb-1">&#127947;&#65039;</div>
           <div className="text-[12px] font-semibold text-bright">Start Workout</div>
@@ -112,7 +112,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
         </button>
         <button
           onClick={() => setCurrentView('history')}
-          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
+          className="p-3 bg-card border border-border-elevated rounded-lg shadow-card cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
           <div className="text-[14px] mb-1">&#128200;</div>
           <div className="text-[12px] font-semibold text-bright">View History</div>
@@ -124,11 +124,11 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
       <div className="mb-5">
         <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">OVERVIEW</div>
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-card border border-border rounded-lg p-3">
+          <div className="bg-card border border-border-elevated rounded-lg shadow-card p-3">
             <div className="text-[20px] font-bold text-accent font-mono">{totalSessions}</div>
             <div className="text-[10px] text-muted">Logged Sessions</div>
           </div>
-          <div className="bg-card border border-border rounded-lg p-3">
+          <div className="bg-card border border-border-elevated rounded-lg shadow-card p-3">
             <div className="text-[20px] font-bold text-bright font-mono">{blockNum}</div>
             <div className="text-[10px] text-muted">Current Block</div>
           </div>
@@ -141,7 +141,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">PERSONAL RECORDS (Est 1RM)</div>
           <div className="space-y-1.5">
             {liftPrs.map((pr) => (
-              <div key={pr.name} className="flex justify-between items-center p-2.5 bg-card border border-border rounded-lg">
+              <div key={pr.name} className="flex justify-between items-center p-2.5 bg-card border border-border-elevated rounded-lg shadow-card">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ background: pr.color }} />
                   <span className="text-[12px] text-bright">{pr.name}</span>
@@ -168,7 +168,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
         <button
           onClick={handleImport}
           disabled={importing || !importJson.trim()}
-          className="w-full py-2 border-none rounded-md cursor-pointer bg-accent text-bg text-[12px] font-semibold font-mono disabled:opacity-50"
+          className="w-full py-2 border-none rounded-md cursor-pointer bg-accent text-bg text-[12px] font-semibold disabled:opacity-50"
         >
           {importing ? 'Importing...' : 'Import Data'}
         </button>

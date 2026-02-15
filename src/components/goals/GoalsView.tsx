@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useGoals, type GoalWithProgress } from '../../hooks/useGoals'
 import { GoalCard } from './GoalCard'
 import { GoalEditor } from './GoalEditor'
@@ -32,18 +33,26 @@ export function GoalsView({ programId }: GoalsViewProps) {
         <div className="text-xs font-semibold text-accent">STRENGTH GOALS</div>
         <button
           onClick={() => { setEditingGoal(null); setShowEditor(true) }}
-          className="text-[11px] bg-[#238636] text-white border-none rounded-md px-3 py-1.5 cursor-pointer font-mono"
+          className="text-[11px] bg-[#238636] text-white border-none rounded-md px-3 py-1.5 cursor-pointer"
         >
           + New Goal
         </button>
       </div>
 
       {/* Toast */}
+      <AnimatePresence>
       {toast && (
-        <div className="mb-3 p-2.5 bg-[#f5a62320] border border-accent rounded-lg text-[12px] text-accent text-center font-semibold">
+        <motion.div
+          className="mb-3 p-2.5 bg-[#f5a62320] border border-accent rounded-lg text-[12px] text-accent text-center font-semibold"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+        >
           {toast}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {loading && <div className="text-center py-8 text-muted text-xs">Loading goals...</div>}
 
@@ -90,6 +99,7 @@ export function GoalsView({ programId }: GoalsViewProps) {
       )}
 
       {/* Editor modal */}
+      <AnimatePresence>
       {showEditor && (
         <GoalEditor
           programId={programId}
@@ -99,6 +109,7 @@ export function GoalsView({ programId }: GoalsViewProps) {
           onClose={() => setShowEditor(false)}
         />
       )}
+      </AnimatePresence>
     </div>
   )
 }

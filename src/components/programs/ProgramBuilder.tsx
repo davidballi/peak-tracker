@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { v4 as uuid } from 'uuid'
 import { getDb } from '../../lib/db'
 import { CATEGORY_CONFIG } from '../../lib/constants'
@@ -210,7 +211,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
         </div>
         <button
           onClick={onBrowseTemplates}
-          className="text-[11px] bg-transparent text-muted border border-border rounded-md px-3 py-2 min-h-[44px] cursor-pointer font-mono hover:text-bright active:text-bright"
+          className="text-[11px] bg-transparent text-muted border border-border rounded-md px-3 py-2 min-h-[44px] cursor-pointer hover:text-bright active:text-bright"
         >
           Browse Templates
         </button>
@@ -222,7 +223,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           <button
             key={day.id}
             onClick={() => setSelectedDay(i)}
-            className={`px-2.5 py-1.5 rounded-md text-[11px] font-mono border-none cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-md text-[11px] border-none cursor-pointer ${
               i === selectedDay ? 'bg-accent text-bg font-bold' : 'bg-[#21262d] text-muted'
             }`}
           >
@@ -231,7 +232,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
         ))}
         <button
           onClick={handleAddDay}
-          className="px-2.5 py-1.5 rounded-md text-[11px] font-mono border border-dashed border-border bg-transparent text-faint cursor-pointer hover:text-muted"
+          className="px-2.5 py-1.5 rounded-md text-[11px] border border-dashed border-border bg-transparent text-faint cursor-pointer hover:text-muted"
         >
           + Day
         </button>
@@ -239,20 +240,20 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
 
       {/* Day header */}
       {currentDay && (
-        <div className="mb-3 p-3 bg-card border border-border rounded-lg">
+        <div className="mb-3 p-3 bg-card border border-border-elevated rounded-lg shadow-card">
           {editingDay === currentDay.id ? (
             <div className="space-y-2">
               <input
                 value={dayEditValue.subtitle}
                 onChange={(e) => setDayEditValue({ ...dayEditValue, subtitle: e.target.value })}
-                className="w-full bg-bg border border-[#30363d] rounded text-bright p-1.5 text-[12px] font-mono"
+                className="w-full bg-bg border border-[#30363d] rounded text-bright p-1.5 text-[12px]"
                 placeholder="Day title"
                 autoFocus
               />
               <input
                 value={dayEditValue.focus}
                 onChange={(e) => setDayEditValue({ ...dayEditValue, focus: e.target.value })}
-                className="w-full bg-bg border border-[#30363d] rounded text-bright p-1.5 text-[12px] font-mono"
+                className="w-full bg-bg border border-[#30363d] rounded text-bright p-1.5 text-[12px]"
                 placeholder="Focus area"
               />
               <div className="flex gap-1">
@@ -293,7 +294,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           {currentExercises.map((ex, idx) => {
             const cat = CATEGORY_CONFIG[ex.category as keyof typeof CATEGORY_CONFIG] ?? CATEGORY_CONFIG.acc
             return (
-              <div key={ex.id} className="flex items-center gap-2 p-2.5 bg-card border border-border rounded-lg">
+              <div key={ex.id} className="flex items-center gap-2 p-2.5 bg-card border border-border-elevated rounded-lg shadow-card">
                 {/* Reorder buttons */}
                 <div className="flex flex-col gap-0.5">
                   <button
@@ -351,7 +352,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           {currentDay && (
             <button
               onClick={() => setEditingExercise({ dayId: currentDay.id })}
-              className="w-full py-2.5 border border-dashed border-border rounded-lg bg-transparent text-faint text-[11px] font-mono cursor-pointer hover:text-muted hover:border-muted"
+              className="w-full py-2.5 border border-dashed border-border rounded-lg bg-transparent text-faint text-[11px] cursor-pointer hover:text-muted hover:border-muted"
             >
               + Add Exercise
             </button>
@@ -360,6 +361,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
       )}
 
       {/* Confirm delete day */}
+      <AnimatePresence>
       {pendingDeleteDay && (
         <ConfirmModal
           title="Delete Day?"
@@ -371,8 +373,10 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           onCancel={() => setPendingDeleteDay(null)}
         />
       )}
+      </AnimatePresence>
 
       {/* Confirm delete exercise */}
+      <AnimatePresence>
       {pendingDeleteExercise && (
         <ConfirmModal
           title="Delete Exercise?"
@@ -384,8 +388,10 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           onCancel={() => setPendingDeleteExercise(null)}
         />
       )}
+      </AnimatePresence>
 
       {/* Exercise editor modal */}
+      <AnimatePresence>
       {editingExercise && (
         <ExerciseEditor
           initial={
@@ -406,6 +412,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           onClose={() => setEditingExercise(null)}
         />
       )}
+      </AnimatePresence>
     </div>
   )
 }

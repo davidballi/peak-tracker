@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { v4 as uuid } from 'uuid'
 import { getDb, withWriteLock } from '../../lib/db'
 import { estimatedOneRepMax, roundToNearest5, validateWeight } from '../../lib/calc'
@@ -120,7 +121,7 @@ export function SettingsPanel({
   }, [currentWeek, handleAdvanceWeek])
 
   return (
-    <div className="px-4 py-4 border-b border-border bg-card">
+    <div className="px-4 py-4 border-b border-border-elevated bg-card shadow-card">
       <div className="text-xs font-semibold text-accent mb-3">SETTINGS</div>
 
       {/* Week selector */}
@@ -131,7 +132,7 @@ export function SettingsPanel({
             <button
               key={w}
               onClick={() => onWeekChange(w)}
-              className={`flex-1 py-2.5 min-h-[44px] border-none rounded text-[11px] font-mono cursor-pointer ${
+              className={`flex-1 py-2.5 min-h-[44px] border-none rounded text-[11px] cursor-pointer ${
                 w === currentWeek
                   ? 'bg-accent text-bg'
                   : 'bg-[#21262d] text-muted'
@@ -192,7 +193,7 @@ export function SettingsPanel({
       <button
         onClick={handleAdvanceClick}
         disabled={advancing}
-        className="w-full py-2.5 border-none rounded-md cursor-pointer bg-[#238636] text-white text-xs font-semibold font-mono disabled:opacity-50"
+        className="w-full py-2.5 border-none rounded-md cursor-pointer bg-[#238636] text-white text-xs font-semibold disabled:opacity-50"
       >
         {currentWeek < 3 ? `Advance to Week ${currentWeek + 2}` : 'Start New Block →'}
       </button>
@@ -202,6 +203,7 @@ export function SettingsPanel({
         </div>
       )}
 
+      <AnimatePresence>
       {showBlockConfirm && (
         <ConfirmModal
           title="Start New Block?"
@@ -212,6 +214,7 @@ export function SettingsPanel({
           onCancel={() => setShowBlockConfirm(false)}
         />
       )}
+      </AnimatePresence>
     </div>
   )
 }

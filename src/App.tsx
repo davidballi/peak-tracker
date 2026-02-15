@@ -74,7 +74,7 @@ export default function App() {
 
   if (loading || !dbReady) {
     return (
-      <div className="flex items-center justify-center h-screen bg-bg text-text font-mono">
+      <div className="flex items-center justify-center h-screen bg-bg text-text">
         <div className="text-center">
           <div className="text-accent font-bold text-lg tracking-wider mb-2">FORGE</div>
           <div className="text-muted text-sm">Loading...</div>
@@ -107,7 +107,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg text-text font-mono pt-[env(safe-area-inset-top)]">
+    <div className="flex items-center justify-center min-h-screen bg-bg text-text pt-[env(safe-area-inset-top)]">
       <div className="max-w-md w-full px-6">
         <div className="text-center mb-10">
           <h1 className="text-2xl font-bold">
@@ -121,7 +121,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
               key={t.id}
               onClick={() => handleFork(t.id)}
               disabled={forking}
-              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent active:border-accent transition-colors disabled:opacity-50"
+              className="w-full text-left p-4 bg-card border border-border-elevated rounded-lg shadow-card hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-bright font-semibold text-sm">{t.name}</span>
@@ -135,7 +135,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
             <button
               onClick={() => handleFork(PEAK_STRENGTH_TEMPLATE.id)}
               disabled={forking}
-              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent active:border-accent transition-colors disabled:opacity-50"
+              className="w-full text-left p-4 bg-card border border-border-elevated rounded-lg shadow-card hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
               <div className="text-bright font-semibold text-sm mb-1">Peak Strength</div>
               <div className="text-muted text-xs mb-1">Garage Strength</div>
@@ -237,7 +237,7 @@ function MainApp({ programId }: { programId: string }) {
 
   if (loading || !program) {
     return (
-      <div className="flex items-center justify-center h-screen bg-bg text-muted font-mono text-sm">
+      <div className="flex items-center justify-center h-screen bg-bg text-muted text-sm">
         Loading program...
       </div>
     )
@@ -309,8 +309,8 @@ function MainApp({ programId }: { programId: string }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg text-text font-mono text-[13px] pt-[env(safe-area-inset-top)]">
-      <div className="flex-1 overflow-y-auto pb-[calc(60px+env(safe-area-inset-bottom))]">
+    <div className="h-screen flex flex-col bg-bg text-text text-[13px] pt-[env(safe-area-inset-top)]">
+      <div className="flex-1 overflow-y-auto pb-[calc(64px+env(safe-area-inset-bottom))]">
         <div className="max-w-[500px] mx-auto pb-8">
           {renderContent()}
         </div>

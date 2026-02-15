@@ -61,7 +61,7 @@ export function ProgramBrowser({ onBack }: ProgramBrowserProps) {
 
       <div className="space-y-2">
         {templates.map((t) => (
-          <div key={t.id} className="p-4 bg-card border border-border rounded-lg">
+          <div key={t.id} className="p-4 bg-card border border-border-elevated rounded-lg shadow-card">
             <div className="flex justify-between items-start mb-2">
               <div>
                 <div className="text-[13px] font-semibold text-bright">{t.name}</div>
@@ -70,7 +70,7 @@ export function ProgramBrowser({ onBack }: ProgramBrowserProps) {
               <button
                 onClick={() => handleFork(t.id)}
                 disabled={forking}
-                className="text-[11px] bg-[#238636] text-white border-none rounded-md px-3 py-1.5 cursor-pointer font-mono disabled:opacity-50"
+                className="text-[11px] bg-[#238636] text-white border-none rounded-md px-3 py-1.5 cursor-pointer disabled:opacity-50"
               >
                 Fork
               </button>

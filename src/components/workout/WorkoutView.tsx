@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import type { DayWithExercises } from '../../types/program'
 import { useWorkoutLog } from '../../hooks/useWorkoutLog'
 import { useTrainingMaxes } from '../../hooks/useTrainingMaxes'
@@ -145,7 +146,7 @@ export function WorkoutView({
             }`}
           >
             <span className="text-[14px]">📝</span>
-            <span className={`text-[10px] font-mono ${workoutNote ? 'text-accent' : 'text-dim'}`}>
+            <span className={`text-[10px] ${workoutNote ? 'text-accent' : 'text-dim'}`}>
               {workoutNote ? 'Notes' : 'Add note'}
             </span>
           </button>
@@ -183,21 +184,21 @@ export function WorkoutView({
         {currentDay < days.length - 1 ? (
           <button
             onClick={() => onSelectDay(currentDay + 1)}
-            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-xs font-semibold font-mono cursor-pointer hover:border-accent active:border-accent transition-colors"
+            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-xs font-semibold cursor-pointer hover:border-accent active:border-accent transition-colors"
           >
             Next Day →
           </button>
         ) : currentWeek < 3 ? (
           <button
             onClick={onAdvanceWeek}
-            className="w-full py-3 border-none rounded-lg bg-[#238636] text-white text-xs font-semibold font-mono cursor-pointer"
+            className="w-full py-3 border-none rounded-lg bg-[#238636] text-white text-xs font-semibold cursor-pointer"
           >
             Advance to Week {currentWeek + 2} →
           </button>
         ) : (
           <button
             onClick={onAdvanceBlock}
-            className="w-full py-3 border-none rounded-lg bg-accent text-bg text-xs font-semibold font-mono cursor-pointer"
+            className="w-full py-3 border-none rounded-lg bg-accent text-bg text-xs font-semibold cursor-pointer"
           >
             Start New Block →
           </button>
@@ -205,6 +206,7 @@ export function WorkoutView({
       </div>
 
       {/* Note modal */}
+      <AnimatePresence>
       {noteModal && (
         <NoteModal
           type={noteModal.type}
@@ -230,6 +232,7 @@ export function WorkoutView({
           loadPreviousNotes={loadPreviousNotesForModal}
         />
       )}
+      </AnimatePresence>
 
     </>
   )

@@ -54,7 +54,7 @@ export function ExerciseCard({
 
   return (
     <div
-      className="mb-2 rounded-lg overflow-hidden"
+      className="mb-2 rounded-lg overflow-hidden shadow-card"
       style={{
         border: `1px solid ${cat.border}22`,
         background: cat.bg,

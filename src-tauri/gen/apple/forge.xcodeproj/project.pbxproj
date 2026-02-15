@@ -17,6 +17,7 @@
 		74BBA06E0BF960C4D070F939 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED59623CDAECEA0E86BB05B /* UIKit.framework */; };
 		760364ED580B5F1B508BAD44 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD8F6ABEB0E6C427777FE60D /* Security.framework */; };
 		95196B8A6FEB8DB833CAE912 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E5012D29F797F77608D2848 /* Metal.framework */; };
+		B018448597775C408D2DF9BC /* libapp.a in Resources */ = {isa = PBXBuildFile; fileRef = 7E087E2D49A9F1BA4A75CBAE /* libapp.a */; };
 		C40974EDCEC48D776ED870B2 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = A24AC089813BF916AD1D62C3 /* assets */; };
 		E77B6A2414117A62E8AA0F71 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 17BFCCD79B1FAC6D0740B22F /* MetalKit.framework */; };
 /* End PBXBuildFile section */
@@ -29,6 +30,7 @@
 		2C5F052E90DA716A91F27700 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		47DDA04E1CA3BD0F42B92D9B /* forge_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = forge_iOS.entitlements; sourceTree = "<group>"; };
 		52B9CACD725CEA5F4D200EBF /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		7E087E2D49A9F1BA4A75CBAE /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
 		82433A4CCE1BA77E856F8F69 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
 		88B271639938EA58D45460A3 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
 		9ED59623CDAECEA0E86BB05B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -86,6 +88,14 @@
 			path = ../../src;
 			sourceTree = "<group>";
 		};
+		4D2C14C0E0AB2E83F94C07E3 /* arm64 */ = {
+			isa = PBXGroup;
+			children = (
+				9497D7DD6097A751B6A30C82 /* debug */,
+			);
+			path = arm64;
+			sourceTree = "<group>";
+		};
 		4EF17B205CAE1F9812CEBF77 /* forge */ = {
 			isa = PBXGroup;
 			children = (
@@ -98,8 +108,17 @@
 		64854D77F88C4AD65E7E4820 /* Externals */ = {
 			isa = PBXGroup;
 			children = (
+				4D2C14C0E0AB2E83F94C07E3 /* arm64 */,
 			);
 			path = Externals;
+			sourceTree = "<group>";
+		};
+		9497D7DD6097A751B6A30C82 /* debug */ = {
+			isa = PBXGroup;
+			children = (
+				7E087E2D49A9F1BA4A75CBAE /* libapp.a */,
+			);
+			path = debug;
 			sourceTree = "<group>";
 		};
 		A725EEC03347E67657F13F27 = {
@@ -150,6 +169,13 @@
 			path = forge_iOS;
 			sourceTree = "<group>";
 		};
+		"TEMP_8E5546A2-7C4E-407D-BEB3-F94D86030B74" /* x86_64 */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = x86_64;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -181,6 +207,12 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					7CAA58F1FDE002DDD9C2041D = {
+						DevelopmentTeam = G3DQP8CZ75;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = F538A79850ED12F8481F4FB0 /* Build configuration list for PBXProject "forge" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -209,6 +241,7 @@
 				1A69C8FBF702F9C42B68648F /* Assets.xcassets in Resources */,
 				53C33C69D0CA1B05FA235C99 /* LaunchScreen.storyboard in Resources */,
 				C40974EDCEC48D776ED870B2 /* assets in Resources */,
+				B018448597775C408D2DF9BC /* libapp.a in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,7 +292,9 @@
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = forge_iOS/forge_iOS.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G3DQP8CZ75;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -271,6 +306,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.forge.app;
@@ -346,7 +382,9 @@
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = forge_iOS/forge_iOS.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G3DQP8CZ75;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -358,6 +396,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.forge.app;

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { ConfirmModal } from '../ui/ConfirmModal'
 import type { GoalWithProgress } from '../../hooks/useGoals'
 
@@ -18,12 +19,12 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
 
   return (
     <div
-      className={`border rounded-lg p-3 ${
+      className={`border rounded-lg p-3 shadow-card ${
         isAchieved
           ? 'border-accent bg-[#f5a62310]'
           : isPastDeadline
             ? 'border-danger bg-[#e9456010]'
-            : 'border-border bg-card'
+            : 'border-border-elevated bg-card'
       }`}
     >
       <div className="flex justify-between items-start mb-2">
@@ -78,6 +79,7 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
         </button>
       </div>
 
+      <AnimatePresence>
       {showDeleteConfirm && (
         <ConfirmModal
           title="Delete Goal?"
@@ -89,6 +91,7 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
           onCancel={() => setShowDeleteConfirm(false)}
         />
       )}
+      </AnimatePresence>
     </div>
   )
 }
