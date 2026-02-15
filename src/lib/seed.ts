@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid'
-import { getDb } from './db'
+import { getDb, withWriteLock } from './db'
 import { PEAK_STRENGTH_TEMPLATE, FIVE_THREE_ONE_TEMPLATE } from './templates'
 import type { ProgramTemplate, TemplateExercise } from '../types/template'
 
@@ -66,7 +66,11 @@ async function seedTemplate(template: ProgramTemplate): Promise<void> {
  * into the user-editable program/days/exercises tables.
  * Returns the new program ID.
  */
-export async function forkTemplate(templateId: string): Promise<string> {
+export function forkTemplate(templateId: string): Promise<string> {
+  return withWriteLock(() => _forkTemplate(templateId))
+}
+
+async function _forkTemplate(templateId: string): Promise<string> {
   const db = await getDb()
   const programId = uuid()
 
@@ -77,111 +81,107 @@ export async function forkTemplate(templateId: string): Promise<string> {
   )
   if (templates.length === 0) throw new Error(`Template ${templateId} not found`)
 
-  await db.execute('BEGIN TRANSACTION')
-  try {
-    // Deactivate all existing programs
-    await db.execute(`UPDATE programs SET is_active = 0`)
+  // Note: tauri-plugin-sql uses a connection pool, so BEGIN TRANSACTION
+  // doesn't work (queries land on different pool connections). The
+  // withWriteLock() wrapper prevents concurrent JS callers instead.
 
-    // Create program
-    await db.execute(
-      `INSERT INTO programs (id, name, source_template_id, current_day, current_week, block_num, is_active) VALUES (?, ?, ?, 0, 0, 1, 1)`,
-      [programId, templates[0].name, templateId],
-    )
+  // Deactivate all existing programs
+  await db.execute(`UPDATE programs SET is_active = 0`)
 
-    // Get all exercise templates for this template, grouped by day
-    const exerciseTemplates = await db.select<Array<{
-      id: string; day_index: number; day_name: string; day_subtitle: string; day_focus: string;
-      exercise_index: number; exercise_key: string; name: string; category: string;
-      sets: number; reps: number; default_weight: number; note: string; is_wave: number;
-    }>>(
-      `SELECT * FROM exercise_templates WHERE template_id = ? ORDER BY day_index, exercise_index`,
-      [templateId],
-    )
+  // Create program
+  await db.execute(
+    `INSERT INTO programs (id, name, source_template_id, current_day, current_week, block_num, is_active) VALUES (?, ?, ?, 0, 0, 1, 1)`,
+    [programId, templates[0].name, templateId],
+  )
 
-    // Group by day_index to create days
-    const dayMap = new Map<number, { name: string; subtitle: string; focus: string; dayId: string }>()
-    for (const et of exerciseTemplates) {
-      if (!dayMap.has(et.day_index)) {
-        const dayId = uuid()
-        dayMap.set(et.day_index, { name: et.day_name, subtitle: et.day_subtitle, focus: et.day_focus, dayId })
-        await db.execute(
-          `INSERT INTO days (id, program_id, day_index, name, subtitle, focus) VALUES (?, ?, ?, ?, ?, ?)`,
-          [dayId, programId, et.day_index, et.day_name, et.day_subtitle, et.day_focus],
-        )
-      }
-    }
+  // Get all exercise templates for this template, grouped by day
+  const exerciseTemplates = await db.select<Array<{
+    id: string; day_index: number; day_name: string; day_subtitle: string; day_focus: string;
+    exercise_index: number; exercise_key: string; name: string; category: string;
+    sets: number; reps: number; default_weight: number; note: string; is_wave: number;
+  }>>(
+    `SELECT * FROM exercise_templates WHERE template_id = ? ORDER BY day_index, exercise_index`,
+    [templateId],
+  )
 
-    // Create exercises + wave configs
-    for (const et of exerciseTemplates) {
-      const dayInfo = dayMap.get(et.day_index)!
-      const exerciseId = uuid()
+  // Group by day_index to create days
+  const dayMap = new Map<number, { name: string; subtitle: string; focus: string; dayId: string }>()
+  for (const et of exerciseTemplates) {
+    if (!dayMap.has(et.day_index)) {
+      const dayId = uuid()
+      dayMap.set(et.day_index, { name: et.day_name, subtitle: et.day_subtitle, focus: et.day_focus, dayId })
       await db.execute(
-        `INSERT INTO exercises (id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [exerciseId, dayInfo.dayId, et.exercise_index, et.exercise_key, et.name, et.category, et.sets, et.reps, et.default_weight, et.note, et.is_wave],
+        `INSERT INTO days (id, program_id, day_index, name, subtitle, focus) VALUES (?, ?, ?, ?, ?, ?)`,
+        [dayId, programId, et.day_index, et.day_name, et.day_subtitle, et.day_focus],
       )
+    }
+  }
 
-      if (et.is_wave) {
-        // Copy wave config
-        const waveConfigs = await db.select<Array<{ id: string; base_max: number }>>(
-          `SELECT * FROM wave_config_templates WHERE exercise_template_id = ?`,
-          [et.id],
+  // Create exercises + wave configs
+  for (const et of exerciseTemplates) {
+    const dayInfo = dayMap.get(et.day_index)!
+    const exerciseId = uuid()
+    await db.execute(
+      `INSERT INTO exercises (id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [exerciseId, dayInfo.dayId, et.exercise_index, et.exercise_key, et.name, et.category, et.sets, et.reps, et.default_weight, et.note, et.is_wave],
+    )
+
+    if (et.is_wave) {
+      // Copy wave config
+      const waveConfigs = await db.select<Array<{ id: string; base_max: number }>>(
+        `SELECT * FROM wave_config_templates WHERE exercise_template_id = ?`,
+        [et.id],
+      )
+      if (waveConfigs.length > 0) {
+        const wc = waveConfigs[0]
+        const newWcId = uuid()
+        await db.execute(
+          `INSERT INTO wave_configs (id, exercise_id, base_max) VALUES (?, ?, ?)`,
+          [newWcId, exerciseId, wc.base_max],
         )
-        if (waveConfigs.length > 0) {
-          const wc = waveConfigs[0]
-          const newWcId = uuid()
+
+        // Copy warmups
+        const warmups = await db.select<Array<{ set_index: number; reps: number; percentage: number }>>(
+          `SELECT set_index, reps, percentage FROM wave_warmup_templates WHERE wave_config_id = ? ORDER BY set_index`,
+          [wc.id],
+        )
+        for (const w of warmups) {
           await db.execute(
-            `INSERT INTO wave_configs (id, exercise_id, base_max) VALUES (?, ?, ?)`,
-            [newWcId, exerciseId, wc.base_max],
-          )
-
-          // Copy warmups
-          const warmups = await db.select<Array<{ set_index: number; reps: number; percentage: number }>>(
-            `SELECT set_index, reps, percentage FROM wave_warmup_templates WHERE wave_config_id = ? ORDER BY set_index`,
-            [wc.id],
-          )
-          for (const w of warmups) {
-            await db.execute(
-              `INSERT INTO wave_warmups (id, wave_config_id, set_index, reps, percentage) VALUES (?, ?, ?, ?, ?)`,
-              [uuid(), newWcId, w.set_index, w.reps, w.percentage],
-            )
-          }
-
-          // Copy weeks + sets
-          const weeks = await db.select<Array<{ id: string; week_index: number; label: string }>>(
-            `SELECT * FROM wave_week_templates WHERE wave_config_id = ? ORDER BY week_index`,
-            [wc.id],
-          )
-          for (const wk of weeks) {
-            const newWwId = uuid()
-            await db.execute(
-              `INSERT INTO wave_weeks (id, wave_config_id, week_index, label) VALUES (?, ?, ?, ?)`,
-              [newWwId, newWcId, wk.week_index, wk.label],
-            )
-            const sets = await db.select<Array<{ set_index: number; reps: number; percentage: number; is_backoff: number }>>(
-              `SELECT set_index, reps, percentage, is_backoff FROM wave_week_set_templates WHERE wave_week_id = ? ORDER BY set_index`,
-              [wk.id],
-            )
-            for (const s of sets) {
-              await db.execute(
-                `INSERT INTO wave_week_sets (id, wave_week_id, set_index, reps, percentage, is_backoff) VALUES (?, ?, ?, ?, ?, ?)`,
-                [uuid(), newWwId, s.set_index, s.reps, s.percentage, s.is_backoff],
-              )
-            }
-          }
-
-          // Insert initial training max
-          await db.execute(
-            `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, 1, 'template')`,
-            [uuid(), exerciseId, wc.base_max],
+            `INSERT INTO wave_warmups (id, wave_config_id, set_index, reps, percentage) VALUES (?, ?, ?, ?, ?)`,
+            [uuid(), newWcId, w.set_index, w.reps, w.percentage],
           )
         }
+
+        // Copy weeks + sets
+        const weeks = await db.select<Array<{ id: string; week_index: number; label: string }>>(
+          `SELECT * FROM wave_week_templates WHERE wave_config_id = ? ORDER BY week_index`,
+          [wc.id],
+        )
+        for (const wk of weeks) {
+          const newWwId = uuid()
+          await db.execute(
+            `INSERT INTO wave_weeks (id, wave_config_id, week_index, label) VALUES (?, ?, ?, ?)`,
+            [newWwId, newWcId, wk.week_index, wk.label],
+          )
+          const sets = await db.select<Array<{ set_index: number; reps: number; percentage: number; is_backoff: number }>>(
+            `SELECT set_index, reps, percentage, is_backoff FROM wave_week_set_templates WHERE wave_week_id = ? ORDER BY set_index`,
+            [wk.id],
+          )
+          for (const s of sets) {
+            await db.execute(
+              `INSERT INTO wave_week_sets (id, wave_week_id, set_index, reps, percentage, is_backoff) VALUES (?, ?, ?, ?, ?, ?)`,
+              [uuid(), newWwId, s.set_index, s.reps, s.percentage, s.is_backoff],
+            )
+          }
+        }
+
+        // Insert initial training max
+        await db.execute(
+          `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, 1, 'template')`,
+          [uuid(), exerciseId, wc.base_max],
+        )
       }
     }
-
-    await db.execute('COMMIT')
-  } catch (err) {
-    await db.execute('ROLLBACK')
-    throw err
   }
 
   return programId
@@ -191,7 +191,11 @@ export async function forkTemplate(templateId: string): Promise<string> {
  * Run on first launch: seed built-in templates if they don't exist.
  * Also cleans up duplicate rows left by earlier UUID-based seeding.
  */
-export async function seedIfNeeded(): Promise<void> {
+export function seedIfNeeded(): Promise<void> {
+  return withWriteLock(() => _seedIfNeeded())
+}
+
+async function _seedIfNeeded(): Promise<void> {
   const db = await getDb()
 
   const existing1 = await db.select<Array<{ id: string }>>(

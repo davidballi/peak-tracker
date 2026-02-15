@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Peak Tracker is an iOS app for tracking workouts with wave-loaded periodization (Garage Strength / Peak Strength style). Built with **Tauri v2 + React 18 + TypeScript + Vite + Tailwind CSS + SQLite**.
+Forge is an iOS app for tracking workouts with wave-loaded periodization (Garage Strength / Peak Strength style). Built with **Tauri v2 + React 18 + TypeScript + Vite + Tailwind CSS + SQLite**.
 
 The original PWA version is preserved as `index.pwa.html` for reference. All new development happens on the `dev` branch.
 

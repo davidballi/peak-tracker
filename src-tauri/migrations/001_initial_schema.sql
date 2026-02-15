@@ -1,4 +1,4 @@
--- Peak Tracker: Initial Schema
+-- Forge: Initial Schema
 -- All IDs are TEXT (UUIDs generated in JS)
 
 -- ============================================================

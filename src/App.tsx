@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { v4 as uuid } from 'uuid'
 import { useAppStore } from './store/appStore'
-import { getDb } from './lib/db'
+import { getDb, withWriteLock } from './lib/db'
 import { seedIfNeeded, forkTemplate } from './lib/seed'
 import { estimatedOneRepMax, roundToNearest5 } from './lib/calc'
 import { PEAK_STRENGTH_TEMPLATE } from './lib/templates'
@@ -30,7 +30,11 @@ export default function App() {
   const [templates, setTemplates] = useState<TemplateRow[]>([])
   const [error, setError] = useState<string | null>(null)
 
+  const initRan = useRef(false)
   useEffect(() => {
+    if (initRan.current) return
+    initRan.current = true
+
     async function init() {
       try {
         await getDb()
@@ -51,7 +55,7 @@ export default function App() {
         }
       } catch (err) {
         console.error('Failed to initialize database:', err)
-        setError('Failed to initialize the app. Please restart.')
+        setError(`Failed to initialize the app: ${err instanceof Error ? err.message : String(err)}`)
       } finally {
         setLoading(false)
       }
@@ -72,7 +76,7 @@ export default function App() {
     return (
       <div className="flex items-center justify-center h-screen bg-bg text-text font-mono">
         <div className="text-center">
-          <div className="text-accent font-bold text-lg tracking-wider mb-2">PEAK TRACKER</div>
+          <div className="text-accent font-bold text-lg tracking-wider mb-2">FORGE</div>
           <div className="text-muted text-sm">Loading...</div>
         </div>
       </div>
@@ -107,8 +111,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
       <div className="max-w-md w-full px-6">
         <div className="text-center mb-10">
           <h1 className="text-2xl font-bold">
-            <span className="text-accent">PEAK</span>
-            <span className="text-dim"> TRACKER</span>
+            <span className="text-accent">FORGE</span>
           </h1>
           <p className="text-muted text-sm mt-2">Choose a program to get started</p>
         </div>
@@ -187,11 +190,9 @@ function MainApp({ programId }: { programId: string }) {
 
   const handleAdvanceBlock = useCallback(async () => {
     if (!program) return
-    const db = await getDb()
+    await withWriteLock(async () => {
+      const db = await getDb()
 
-    await db.execute('BEGIN TRANSACTION')
-    try {
-      // Auto-calculate new TMs from week 3 (index 2) completed logs
       for (const ex of waveExercises) {
         const currentMax = getEffectiveMax(ex.id)
         let bestE1rm = currentMax
@@ -212,7 +213,6 @@ function MainApp({ programId }: { programId: string }) {
 
         let newTm: number
         if (bestE1rm > currentMax) {
-          // Cap at 20% increase per block for safety
           const capped = Math.min(bestE1rm, currentMax * 1.2)
           newTm = roundToNearest5(capped)
         } else {
@@ -229,11 +229,7 @@ function MainApp({ programId }: { programId: string }) {
         `UPDATE programs SET block_num = block_num + 1, current_week = 0, current_day = 0 WHERE id = ?`,
         [programId],
       )
-      await db.execute('COMMIT')
-    } catch (err) {
-      await db.execute('ROLLBACK')
-      throw err
-    }
+    })
 
     await reload()
     await reloadMaxes()

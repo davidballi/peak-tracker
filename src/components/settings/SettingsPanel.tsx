@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { v4 as uuid } from 'uuid'
-import { getDb } from '../../lib/db'
+import { getDb, withWriteLock } from '../../lib/db'
 import { estimatedOneRepMax, roundToNearest5, validateWeight } from '../../lib/calc'
 import { ConfirmModal } from '../ui/ConfirmModal'
 import type { ExerciseWithWave } from '../../types/program'
@@ -65,8 +65,7 @@ export function SettingsPanel({
         onWeekChange(nextWeek)
       } else {
         // Advance to new block — auto-calculate TMs with safety cap
-        await db.execute('BEGIN TRANSACTION')
-        try {
+        await withWriteLock(async () => {
           for (const ex of waveExercises) {
             const currentMax = getEffectiveMax(ex.id)
             let bestE1rm = currentMax
@@ -87,7 +86,6 @@ export function SettingsPanel({
 
             let newTm: number
             if (bestE1rm > currentMax) {
-              // Cap at MAX_TM_INCREASE_RATIO of current max
               const capped = Math.min(bestE1rm, currentMax * MAX_TM_INCREASE_RATIO)
               newTm = roundToNearest5(capped)
             } else {
@@ -104,11 +102,7 @@ export function SettingsPanel({
             `UPDATE programs SET block_num = block_num + 1, current_week = 0 WHERE id = ?`,
             [programId],
           )
-          await db.execute('COMMIT')
-        } catch (err) {
-          await db.execute('ROLLBACK')
-          throw err
-        }
+        })
         onAdvance()
       }
     } finally {

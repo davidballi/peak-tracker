@@ -3,8 +3,8 @@ import { getDb } from './db'
 import { MAX_WEIGHT, MAX_REPS } from './calc'
 
 /**
- * Import data from the original Peak Tracker PWA's localStorage format.
- * The PWA stores data under the key 'peak-tracker-v2' as a JSON object with:
+ * Import data from the original PWA's localStorage format.
+ * The PWA stores data under the key 'forge-v2' as a JSON object with:
  * - logs: Record<string, { w: number, r: number, done: boolean }> keyed by "exerciseId_setIndex_blockNum_weekIndex"
  * - notes: Record<string, string> keyed by "exerciseId_workoutLogId" or "__workout___workoutLogId"
  * - maxes: Record<string, number> keyed by exerciseId

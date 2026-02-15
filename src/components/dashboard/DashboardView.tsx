@@ -95,8 +95,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
       {/* Header */}
       <div className="mb-6">
         <div className="text-[20px] font-bold">
-          <span className="text-accent">PEAK</span>
-          <span className="text-dim"> TRACKER</span>
+          <span className="text-accent">FORGE</span>
         </div>
         <div className="text-[11px] text-muted mt-1">{programName} · Block {blockNum} · Week {currentWeek + 1}</div>
       </div>
@@ -158,7 +157,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
       <div className="mb-5">
         <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">DATA IMPORT</div>
         <div className="text-[11px] text-faint mb-2">
-          Paste your PWA localStorage data (peak-tracker-v2 key) to import history.
+          Paste your PWA localStorage data (forge-v2 key) to import history.
         </div>
         <textarea
           value={importJson}

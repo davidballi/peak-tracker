@@ -1,6 +1,6 @@
-name: peak-tracker
+name: forge
 options:
-  bundleIdPrefix: com.peaktracker.app
+  bundleIdPrefix: com.forge.app
   deploymentTarget:
     iOS: 14.0
 fileGroups: [../../src]
@@ -10,8 +10,8 @@ configs:
 settingGroups:
   app:
     base:
-      PRODUCT_NAME: Peak Tracker
-      PRODUCT_BUNDLE_IDENTIFIER: com.peaktracker.app
+      PRODUCT_NAME: Forge
+      PRODUCT_BUNDLE_IDENTIFIER: com.forge.app
 targetTemplates:
   app:
     type: application
@@ -24,20 +24,20 @@ targetTemplates:
     settings:
       groups: [app]
 targets:
-  peak-tracker_iOS:
+  forge_iOS:
     type: application
     platform: iOS
     sources:
       - path: Sources
       - path: Assets.xcassets
       - path: Externals
-      - path: peak-tracker_iOS
+      - path: forge_iOS
       - path: assets
         buildPhase: resources
         type: folder
       - path: LaunchScreen.storyboard
     info:
-      path: peak-tracker_iOS/Info.plist
+      path: forge_iOS/Info.plist
       properties:
         LSRequiresIPhoneOS: true
         UILaunchStoryboardName: LaunchScreen
@@ -49,7 +49,7 @@ targets:
         CFBundleShortVersionString: 1.0.0
         CFBundleVersion: "1.0.0"
     entitlements:
-      path: peak-tracker_iOS/peak-tracker_iOS.entitlements
+      path: forge_iOS/forge_iOS.entitlements
     scheme:
       environmentVariables:
         RUST_BACKTRACE: full

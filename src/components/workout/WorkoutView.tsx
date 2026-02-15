@@ -105,8 +105,7 @@ export function WorkoutView({
       <div className="px-4 pt-1 pb-3 border-b border-border sticky top-0 bg-bg z-[100]">
         <div className="flex justify-between items-center mb-2">
           <div>
-            <span className="text-accent font-bold text-[15px] tracking-wider">PEAK</span>
-            <span className="text-dim font-normal text-[15px] tracking-wider"> TRACKER</span>
+            <span className="text-accent font-bold text-[15px] tracking-wider">FORGE</span>
           </div>
           <div className="flex gap-2 items-center">
             <span className="text-dim text-[11px]">
