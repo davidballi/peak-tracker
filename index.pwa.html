@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d1117">
+  <title>Peak Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { background: #0d1117; overflow-x: hidden; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+    textarea:focus, input:focus { outline: none; border-color: #f5a623 !important; }
+    @supports(padding: env(safe-area-inset-bottom)) {
+      .footer-safe { padding-bottom: calc(10px + env(safe-area-inset-bottom)) !important; }
+    }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script crossorigin src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+    const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } = Recharts;
+
+    const STORAGE_KEY = "peak-tracker-v2";
+    const storage = {
+      get: (key) => { try { const v = localStorage.getItem(key); return v ? { value: v } : null; } catch(e) { return null; } },
+      set: (key, val) => { try { localStorage.setItem(key, val); } catch(e) {} },
+    };
+
+    const PROGRAM = {
+      days: [
+        {
+          id: "day1", name: "Day 1", subtitle: "Lower Body Strength", focus: "Squat + Posterior Chain",
+          exercises: [
+            { id: "db_snatch", name: "DB Snatch (each arm)", category: "tech", sets: 3, reps: 3, defaultWeight: 55, note: "Explosive from floor. CNS primer." },
+            { id: "squat", name: "Back Squat", category: "absolute", sets: 0, reps: 0, defaultWeight: 0, note: "", isWave: true,
+              wave: { warmup: [{ reps: 5, pct: 0.415 },{ reps: 3, pct: 0.569 }],
+                weeks: [
+                  { label: "Wk1 (5s)", sets: [{ reps: 5, pct: 0.754 },{ reps: 5, pct: 0.815 },{ reps: 5, pct: 0.877 },{ reps: 8, pct: 0.754, backoff: true }] },
+                  { label: "Wk2 (4s)", sets: [{ reps: 4, pct: 0.785 },{ reps: 4, pct: 0.846 },{ reps: 4, pct: 0.908 },{ reps: 6, pct: 0.785, backoff: true }] },
+                  { label: "Wk3 (3s)", sets: [{ reps: 3, pct: 0.815 },{ reps: 3, pct: 0.877 },{ reps: 3, pct: 0.938 },{ reps: 5, pct: 0.815, backoff: true }] },
+                  { label: "Wk4 (deload)", sets: [{ reps: 5, pct: 0.692 },{ reps: 5, pct: 0.754 },{ reps: 3, pct: 0.815 }] },
+                ], baseMax: 325 }
+            },
+            { id: "hang_leg_raise", name: "Hanging Leg Raise", category: "ss", sets: 4, reps: 10, defaultWeight: 0, note: "Superset w/ squat. Trunk control." },
+            { id: "rdl", name: "Romanian Deadlift", category: "acc", sets: 3, reps: 8, defaultWeight: 225, note: "Control the eccentric." },
+            { id: "pistol_squat", name: "Pistol Squat (each leg)", category: "ss", sets: 2, reps: 8, defaultWeight: 0, note: "Superset w/ RDL." },
+            { id: "leg_ext", name: "Leg Extension", category: "acc", sets: 3, reps: 12, defaultWeight: 155, note: "Slow eccentric." },
+            { id: "leg_curl", name: "Prone Leg Curl", category: "acc", sets: 3, reps: 12, defaultWeight: 110, note: "" },
+            { id: "calf_raise", name: "Calf Raise", category: "acc", sets: 2, reps: 20, defaultWeight: 185, note: "" },
+            { id: "dorsi", name: "Toe Dorsiflexion", category: "acc", sets: 2, reps: 20, defaultWeight: 0, note: "" },
+          ]
+        },
+        {
+          id: "day2", name: "Day 2", subtitle: "Upper Body Strength", focus: "Bench Press + Chest/Tri",
+          exercises: [
+            { id: "push_press", name: "Push Press", category: "tech", sets: 3, reps: 3, defaultWeight: 145, note: "Explosive leg drive. Prime for bench." },
+            { id: "bench", name: "Bench Press", category: "absolute", sets: 0, reps: 0, defaultWeight: 0, note: "", isWave: true,
+              wave: { warmup: [{ reps: 5, pct: 0.50 },{ reps: 3, pct: 0.685 }],
+                weeks: [
+                  { label: "Wk1 (5s)", sets: [{ reps: 5, pct: 0.759 },{ reps: 5, pct: 0.833 },{ reps: 5, pct: 0.907 },{ reps: 8, pct: 0.759, backoff: true }] },
+                  { label: "Wk2 (4s)", sets: [{ reps: 4, pct: 0.796 },{ reps: 4, pct: 0.870 },{ reps: 4, pct: 0.944 },{ reps: 6, pct: 0.796, backoff: true }] },
+                  { label: "Wk3 (3s)", sets: [{ reps: 3, pct: 0.833 },{ reps: 3, pct: 0.907 },{ reps: 3, pct: 0.981 },{ reps: 5, pct: 0.833, backoff: true }] },
+                  { label: "Wk4 (deload)", sets: [{ reps: 5, pct: 0.722 },{ reps: 5, pct: 0.796 },{ reps: 3, pct: 0.870 }] },
+                ], baseMax: 270 }
+            },
+            { id: "wsitup_b", name: "Weighted Sit-Up", category: "ss", sets: 4, reps: 12, defaultWeight: 35, note: "Superset w/ bench." },
+            { id: "incline_db", name: "Incline DB Press", category: "acc", sets: 3, reps: 10, defaultWeight: 65, note: "Full ROM. DBs each hand." },
+            { id: "lat_pd_d2", name: "Lat Pulldown", category: "ss", sets: 3, reps: 10, defaultWeight: 130, note: "Superset w/ incline. Antagonist." },
+            { id: "dips", name: "Dips", category: "acc", sets: 3, reps: 10, defaultWeight: 0, note: "BW or +25. Lean forward." },
+            { id: "chest_fly", name: "Chest Fly", category: "acc", sets: 3, reps: 12, defaultWeight: 50, note: "DB or machine." },
+            { id: "tri_ext", name: "Tricep Extension", category: "acc", sets: 3, reps: 12, defaultWeight: 90, note: "Pump finisher." },
+          ]
+        },
+        {
+          id: "day3", name: "Day 3", subtitle: "Athletic / Dynamic", focus: "OHP + Unilateral + Core",
+          exercises: [
+            { id: "hang_clean", name: "Hang Power Clean", category: "tech", sets: 4, reps: 3, defaultWeight: 150, note: "Fast & aggressive. Sub KB swings if needed." },
+            { id: "ohp", name: "Overhead Press", category: "absolute", sets: 0, reps: 0, defaultWeight: 0, note: "", isWave: true,
+              wave: { warmup: [{ reps: 10, pct: 0.237 },{ reps: 5, pct: 0.50 }],
+                weeks: [
+                  { label: "Wk1 (5s)", sets: [{ reps: 5, pct: 0.632 },{ reps: 5, pct: 0.711 },{ reps: 5, pct: 0.789 },{ reps: 12, pct: 0.50, backoff: true }] },
+                  { label: "Wk2 (4s)", sets: [{ reps: 4, pct: 0.658 },{ reps: 4, pct: 0.737 },{ reps: 4, pct: 0.816 },{ reps: 10, pct: 0.50, backoff: true }] },
+                  { label: "Wk3 (3s)", sets: [{ reps: 3, pct: 0.711 },{ reps: 3, pct: 0.789 },{ reps: 3, pct: 0.868 },{ reps: 10, pct: 0.50, backoff: true }] },
+                  { label: "Wk4 (deload)", sets: [{ reps: 5, pct: 0.605 },{ reps: 5, pct: 0.684 },{ reps: 3, pct: 0.763 }] },
+                ], baseMax: 190 }
+            },
+            { id: "box_jump", name: "Box Jump", category: "ss", sets: 3, reps: 5, defaultWeight: 0, note: "Superset w/ OHP. Reset each rep." },
+            { id: "front_squat", name: "Front Squat", category: "acc", sets: 3, reps: 6, defaultWeight: 195, note: "Trunk control + quad emphasis." },
+            { id: "lat_raise", name: "Lateral Raise", category: "ss", sets: 3, reps: 12, defaultWeight: 22.5, note: "Superset w/ front squat." },
+            { id: "bicep_curl", name: "Bicep Curl", category: "acc", sets: 3, reps: 10, defaultWeight: 27.5, note: "" },
+            { id: "hammer_curl", name: "Hammer Curl", category: "acc", sets: 3, reps: 10, defaultWeight: 27.5, note: "" },
+            { id: "farmer_carry", name: "Farmer's Carry", category: "acc", sets: 3, reps: 1, defaultWeight: 70, note: "40 yards each. Each hand." },
+          ]
+        },
+        {
+          id: "day4", name: "Day 4", subtitle: "Upper Hypertrophy + Pull", focus: "Deadlift + Back/Bicep",
+          exercises: [
+            { id: "trap_jump", name: "Trap Bar Jump / DB Snatch", category: "tech", sets: 3, reps: 3, defaultWeight: 0, note: "Explosive intent. Moderate load." },
+            { id: "deadlift", name: "Deadlift", category: "absolute", sets: 0, reps: 0, defaultWeight: 0, note: "", isWave: true,
+              wave: { warmup: [{ reps: 5, pct: 0.333 },{ reps: 3, pct: 0.556 }],
+                weeks: [
+                  { label: "Wk1 (5s)", sets: [{ reps: 5, pct: 0.679 },{ reps: 5, pct: 0.753 },{ reps: 5, pct: 0.827 },{ reps: 10, pct: 0.556, backoff: true }] },
+                  { label: "Wk2 (4s)", sets: [{ reps: 4, pct: 0.704 },{ reps: 4, pct: 0.778 },{ reps: 4, pct: 0.852 },{ reps: 8, pct: 0.556, backoff: true }] },
+                  { label: "Wk3 (3s)", sets: [{ reps: 3, pct: 0.728 },{ reps: 3, pct: 0.802 },{ reps: 3, pct: 0.877 },{ reps: 8, pct: 0.556, backoff: true }] },
+                  { label: "Wk4 (deload)", sets: [{ reps: 5, pct: 0.630 },{ reps: 5, pct: 0.704 },{ reps: 3, pct: 0.778 }] },
+                ], baseMax: 405 }
+            },
+            { id: "ab_wheel", name: "Ab Wheel Rollout", category: "ss", sets: 3, reps: 10, defaultWeight: 0, note: "Superset w/ deadlift." },
+            { id: "seated_row", name: "Seated Cable Row", category: "acc", sets: 4, reps: 10, defaultWeight: 140, note: "Squeeze at chest." },
+            { id: "face_pull", name: "Face Pull", category: "ss", sets: 3, reps: 15, defaultWeight: 0, note: "Light. Rear delt / cuff health." },
+            { id: "lat_pd_d4", name: "Lat Pulldown (wide)", category: "acc", sets: 3, reps: 10, defaultWeight: 130, note: "" },
+            { id: "bb_curl", name: "Barbell Curl", category: "acc", sets: 3, reps: 10, defaultWeight: 80, note: "" },
+            { id: "farmer_carry_d4", name: "Farmer's Carry / Plate Pinch", category: "acc", sets: 2, reps: 1, defaultWeight: 0, note: "30s hold. Grip finisher." },
+          ]
+        }
+      ]
+    };
+
+    const CC = { tech:{bg:"#1a1a2e",border:"#e94560",badge:"#e94560",label:"TECH COORD"}, absolute:{bg:"#1a1a2e",border:"#f5a623",badge:"#f5a623",label:"ABSOLUTE STR"}, ss:{bg:"#16213e",border:"#4a6fa5",badge:"#4a6fa5",label:"SUPERSET"}, acc:{bg:"#1a1a2e",border:"#2d3436",badge:"#636e72",label:"ACCESSORY"} };
+    const r5 = n => Math.round(n/5)*5;
+    function getWS(wave,week,cm){ const m=cm||wave.baseMax; return { label:wave.weeks[week].label, warmup:wave.warmup.map(s=>({...s,weight:r5(m*s.pct),isWarmup:true})), working:wave.weeks[week].sets.map(s=>({...s,weight:r5(m*s.pct),isWarmup:false})) }; }
+    function eMax(w,r){ if(r<=0||w<=0)return w; if(r===1)return w; return Math.round(w*(1+r/30)); }
+    const ML = [{id:"bench",name:"Bench Press",color:"#e94560"},{id:"squat",name:"Back Squat",color:"#f5a623"},{id:"deadlift",name:"Deadlift",color:"#2ea043"},{id:"ohp",name:"OHP",color:"#4a6fa5"}];
+
+    function App(){
+      const [cDay,sCDay]=useState(0);
+      const [cWeek,sCWeek]=useState(0);
+      const [bNum,sBNum]=useState(1);
+      const [logD,sLogD]=useState({});
+      const [maxO,sMaxO]=useState({});
+      const [compS,sCompS]=useState({});
+      const [showSet,sShowSet]=useState(false);
+      const [loaded,sLoaded]=useState(false);
+      const [showME,sShowME]=useState(null);
+      const [tMax,sTMax]=useState("");
+      const [wNotes,sWNotes]=useState({});
+      const [eNotes,sENotes]=useState({});
+      const [nModal,sNModal]=useState(null);
+      const [nText,sNText]=useState("");
+      const [showH,sShowH]=useState(false);
+      const [hLift,sHLift]=useState("bench");
+      const [delC,sDelC]=useState(null);
+
+      useEffect(()=>{
+        const r=storage.get(STORAGE_KEY);
+        if(r&&r.value){ try{ const d=JSON.parse(r.value); sCDay(d.currentDay||0); sCWeek(d.currentWeek||0); sBNum(d.blockNum||1); sLogD(d.logData||{}); sMaxO(d.maxOverrides||{}); sCompS(d.completedSets||{}); sWNotes(d.workoutNotes||{}); sENotes(d.exerciseNotes||{}); }catch(e){} }
+        sLoaded(true);
+      },[]);
+
+      const save=useCallback(d=>storage.set(STORAGE_KEY,JSON.stringify(d)),[]);
+      useEffect(()=>{ if(!loaded)return; save({currentDay:cDay,currentWeek:cWeek,blockNum:bNum,logData:logD,maxOverrides:maxO,completedSets:compS,workoutNotes:wNotes,exerciseNotes:eNotes}); },[cDay,cWeek,bNum,logD,maxO,compS,wNotes,eNotes,loaded,save]);
+
+      const day=PROGRAM.days[cDay];
+      const dayKey=`b${bNum}_w${cWeek}_${day.id}`;
+      const glk=(eid,si)=>`${dayKey}_${eid}_${si}`;
+      const uLog=(eid,si,f,v)=>{ const k=glk(eid,si); sLogD(p=>({...p,[k]:{...p[k],[f]:v}})); };
+      const togC=(eid,si)=>{ const k=glk(eid,si); sCompS(p=>({...p,[k]:!p[k]})); };
+      const clrS=(eid,si)=>{ const k=glk(eid,si); sLogD(p=>{const n={...p};delete n[k];return n;}); sCompS(p=>{const n={...p};delete n[k];return n;}); sDelC(null); };
+      const gEM=eid=>maxO[eid]||PROGRAM.days.flatMap(d=>d.exercises).find(e=>e.id===eid)?.wave?.baseMax;
+
+      const advW=()=>{
+        if(cWeek<3){ sCWeek(w=>w+1); } else {
+          const nO={...maxO};
+          PROGRAM.days.forEach(d=>{ d.exercises.forEach(ex=>{ if(ex.isWave){
+            const w3k=`b${bNum}_w2_${d.id}_${ex.id}`;
+            let bM=gEM(ex.id);
+            for(let i=0;i<10;i++){ const lk=`${w3k}_${i}`; const l=logD[lk]; if(l&&l.weight&&l.reps){ const e=eMax(parseFloat(l.weight),parseInt(l.reps)); if(e>bM)bM=e; } }
+            nO[ex.id]=bM>gEM(ex.id)?r5(bM):r5((gEM(ex.id)||ex.wave.baseMax)+5);
+          }}); });
+          sMaxO(nO); sBNum(b=>b+1); sCWeek(0); sCompS({});
+        }
+      };
+
+      const gCP=()=>{ let t=0,d=0; day.exercises.forEach(ex=>{ if(ex.isWave){ const w=getWS(ex.wave,cWeek,gEM(ex.id)); const c=w.warmup.length+w.working.length; t+=c; for(let i=0;i<c;i++){if(compS[glk(ex.id,i)])d++;} } else { t+=ex.sets; for(let i=0;i<ex.sets;i++){if(compS[glk(ex.id,i)])d++;} } }); return t>0?Math.round(d/t*100):0; };
+
+      const gLH=useCallback(lid=>{
+        const h=[];
+        for(let b=1;b<=bNum;b++){ for(let w=0;w<4;w++){
+          let did=null; PROGRAM.days.forEach(d=>{d.exercises.forEach(ex=>{if(ex.id===lid)did=d.id;});}); if(!did)continue;
+          let bW=0,bR=0,bE=0,tV=0,hD=false; const aS=[];
+          for(let i=0;i<15;i++){ const k=`b${b}_w${w}_${did}_${lid}_${i}`; const l=logD[k];
+            if(l&&l.weight&&l.reps){ const wt=parseFloat(l.weight),rp=parseInt(l.reps);
+              if(wt>0&&rp>0){ hD=true; const e=eMax(wt,rp); tV+=wt*rp; aS.push({weight:wt,reps:rp,e1rm:e,logKey:k}); if(e>bE){bE=e;bW=wt;bR=rp;} } } }
+          if(hD) h.push({block:b,week:w+1,label:`B${b}W${w+1}`,bestWeight:bW,bestReps:bR,e1rm:bE,volume:tV,sets:aS});
+        }} return h;
+      },[logD,bNum]);
+
+      const gALE=useCallback(()=>{
+        const dm={}; ML.forEach(l=>{const h=gLH(l.id);h.forEach(x=>{if(!dm[x.label])dm[x.label]={label:x.label};dm[x.label][l.id]=x.e1rm;});});
+        return Object.values(dm).sort((a,b)=>{const[aB,aW]=a.label.replace("B","").split("W").map(Number);const[bB,bW]=b.label.replace("B","").split("W").map(Number);return aB!==bB?aB-bB:aW-bW;});
+      },[gLH]);
+
+      if(!loaded) return <div style={{background:"#0d1117",color:"#c9d1d9",height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"monospace"}}><div>Loading...</div></div>;
+
+      const pct=gCP();
+      const f={fontFamily:"'SF Mono','Menlo','Consolas',monospace"};
+
+      return (
+        <div style={{background:"#0d1117",color:"#c9d1d9",minHeight:"100vh",...f,fontSize:13,paddingBottom:100,maxWidth:500,margin:"0 auto"}}>
+          {/* Header */}
+          <div style={{padding:"16px 16px 12px",borderBottom:"1px solid #21262d",position:"sticky",top:0,background:"#0d1117",zIndex:100}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <div><span style={{color:"#f5a623",fontWeight:700,fontSize:15,letterSpacing:1}}>PEAK</span><span style={{color:"#636e72",fontWeight:400,fontSize:15,letterSpacing:1}}> TRACKER</span></div>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <span style={{color:"#636e72",fontSize:11}}>Block {bNum} · Wk {cWeek+1}</span>
+                <button onClick={()=>{sShowH(!showH);sShowSet(false);}} style={{background:showH?"#f5a62320":"none",border:`1px solid ${showH?"#f5a623":"#30363d"}`,borderRadius:6,color:showH?"#f5a623":"#8b949e",padding:"4px 8px",fontSize:11,cursor:"pointer"}}>📊</button>
+                <button onClick={()=>{sShowSet(!showSet);sShowH(false);}} style={{background:"none",border:"1px solid #30363d",borderRadius:6,color:"#8b949e",padding:"4px 8px",fontSize:11,cursor:"pointer"}}>⚙</button>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:4}}>
+              {PROGRAM.days.map((d,i)=>(
+                <button key={d.id} onClick={()=>sCDay(i)} style={{flex:1,padding:"8px 0",border:"none",borderRadius:6,cursor:"pointer",fontSize:11,fontWeight:600,...f,letterSpacing:.5,background:i===cDay?"#21262d":"transparent",color:i===cDay?"#f5a623":"#484f58",transition:"all 0.15s"}}>{d.name}</button>
+              ))}
+            </div>
+            <div style={{marginTop:8,height:3,background:"#21262d",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:pct===100?"#2ea043":"#f5a623",borderRadius:2,transition:"width 0.3s"}}/></div>
+          </div>
+
+          {/* Settings */}
+          {showSet&&(
+            <div style={{padding:16,borderBottom:"1px solid #21262d",background:"#161b22"}}>
+              <div style={{fontSize:12,fontWeight:600,color:"#f5a623",marginBottom:12}}>SETTINGS</div>
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:11,color:"#8b949e",marginBottom:6}}>Week</div>
+                <div style={{display:"flex",gap:4}}>
+                  {[0,1,2,3].map(w=><button key={w} onClick={()=>sCWeek(w)} style={{flex:1,padding:"6px 0",border:"none",borderRadius:4,cursor:"pointer",fontSize:11,...f,background:w===cWeek?"#f5a623":"#21262d",color:w===cWeek?"#0d1117":"#8b949e"}}>{w===3?"DL":`W${w+1}`}</button>)}
+                </div>
+              </div>
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:11,color:"#8b949e",marginBottom:6}}>Training Maxes</div>
+                {["squat","bench","ohp","deadlift"].map(id=>{
+                  const ex=PROGRAM.days.flatMap(d=>d.exercises).find(e=>e.id===id); const mx=gEM(id);
+                  return (<div key={id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #21262d"}}>
+                    <span style={{color:"#c9d1d9",fontSize:12}}>{ex.name}</span>
+                    {showME===id?(<div style={{display:"flex",gap:4}}>
+                      <input type="number" value={tMax} onChange={e=>sTMax(e.target.value)} style={{width:60,background:"#0d1117",border:"1px solid #30363d",borderRadius:4,color:"#f5a623",padding:"2px 6px",fontSize:12,...f}} autoFocus/>
+                      <button onClick={()=>{if(tMax)sMaxO(p=>({...p,[id]:parseInt(tMax)}));sShowME(null);}} style={{background:"#2ea043",border:"none",borderRadius:4,color:"white",padding:"2px 8px",fontSize:11,cursor:"pointer"}}>✓</button>
+                    </div>):(<button onClick={()=>{sShowME(id);sTMax(String(mx));}} style={{background:"none",border:"1px solid #30363d",borderRadius:4,color:"#f5a623",padding:"2px 10px",fontSize:12,cursor:"pointer",...f}}>{mx} lb</button>)}
+                  </div>);
+                })}
+              </div>
+              <button onClick={advW} style={{width:"100%",padding:"10px 0",border:"none",borderRadius:6,cursor:"pointer",background:"#238636",color:"white",fontSize:12,fontWeight:600,...f}}>{cWeek<3?`Advance to Week ${cWeek+2}`:"Start New Block →"}</button>
+              {cWeek===3&&<div style={{fontSize:10,color:"#8b949e",marginTop:6,textAlign:"center"}}>New block auto-calculates updated maxes from your logs.</div>}
+            </div>
+          )}
+
+          {/* History */}
+          {showH&&(
+            <div style={{padding:16,borderBottom:"1px solid #21262d",background:"#161b22"}}>
+              <div style={{fontSize:12,fontWeight:600,color:"#f5a623",marginBottom:12,letterSpacing:.5}}>LIFT HISTORY</div>
+              <div style={{display:"flex",gap:4,marginBottom:16}}>
+                {ML.map(l=><button key={l.id} onClick={()=>sHLift(l.id)} style={{flex:1,padding:"7px 0",border:"none",borderRadius:6,cursor:"pointer",fontSize:10,fontWeight:700,...f,letterSpacing:.5,background:hLift===l.id?`${l.color}25`:"#0d1117",color:hLift===l.id?l.color:"#484f58",borderBottom:hLift===l.id?`2px solid ${l.color}`:"2px solid transparent",transition:"all 0.15s"}}>{l.name}</button>)}
+              </div>
+              {(()=>{
+                const aD=gALE(); if(aD.length===0) return <div style={{textAlign:"center",padding:"30px 0",color:"#484f58"}}><div style={{fontSize:32,marginBottom:8}}>🏋️</div><div style={{fontSize:12}}>No logged data yet.</div><div style={{fontSize:11,marginTop:4}}>Log your weights to see progress here.</div></div>;
+                const sL=ML.find(l=>l.id===hLift); const lH=gLH(hLift); const cM=gEM(hLift);
+                const bE=lH.length>0?Math.max(...lH.map(h=>h.e1rm)):cM; const lE=lH.length>0?lH[lH.length-1].e1rm:cM; const sE=lH.length>0?lH[0].e1rm:cM; const ch=lE-sE;
+                return (<div>
+                  <div style={{display:"flex",gap:6,marginBottom:14}}>
+                    {[{label:"Est 1RM",value:`${lE}`,color:sL.color},{label:"Best 1RM",value:`${bE}`,color:"#f5a623"},{label:"Change",value:`${ch>=0?"+":""}${ch}`,color:ch>=0?"#2ea043":"#e94560"},{label:"TM",value:`${cM}`,color:"#8b949e"}].map((c,i)=>
+                      <div key={i} style={{flex:1,background:"#0d1117",borderRadius:8,padding:"8px 6px",textAlign:"center",border:"1px solid #21262d"}}>
+                        <div style={{fontSize:9,color:"#636e72",fontWeight:600,letterSpacing:.5,marginBottom:4}}>{c.label}</div>
+                        <div style={{fontSize:16,fontWeight:700,color:c.color}}>{c.value}</div>
+                        <div style={{fontSize:8,color:"#484f58"}}>lb</div>
+                      </div>
+                    )}
+                  </div>
+                  {lH.length>0&&<div style={{marginBottom:16}}>
+                    <div style={{fontSize:10,color:"#636e72",fontWeight:600,letterSpacing:.5,marginBottom:8}}>ESTIMATED 1RM — {sL.name.toUpperCase()}</div>
+                    <div style={{background:"#0d1117",borderRadius:8,padding:"12px 4px 4px 0",border:"1px solid #21262d"}}>
+                      <ResponsiveContainer width="100%" height={180}>
+                        <LineChart data={lH} margin={{top:5,right:16,left:0,bottom:5}}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#21262d"/><XAxis dataKey="label" tick={{fontSize:9,fill:"#636e72"}} stroke="#21262d"/><YAxis tick={{fontSize:9,fill:"#636e72"}} stroke="#21262d" domain={["dataMin - 10","dataMax + 10"]}/>
+                          <Tooltip contentStyle={{background:"#161b22",border:"1px solid #30363d",borderRadius:8,fontSize:11}} labelStyle={{color:"#8b949e",fontWeight:600}} formatter={v=>[`${v} lb`,"Est 1RM"]}/>
+                          <Line type="monotone" dataKey="e1rm" stroke={sL.color} strokeWidth={2.5} dot={{r:4,fill:sL.color,stroke:"#0d1117",strokeWidth:2}} activeDot={{r:6}}/>
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>}
+                  {lH.length>0&&<div style={{marginBottom:16}}>
+                    <div style={{fontSize:10,color:"#636e72",fontWeight:600,letterSpacing:.5,marginBottom:8}}>TOTAL VOLUME</div>
+                    <div style={{background:"#0d1117",borderRadius:8,padding:"12px 4px 4px 0",border:"1px solid #21262d"}}>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <BarChart data={lH} margin={{top:5,right:16,left:0,bottom:5}}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#21262d"/><XAxis dataKey="label" tick={{fontSize:9,fill:"#636e72"}} stroke="#21262d"/><YAxis tick={{fontSize:9,fill:"#636e72"}} stroke="#21262d"/>
+                          <Tooltip contentStyle={{background:"#161b22",border:"1px solid #30363d",borderRadius:8,fontSize:11}} formatter={v=>[`${v.toLocaleString()} lb`,"Volume"]}/>
+                          <Bar dataKey="volume" fill={`${sL.color}80`} radius={[4,4,0,0]}/>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>}
+                  {aD.length>1&&<div style={{marginBottom:16}}>
+                    <div style={{fontSize:10,color:"#636e72",fontWeight:600,letterSpacing:.5,marginBottom:8}}>ALL LIFTS OVERLAY</div>
+                    <div style={{background:"#0d1117",borderRadius:8,padding:"12px 4px 4px 0",border:"1px solid #21262d"}}>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={aD} margin={{top:5,right:16,left:0,bottom:5}}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#21262d"/><XAxis dataKey="label" tick={{fontSize:9,fill:"#636e72"}} stroke="#21262d"/><YAxis tick={{fontSize:9,fill:"#636e72"}} stroke="#21262d"/>
+                          <Tooltip contentStyle={{background:"#161b22",border:"1px solid #30363d",borderRadius:8,fontSize:11}} formatter={(v,n)=>{const l=ML.find(x=>x.id===n);return[`${v} lb`,l?l.name:n];}}/>
+                          <Legend iconType="circle" iconSize={8} formatter={v=>{const l=ML.find(x=>x.id===v);return l?l.name:v;}} wrapperStyle={{fontSize:10,paddingTop:8}}/>
+                          {ML.map(l=><Line key={l.id} type="monotone" dataKey={l.id} stroke={l.color} strokeWidth={2} dot={{r:3,fill:l.color,stroke:"#0d1117",strokeWidth:1.5}} connectNulls/>)}
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>}
+                  {lH.length>0&&<div>
+                    <div style={{fontSize:10,color:"#636e72",fontWeight:600,letterSpacing:.5,marginBottom:8}}>SET LOG — {sL.name.toUpperCase()}</div>
+                    {lH.slice().reverse().map(ses=>
+                      <div key={ses.label} style={{background:"#0d1117",borderRadius:8,padding:10,marginBottom:6,border:"1px solid #21262d"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                          <span style={{fontSize:11,fontWeight:700,color:sL.color}}>Block {ses.block} · Week {ses.week}</span>
+                          <span style={{fontSize:10,color:"#636e72"}}>e1RM: <span style={{color:"#e6edf3",fontWeight:600}}>{ses.e1rm} lb</span></span>
+                        </div>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                          {ses.sets.map((s,i)=>
+                            <div key={i} style={{background:delC===s.logKey?"#e9456025":"#161b22",borderRadius:5,padding:"4px 8px",fontSize:11,color:"#c9d1d9",border:delC===s.logKey?"1px solid #e94560":s.e1rm===ses.e1rm?`1px solid ${sL.color}50`:"1px solid #21262d",display:"flex",alignItems:"center",gap:4,transition:"all 0.15s"}}>
+                              {delC===s.logKey?(<>
+                                <span style={{fontSize:10,color:"#e94560"}}>Del?</span>
+                                <button onClick={()=>{sLogD(p=>{const n={...p};delete n[s.logKey];return n;});sCompS(p=>{const n={...p};delete n[s.logKey];return n;});sDelC(null);}} style={{background:"#e94560",border:"none",borderRadius:3,color:"white",padding:"1px 6px",fontSize:9,fontWeight:600,cursor:"pointer"}}>Y</button>
+                                <button onClick={()=>sDelC(null)} style={{background:"#21262d",border:"none",borderRadius:3,color:"#8b949e",padding:"1px 6px",fontSize:9,cursor:"pointer"}}>N</button>
+                              </>):(<>
+                                <span style={{fontWeight:600}}>{s.weight}</span><span style={{color:"#484f58"}}>×</span><span style={{fontWeight:600}}>{s.reps}</span>
+                                {s.e1rm===ses.e1rm&&<span style={{fontSize:8,color:sL.color}}>★</span>}
+                                <button onClick={()=>sDelC(s.logKey)} style={{background:"none",border:"none",cursor:"pointer",padding:"0 0 0 2px",fontSize:9,color:"#484f58",lineHeight:1,opacity:.4}}>✕</button>
+                              </>)}
+                            </div>
+                          )}
+                        </div>
+                        <div style={{fontSize:9,color:"#484f58",marginTop:4}}>Vol: {ses.volume.toLocaleString()} lb</div>
+                      </div>
+                    )}
+                  </div>}
+                </div>);
+              })()}
+            </div>
+          )}
+
+          {/* Day header */}
+          <div style={{padding:"16px 16px 8px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+              <div>
+                <div style={{fontSize:18,fontWeight:700,color:"#e6edf3"}}>{day.subtitle}</div>
+                <div style={{fontSize:12,color:"#636e72",marginTop:2}}>{day.focus} · {pct}% complete</div>
+              </div>
+              <button onClick={()=>{sNText(wNotes[dayKey]||"");sNModal({type:"workout",key:dayKey});}} style={{background:wNotes[dayKey]?"#f5a62320":"transparent",border:`1px solid ${wNotes[dayKey]?"#f5a623":"#30363d"}`,borderRadius:8,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                <span style={{fontSize:14}}>📝</span><span style={{fontSize:10,color:wNotes[dayKey]?"#f5a623":"#636e72",...f}}>{wNotes[dayKey]?"Notes":"Add note"}</span>
+              </button>
+            </div>
+            {wNotes[dayKey]&&<div style={{marginTop:8,padding:"8px 10px",background:"#f5a62310",borderRadius:6,borderLeft:"3px solid #f5a623",fontSize:11,color:"#d2a34a",lineHeight:1.4}}>{wNotes[dayKey]}</div>}
+          </div>
+
+          {/* Exercises */}
+          <div style={{padding:"0 12px"}}>
+            {day.exercises.map(ex=>{
+              const cat=CC[ex.category]; const isW=ex.isWave;
+              let sets=[],wL="";
+              if(isW){ const wd=getWS(ex.wave,cWeek,gEM(ex.id)); wL=wd.label; sets=[...wd.warmup.map((s,i)=>({...s,idx:i,label:`W${i+1}`})),...wd.working.map((s,i)=>({...s,idx:wd.warmup.length+i,label:s.backoff?"BO":`S${i+1}`}))]; }
+              else { for(let i=0;i<ex.sets;i++) sets.push({idx:i,reps:ex.reps,weight:ex.defaultWeight,label:`S${i+1}`,isWarmup:false}); }
+              return (
+                <div key={ex.id} style={{marginBottom:8,borderRadius:8,border:`1px solid ${cat.border}22`,background:cat.bg,overflow:"hidden"}}>
+                  <div style={{padding:"10px 12px 6px",display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <span style={{fontSize:13,fontWeight:600,color:"#e6edf3"}}>{ex.name}</span>
+                        <span style={{fontSize:9,fontWeight:700,letterSpacing:1,color:cat.badge,background:`${cat.badge}18`,padding:"2px 6px",borderRadius:3}}>{cat.label}</span>
+                      </div>
+                      {isW&&<span style={{fontSize:10,color:"#636e72"}}>{wL} · TM: {gEM(ex.id)} lb</span>}
+                      {ex.note&&!isW&&<div style={{fontSize:10,color:"#484f58",marginTop:2}}>{ex.note}</div>}
+                    </div>
+                    {(()=>{const ek=`${dayKey}_${ex.id}`;const hn=eNotes[ek]; return <button onClick={()=>{sNText(eNotes[ek]||"");sNModal({type:"exercise",key:ek,exerciseId:ex.id,exerciseName:ex.name});}} style={{background:"none",border:"none",cursor:"pointer",padding:"2px 4px",fontSize:14,opacity:hn?1:.3,flexShrink:0,filter:hn?"none":"grayscale(1)",transition:"opacity 0.15s"}}>💬</button>;})()}
+                  </div>
+                  {eNotes[`${dayKey}_${ex.id}`]&&<div style={{margin:"0 12px 6px",padding:"5px 8px",background:"#4a6fa512",borderRadius:5,borderLeft:"2px solid #4a6fa5",fontSize:10,color:"#7fa3c9",lineHeight:1.4}}>{eNotes[`${dayKey}_${ex.id}`]}</div>}
+                  <div style={{padding:"0 8px 8px"}}>
+                    {sets.map(s=>{
+                      const lk=glk(ex.id,s.idx); const lg=logD[lk]||{}; const dn=compS[lk];
+                      const dW=lg.weight!==undefined?lg.weight:s.weight; const dR=lg.reps!==undefined?lg.reps:s.reps;
+                      const hL=lg.weight!==undefined||lg.reps!==undefined; const iD=delC===lk;
+                      return (
+                        <div key={s.idx} style={{position:"relative",marginBottom:2}}>
+                          {iD&&<div style={{position:"absolute",inset:0,zIndex:10,background:"#e9456018",borderRadius:5,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+                            <span style={{fontSize:11,color:"#e94560",fontWeight:600}}>Clear?</span>
+                            <button onClick={()=>clrS(ex.id,s.idx)} style={{background:"#e94560",border:"none",borderRadius:5,color:"white",padding:"4px 12px",fontSize:11,fontWeight:600,cursor:"pointer"}}>Yes</button>
+                            <button onClick={()=>sDelC(null)} style={{background:"#21262d",border:"none",borderRadius:5,color:"#8b949e",padding:"4px 10px",fontSize:11,cursor:"pointer"}}>No</button>
+                          </div>}
+                          <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 6px",borderRadius:5,background:dn?"#2ea04312":"#161b22",opacity:s.isWarmup?.65:1,transition:"all 0.15s"}}>
+                            <button onClick={()=>togC(ex.id,s.idx)} style={{width:24,height:24,borderRadius:5,border:`1.5px solid ${dn?"#2ea043":"#30363d"}`,background:dn?"#2ea04330":"transparent",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:dn?"#2ea043":"transparent",fontSize:13,flexShrink:0}}>✓</button>
+                            <span style={{fontSize:10,fontWeight:700,width:22,textAlign:"center",flexShrink:0,color:s.isWarmup?"#484f58":s.backoff?"#4a6fa5":cat.badge}}>{s.label}</span>
+                            <div style={{flex:1,display:"flex",alignItems:"center",gap:3}}>
+                              <input type="number" value={dW} onChange={e=>uLog(ex.id,s.idx,"weight",e.target.value)} style={{width:"100%",background:"#0d1117",border:"1px solid #21262d",borderRadius:4,color:dn?"#2ea043":"#e6edf3",padding:"5px 6px",fontSize:13,...f,textAlign:"right"}}/>
+                              <span style={{fontSize:9,color:"#484f58",flexShrink:0}}>lb</span>
+                            </div>
+                            <span style={{color:"#30363d",fontSize:12}}>×</span>
+                            <div style={{width:50,display:"flex",alignItems:"center",gap:3}}>
+                              <input type="number" value={dR} onChange={e=>uLog(ex.id,s.idx,"reps",e.target.value)} style={{width:"100%",background:"#0d1117",border:"1px solid #21262d",borderRadius:4,color:dn?"#2ea043":"#e6edf3",padding:"5px 6px",fontSize:13,...f,textAlign:"right"}}/>
+                            </div>
+                            {s.isWarmup&&<span style={{fontSize:8,color:"#484f58",letterSpacing:.5}}>WU</span>}
+                            {s.backoff&&<span style={{fontSize:8,color:"#4a6fa5",letterSpacing:.5}}>BO</span>}
+                            {(hL||dn)&&<button onClick={()=>sDelC(lk)} style={{background:"none",border:"none",cursor:"pointer",padding:"2px",fontSize:11,color:"#484f58",flexShrink:0,lineHeight:1,opacity:.5}}>✕</button>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Note Modal */}
+          {nModal&&(
+            <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.7)",zIndex:200,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)sNModal(null);}}>
+              <div style={{width:"100%",maxWidth:500,background:"#161b22",borderTop:"2px solid #f5a623",borderRadius:"16px 16px 0 0",padding:"16px 16px 24px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:"#f5a623"}}>{nModal.type==="workout"?"Workout Notes":"Exercise Notes"}</div>
+                    <div style={{fontSize:11,color:"#636e72",marginTop:2}}>{nModal.type==="workout"?`Block ${bNum} · Week ${cWeek+1} · ${day.subtitle}`:nModal.exerciseName}</div>
+                  </div>
+                  <button onClick={()=>sNModal(null)} style={{background:"none",border:"none",color:"#636e72",fontSize:20,cursor:"pointer",padding:4}}>×</button>
+                </div>
+                <textarea value={nText} onChange={e=>sNText(e.target.value)} placeholder={nModal.type==="workout"?"How'd the session go? Energy, sleep, anything to remember...":"Notes for this exercise — form cues, repeat weight, etc."} autoFocus style={{width:"100%",minHeight:100,background:"#0d1117",border:"1px solid #30363d",borderRadius:8,color:"#e6edf3",padding:12,fontSize:13,...f,resize:"vertical",lineHeight:1.5,boxSizing:"border-box"}}/>
+                {nModal.type==="exercise"&&(()=>{
+                  const pN=Object.entries(eNotes).filter(([k])=>k.includes(`_${nModal.exerciseId}`)&&k!==nModal.key).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,3);
+                  if(!pN.length)return null;
+                  return <div style={{marginTop:10}}><div style={{fontSize:10,color:"#636e72",fontWeight:600,letterSpacing:.5,marginBottom:6}}>PREVIOUS NOTES</div>
+                    {pN.map(([k,v])=>{const p=k.match(/b(\d+)_w(\d+)/);const lb=p?`B${p[1]} W${parseInt(p[2])+1}`:k; return <div key={k} style={{padding:"6px 8px",background:"#0d1117",borderRadius:6,marginBottom:4,borderLeft:"2px solid #30363d"}}><span style={{fontSize:9,color:"#484f58",fontWeight:700}}>{lb}</span><div style={{fontSize:11,color:"#8b949e",marginTop:2}}>{v}</div></div>;})}
+                  </div>;
+                })()}
+                {nModal.type==="workout"&&(()=>{
+                  const pN=Object.entries(wNotes).filter(([k])=>k.includes(day.id)&&k!==nModal.key).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,3);
+                  if(!pN.length)return null;
+                  return <div style={{marginTop:10}}><div style={{fontSize:10,color:"#636e72",fontWeight:600,letterSpacing:.5,marginBottom:6}}>PREVIOUS SESSIONS</div>
+                    {pN.map(([k,v])=>{const p=k.match(/b(\d+)_w(\d+)/);const lb=p?`Block ${p[1]} · Week ${parseInt(p[2])+1}`:k; return <div key={k} style={{padding:"6px 8px",background:"#0d1117",borderRadius:6,marginBottom:4,borderLeft:"2px solid #30363d"}}><span style={{fontSize:9,color:"#484f58",fontWeight:700}}>{lb}</span><div style={{fontSize:11,color:"#8b949e",marginTop:2}}>{v}</div></div>;})}
+                  </div>;
+                })()}
+                <div style={{display:"flex",gap:8,marginTop:12}}>
+                  <button onClick={()=>{
+                    if(nModal.type==="workout"){if(nText.trim())sWNotes(p=>({...p,[nModal.key]:nText.trim()}));else sWNotes(p=>{const n={...p};delete n[nModal.key];return n;});}
+                    else{if(nText.trim())sENotes(p=>({...p,[nModal.key]:nText.trim()}));else sENotes(p=>{const n={...p};delete n[nModal.key];return n;});}
+                    sNModal(null);
+                  }} style={{flex:1,padding:"10px 0",border:"none",borderRadius:8,cursor:"pointer",background:"#238636",color:"white",fontSize:13,fontWeight:600,...f}}>Save</button>
+                  <button onClick={()=>sNModal(null)} style={{padding:"10px 16px",border:"1px solid #30363d",borderRadius:8,cursor:"pointer",background:"transparent",color:"#8b949e",fontSize:13,...f}}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="footer-safe" style={{position:"fixed",bottom:0,left:0,right:0,background:"#0d1117",borderTop:"1px solid #21262d",padding:"10px 16px",display:"flex",justifyContent:"center",maxWidth:500,margin:"0 auto"}}>
+            <div style={{fontSize:10,color:"#484f58",textAlign:"center"}}>Peak Strength Style · Block {bNum}</div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
+  <script>
+    if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+  </script>
+</body>
+</html>

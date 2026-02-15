@@ -1,0 +1,104 @@
+import { useState, useEffect } from 'react'
+import { useGoals, type GoalWithProgress } from '../../hooks/useGoals'
+import { GoalCard } from './GoalCard'
+import { GoalEditor } from './GoalEditor'
+
+interface GoalsViewProps {
+  programId: string
+}
+
+export function GoalsView({ programId }: GoalsViewProps) {
+  const { goals, loading, createGoal, updateGoal, deleteGoal, checkAchievements } = useGoals(programId)
+  const [showEditor, setShowEditor] = useState(false)
+  const [editingGoal, setEditingGoal] = useState<GoalWithProgress | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  // Check achievements on load
+  useEffect(() => {
+    checkAchievements().then((achieved) => {
+      if (achieved.length > 0) {
+        setToast(`Goal achieved: ${achieved.map((a) => a.exerciseName).join(', ')}!`)
+        setTimeout(() => setToast(null), 4000)
+      }
+    })
+  }, [checkAchievements])
+
+  const activeGoals = goals.filter((g) => !g.achievedAt)
+  const achievedGoals = goals.filter((g) => g.achievedAt)
+
+  return (
+    <div className="px-4 py-4">
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-xs font-semibold text-accent">STRENGTH GOALS</div>
+        <button
+          onClick={() => { setEditingGoal(null); setShowEditor(true) }}
+          className="text-[11px] bg-[#238636] text-white border-none rounded-md px-3 py-1.5 cursor-pointer font-mono"
+        >
+          + New Goal
+        </button>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className="mb-3 p-2.5 bg-[#f5a62320] border border-accent rounded-lg text-[12px] text-accent text-center font-semibold">
+          {toast}
+        </div>
+      )}
+
+      {loading && <div className="text-center py-8 text-muted text-xs">Loading goals...</div>}
+
+      {!loading && goals.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-[32px] mb-2">&#127919;</div>
+          <div className="text-muted text-sm mb-1">No goals yet</div>
+          <div className="text-faint text-xs">Set a strength target to track your progress.</div>
+        </div>
+      )}
+
+      {/* Active goals */}
+      {activeGoals.length > 0 && (
+        <div className="mb-4">
+          <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">ACTIVE</div>
+          <div className="grid grid-cols-1 gap-2">
+            {activeGoals.map((goal) => (
+              <GoalCard
+                key={goal.id}
+                goal={goal}
+                onEdit={(g) => { setEditingGoal(g); setShowEditor(true) }}
+                onDelete={deleteGoal}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Achieved goals */}
+      {achievedGoals.length > 0 && (
+        <div>
+          <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">ACHIEVED</div>
+          <div className="grid grid-cols-1 gap-2">
+            {achievedGoals.map((goal) => (
+              <GoalCard
+                key={goal.id}
+                goal={goal}
+                onEdit={(g) => { setEditingGoal(g); setShowEditor(true) }}
+                onDelete={deleteGoal}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Editor modal */}
+      {showEditor && (
+        <GoalEditor
+          programId={programId}
+          editingGoal={editingGoal}
+          onSave={createGoal}
+          onUpdate={updateGoal}
+          onClose={() => setShowEditor(false)}
+        />
+      )}
+    </div>
+  )
+}

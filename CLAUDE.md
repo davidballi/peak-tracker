@@ -4,50 +4,102 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Peak Tracker is a mobile-first Progressive Web App (PWA) for tracking workouts with wave-loaded periodization (Garage Strength / Peak Strength style). It's a **zero-build static site** — no bundler, no package manager, no build step.
+Peak Tracker is an iOS app for tracking workouts with wave-loaded periodization (Garage Strength / Peak Strength style). Built with **Tauri v2 + React 18 + TypeScript + Vite + Tailwind CSS + SQLite**.
+
+The original PWA version is preserved as `index.pwa.html` for reference. All new development happens on the `dev` branch.
 
 ## Development
 
-**Serving locally:** Use any static file server from the repo root:
-```
-python3 -m http.server 8000
-# or
-npx serve .
+```bash
+# Install dependencies
+npm install
+
+# Run on iOS Simulator
+npm run tauri ios dev
+
+# Build for iOS
+npm run tauri ios build
+
+# Frontend only (no Tauri, for quick iteration)
+npm run dev
 ```
 
-There is no build command, no test suite, and no linter. The app runs directly in the browser.
-
-**Deploying:** Push to `main` — GitHub Pages serves from the repo root.
+Requires: Node.js, Rust (via rustup), Xcode 15+.
 
 ## Architecture
 
-The entire app lives in **`index.html`** as a single inline `<script type="text/babel">` block. React 18, ReactDOM, Recharts, and Babel standalone are loaded from unpkg CDN. Babel transpiles JSX in the browser at runtime.
+### Tech Stack
+- **Mobile wrapper:** Tauri v2 (Rust, native iOS WebView)
+- **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
+- **State:** Zustand (UI state) + SQLite (persistent data via `@tauri-apps/plugin-sql`)
+- **Charts:** Recharts
+- **IDs:** uuid v4
 
-### Single-component structure
+### Directory Structure
 
-Everything is in one `App()` component (~330 lines) with ~15 `useState` hooks. There is no routing, no component tree, and no external CSS — all styles are inline objects.
+```
+src/
+  components/          # React components organized by feature
+    layout/            # BottomNav (tab bar)
+    workout/           # DayTabs, ExerciseCard, SetRow, etc.
+    history/           # Charts, StatCards, SetLogList
+    programs/          # ProgramBrowser, ProgramBuilder, editors
+    goals/             # GoalCard, GoalEditor
+    settings/          # SettingsPanel
+    dashboard/         # DashboardView
+    ui/                # Shared: Button, Input, Modal, Card, Badge
+  hooks/               # Custom React hooks (useWorkout, useExerciseSets, etc.)
+  lib/                 # Pure logic (no React)
+    calc.ts            # roundToNearest5(), estimatedOneRepMax() (Epley formula)
+    wave.ts            # getWaveSets() — warmup + working sets from percentages
+    constants.ts       # CATEGORY_CONFIG, MAIN_LIFTS, colors
+    templates.ts       # Peak Strength template definition
+    db.ts              # Singleton DB connection
+    seed.ts            # Template seeding + forkTemplate()
+  types/               # TypeScript interfaces
+    program.ts         # Program, Day, Exercise, WaveConfig, TrainingMax
+    log.ts             # WorkoutLog, SetLog, ExerciseNote
+    goal.ts            # StrengthGoal
+    template.ts        # ProgramTemplate, TemplateExercise, etc.
+  store/               # Zustand stores
+    appStore.ts        # activeProgramId, currentView, dbReady
+    workoutStore.ts    # activeWorkoutLogId, completedSets, noteModal
+src-tauri/
+  src/lib.rs           # Tauri app setup with SQL plugin + migrations
+  migrations/          # SQLite migration files
+  Cargo.toml           # Rust dependencies
+  tauri.conf.json      # Tauri config (bundle, identifier)
+  capabilities/        # Tauri permission capabilities
+  gen/apple/           # Xcode project config
+```
 
-### Key variable naming convention
+### Data Model (SQLite)
 
-State variables use abbreviated names throughout (e.g., `cDay` = current day, `cWeek` = current week, `bNum` = block number, `logD` = log data, `maxO` = max overrides, `compS` = completed sets). Helper functions follow the same pattern: `glk` = get log key, `gEM` = get effective max, `gCP` = get completion percentage, `gLH` = get lift history, `gALE` = get all lifts e1RM.
+Two-tier template system:
+- **Template tables** (`program_templates`, `exercise_templates`, `wave_config_templates`, etc.) — read-only seed data
+- **User tables** (`programs`, `days`, `exercises`, `wave_configs`, etc.) — forked from templates, fully editable
 
-### Data model
+Key tables: `training_maxes` (append-only TM log), `workout_logs` + `set_logs` (workout data), `exercise_notes`, `strength_goals`, `user_settings`.
 
-- **`PROGRAM`** — static config defining 4 training days, each with exercises. Wave exercises (`isWave: true`) have percentage-based periodization across 4 weeks (3 working + 1 deload). Non-wave exercises have fixed sets/reps/weight.
-- **`CC`** — category color map for exercise types: `tech`, `absolute`, `ss` (superset), `acc` (accessory).
-- All user data is persisted to `localStorage` under key `peak-tracker-v2` as a single JSON blob containing: `currentDay`, `currentWeek`, `blockNum`, `logData`, `maxOverrides`, `completedSets`, `workoutNotes`, `exerciseNotes`.
+All IDs are TEXT (UUIDs generated in JavaScript). Schema in `src-tauri/migrations/001_initial_schema.sql`.
 
-### Key domain logic
+### Key Domain Logic
 
-- **Wave sets** are generated by `getWS()` — takes a wave config, week index, and current max, returns warmup + working sets with calculated weights (rounded to nearest 5 via `r5()`).
-- **e1RM calculation** uses Epley formula in `eMax()`: `weight * (1 + reps/30)`.
-- **Block advancement** (`advW`): when advancing past week 4, auto-recalculates training maxes from week 3 logged data, picking the best e1RM or adding 5 lb if no improvement.
-- **Main lifts** tracked in charts: bench, squat, deadlift, OHP (defined in `ML` array).
+- **Wave sets** generated by `getWaveSets()` in `src/lib/wave.ts` — takes warmups, weeks, weekSets, weekIndex, and currentMax → returns labeled warmup + working sets with calculated weights (rounded to nearest 5)
+- **e1RM** uses Epley formula in `src/lib/calc.ts`: `weight * (1 + reps/30)`
+- **Template forking** in `src/lib/seed.ts`: deep copies all template data into user-editable tables
+- **Main lifts** tracked in charts: bench, squat, deadlift, OHP (defined in `MAIN_LIFTS`)
 
-### Service worker (`sw.js`)
+### Tailwind Theme
 
-Cache-first for local assets, network-first with cache fallback for CDN resources. Cache name: `peak-tracker-v1`. Bump this when updating cached assets.
+```
+bg: #0d1117, card: #161b22, input: #0d1117
+border: #21262d, focus-border: #f5a623
+accent: #f5a623
+text: #c9d1d9, bright: #e6edf3, muted: #8b949e, dim: #636e72, faint: #484f58
+tech: #e94560, absolute: #f5a623, superset: #4a6fa5, accessory: #636e72
+success: #2ea043, danger: #e94560
+font: SF Mono, Menlo, Consolas, monospace
+```
 
-## Modifying the program
-
-To change exercises, training maxes, wave percentages, or day structure, edit the `PROGRAM` object near the top of the script block in `index.html`. Category colors are in `CC`.
+Colors are configured in `tailwind.config.js` and available as Tailwind classes (e.g., `bg-bg`, `text-accent`, `border-border`).

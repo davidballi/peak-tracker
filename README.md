@@ -1,79 +1,59 @@
-# Peak Tracker PWA
+# Peak Tracker
 
-A mobile-first workout tracker with wave-loaded periodization, built as a Progressive Web App.
+An iOS workout tracker with wave-loaded periodization (Garage Strength / Peak Strength style), built with Tauri v2.
 
 ## Features
-- 4-day training split with wave-loaded periodization (Garage Strength / Peak Strength style)
-- Log weights and reps for every set
+
+- Wave-loaded periodization: 3 working weeks + 1 deload per block
 - Auto-calculated training maxes between blocks (Epley e1RM formula)
-- Per-exercise and per-workout notes with history
+- Log weights and reps for every set with per-exercise and per-workout notes
 - Lift history charts (e1RM trends, volume, all-lifts overlay)
-- Delete/clear individual sets
-- Works offline after first load
-- Installable as a home screen app on iOS and Android
+- Program builder with customizable days, exercises, and wave configs
+- Strength goals with progress tracking and achievement detection
+- Two built-in templates: Peak Strength and Wendler's 5/3/1
+- PWA data import from localStorage JSON
 
-## Quick Deploy to GitHub Pages (10 min)
+## Tech Stack
 
-### 1. Create a GitHub repo
-- Go to https://github.com/new
-- Name it something like `peak-tracker`
-- Make it **Public** (required for free GitHub Pages)
-- Click "Create repository"
+- **Runtime:** Tauri v2 (Rust + native iOS WebView)
+- **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
+- **State:** Zustand (UI state) + SQLite (persistent data via `@tauri-apps/plugin-sql`)
+- **Charts:** Recharts
 
-### 2. Upload the files
-Upload all 5 files from this folder to the repo root:
-```
-index.html
-sw.js
-manifest.json
-icon-192.svg
-icon-512.svg
-```
+## Prerequisites
 
-You can drag-and-drop them via the GitHub web UI:
-- Click "uploading an existing file" on the new repo page
-- Drag all 5 files in
-- Click "Commit changes"
+- Node.js 18+
+- Rust (via rustup)
+- Xcode 15+ with iOS 14+ SDK
+- Apple Developer account (for device builds)
 
-### 3. Enable GitHub Pages
-- Go to repo **Settings** → **Pages** (left sidebar)
-- Under "Source", select **Deploy from a branch**
-- Branch: `main`, Folder: `/ (root)`
-- Click **Save**
-- Wait 1-2 minutes for deployment
+## Development
 
-### 4. Access your app
-Your app will be live at:
-```
-https://YOUR-USERNAME.github.io/peak-tracker/
+```bash
+# Install dependencies
+npm install
+
+# Run on iOS Simulator
+npm run tauri ios dev
+
+# Build for iOS
+npm run tauri ios build
+
+# Frontend only (no Tauri, for quick iteration)
+npm run dev
 ```
 
-### 5. Install on your phone
-1. Open the URL in **Safari** (iOS) or **Chrome** (Android)
-2. **iOS**: Tap Share → "Add to Home Screen"
-3. **Android**: Tap the browser menu → "Install app" or "Add to Home Screen"
+## Project Structure
 
-The app will now appear as a standalone app with the Peak Tracker icon.
-
-## Data Storage
-All data is stored in your browser's localStorage. This means:
-- Data persists between sessions
-- Data is specific to each device/browser
-- Clearing browser data will erase your workout logs
-- **Tip**: Periodically screenshot your history charts as a backup
-
-## File Structure
 ```
-index.html      - Complete app (React + Recharts via CDN, Babel for JSX)
-sw.js           - Service worker for offline caching
-manifest.json   - PWA manifest (app name, icon, theme)
-icon-192.svg    - App icon (192px)
-icon-512.svg    - App icon (512px)
+src/
+  components/       # React components (layout, workout, history, programs, goals, dashboard, ui)
+  hooks/            # Custom React hooks (useWorkout, useHistory, useGoals, etc.)
+  lib/              # Pure logic (calc, wave sets, constants, templates, db, seed)
+  types/            # TypeScript interfaces
+  store/            # Zustand stores
+src-tauri/
+  src/lib.rs        # Tauri app setup with SQL plugin + migrations
+  migrations/       # SQLite migration files
+  gen/apple/        # Xcode project config
 ```
-
-## Customization
-Everything is in `index.html`. To modify:
-- **Training maxes**: Edit `baseMax` values in the `PROGRAM` object
-- **Exercises**: Add/remove/edit exercises in the `PROGRAM.days` arrays
-- **Wave percentages**: Adjust `pct` values in each wave's `weeks` array
-- **Colors**: Edit the `CC` (category colors) object
