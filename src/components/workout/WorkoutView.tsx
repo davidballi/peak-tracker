@@ -16,11 +16,9 @@ interface WorkoutViewProps {
   days: DayWithExercises[]
   onSelectDay: (index: number) => void
   onOpenSettings: () => void
-  onOpenHistory: () => void
   onAdvanceWeek: () => void
   onAdvanceBlock: () => void
   settingsOpen: boolean
-  historyOpen: boolean
 }
 
 export function WorkoutView({
@@ -31,11 +29,9 @@ export function WorkoutView({
   days,
   onSelectDay,
   onOpenSettings,
-  onOpenHistory,
   onAdvanceWeek,
   onAdvanceBlock,
   settingsOpen,
-  historyOpen,
 }: WorkoutViewProps) {
   const day = days[currentDay]
   if (!day) return null

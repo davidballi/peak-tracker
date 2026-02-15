@@ -272,11 +272,9 @@ function MainApp({ programId }: { programId: string }) {
               days={program.days}
               onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false) }}
               onOpenSettings={() => setShowSettings(!showSettings)}
-              onOpenHistory={() => {}}
               onAdvanceWeek={handleAdvanceWeek}
               onAdvanceBlock={handleAdvanceBlock}
               settingsOpen={showSettings}
-              historyOpen={false}
             />
             {showSettings && (
               <SettingsPanel

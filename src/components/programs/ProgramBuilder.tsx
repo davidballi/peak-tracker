@@ -412,8 +412,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
 
 type ExerciseCategory = 'tech' | 'absolute' | 'ss' | 'acc'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function insertDefaultWaveConfig(db: any, exerciseId: string, _baseMax: number) {
+async function insertDefaultWaveConfig(db: Awaited<ReturnType<typeof import('../../lib/db').getDb>>, exerciseId: string, _baseMax: number) {
   const wcRows = await db.select<Array<{ id: string }>>(`SELECT id FROM wave_configs WHERE exercise_id = ?`, [exerciseId])
   if (wcRows.length === 0) return
   const wcId = wcRows[0].id
