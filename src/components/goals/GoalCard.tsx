@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ConfirmModal } from '../ui/ConfirmModal'
 import type { GoalWithProgress } from '../../hooks/useGoals'
 
 interface GoalCardProps {
@@ -10,6 +12,7 @@ const GOAL_TYPE_LABELS = { e1rm: 'Est 1RM', weight: 'Weight', reps: 'Reps' }
 const GOAL_TYPE_UNITS = { e1rm: 'lb', weight: 'lb', reps: 'reps' }
 
 export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const isAchieved = !!goal.achievedAt
   const isPastDeadline = goal.deadline && !isAchieved && new Date(goal.deadline) < new Date()
 
@@ -68,12 +71,24 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
           Edit
         </button>
         <button
-          onClick={() => onDelete(goal.id)}
+          onClick={() => setShowDeleteConfirm(true)}
           className="text-[10px] text-faint bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
         >
           Delete
         </button>
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmModal
+          title="Delete Goal?"
+          message={`Delete the ${goal.exerciseName} ${GOAL_TYPE_LABELS[goal.goalType]} goal?`}
+          detail="This cannot be undone."
+          confirmLabel="Delete"
+          danger
+          onConfirm={() => { setShowDeleteConfirm(false); onDelete(goal.id) }}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
     </div>
   )
 }

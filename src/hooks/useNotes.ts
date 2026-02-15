@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { v4 as uuid } from 'uuid'
 import { getDb } from '../lib/db'
 
+const MAX_NOTE_LENGTH = 2000
+
 interface NoteEntry {
   id: string
   note: string
@@ -27,7 +29,7 @@ export function useNotes(workoutLogId: string | null) {
       const db = await getDb()
 
       // Load exercise notes for this workout log
-      const rows = await db.select<Array<{ id: string; exercise_id: string; note: string }>>(
+      const rows = await db.select<Array<{ id: string; exercise_id: string | null; note: string }>>(
         `SELECT id, exercise_id, note FROM exercise_notes WHERE workout_log_id = ?`,
         [workoutLogId],
       )
@@ -36,7 +38,7 @@ export function useNotes(workoutLogId: string | null) {
       let wNote = ''
       let wNoteId: string | null = null
       for (const r of rows) {
-        if (r.exercise_id === '__workout__') {
+        if (r.exercise_id === null) {
           wNote = r.note
           wNoteId = r.id
         } else {
@@ -55,7 +57,7 @@ export function useNotes(workoutLogId: string | null) {
       if (!workoutLogId) return
       const db = await getDb()
 
-      const trimmed = note.trim()
+      const trimmed = note.trim().slice(0, MAX_NOTE_LENGTH)
       const existing = await db.select<Array<{ id: string }>>(
         `SELECT id FROM exercise_notes WHERE workout_log_id = ? AND exercise_id = ?`,
         [workoutLogId, exerciseId],
@@ -90,7 +92,7 @@ export function useNotes(workoutLogId: string | null) {
       if (!workoutLogId) return
       const db = await getDb()
 
-      const trimmed = note.trim()
+      const trimmed = note.trim().slice(0, MAX_NOTE_LENGTH)
       if (trimmed) {
         if (workoutNoteId) {
           await db.execute(`UPDATE exercise_notes SET note = ? WHERE id = ?`, [trimmed, workoutNoteId])
@@ -98,7 +100,7 @@ export function useNotes(workoutLogId: string | null) {
           const newId = uuid()
           await db.execute(
             `INSERT INTO exercise_notes (id, exercise_id, workout_log_id, note) VALUES (?, ?, ?, ?)`,
-            [newId, '__workout__', workoutLogId, trimmed],
+            [newId, null, workoutLogId, trimmed],
           )
           setWorkoutNoteId(newId)
         }
@@ -148,7 +150,7 @@ export function useNotes(workoutLogId: string | null) {
         `SELECT en.id, en.note, en.created_at, wl.block_num, wl.week_index
          FROM exercise_notes en
          JOIN workout_logs wl ON en.workout_log_id = wl.id
-         WHERE en.exercise_id = '__workout__' AND wl.day_id = ? AND en.workout_log_id != ?
+         WHERE en.exercise_id IS NULL AND wl.day_id = ? AND en.workout_log_id != ?
          ORDER BY en.created_at DESC
          LIMIT ?`,
         [dayId, workoutLogId ?? '', limit],

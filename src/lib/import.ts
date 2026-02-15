@@ -198,12 +198,13 @@ export async function importFromPwa(jsonString: string, programId: string): Prom
           if (parts.length < 2) continue
 
           const exerciseKey = parts[0]
-          const exerciseId = exerciseKey === '__workout__' ? '__workout__' : exerciseKeyMap.get(exerciseKey)
-          if (!exerciseId && exerciseKey !== '__workout__') continue
+          const isWorkoutNote = exerciseKey === '__workout__'
+          const exerciseId = isWorkoutNote ? null : exerciseKeyMap.get(exerciseKey)
+          if (!exerciseId && !isWorkoutNote) continue
 
           await db.execute(
             `INSERT INTO exercise_notes (id, exercise_id, workout_log_id, note) VALUES (?, ?, NULL, ?)`,
-            [uuid(), exerciseId ?? '__workout__', trimmed],
+            [uuid(), exerciseId, trimmed],
           )
           result.notesImported++
         }
@@ -211,7 +212,8 @@ export async function importFromPwa(jsonString: string, programId: string): Prom
     }
 
   } catch (err) {
-    result.errors.push(`Import failed: ${err instanceof Error ? err.message : String(err)}`)
+    console.error('Import failed:', err)
+    result.errors.push('Import failed. The data may be in an unsupported format.')
   }
 
   return result

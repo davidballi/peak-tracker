@@ -61,6 +61,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
             type="text"
             value={data.name}
             onChange={(e) => setData({ ...data, name: e.target.value })}
+            maxLength={100}
             className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[13px] font-mono focus:border-accent outline-none"
             placeholder="e.g. Bench Press"
             autoFocus
@@ -163,6 +164,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
             type="text"
             value={data.note}
             onChange={(e) => setData({ ...data, note: e.target.value })}
+            maxLength={500}
             className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[12px] font-mono focus:border-accent outline-none"
             placeholder="Form cues, tips..."
           />

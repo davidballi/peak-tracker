@@ -60,6 +60,7 @@ export function NoteModal({
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
+          maxLength={2000}
           placeholder={
             type === 'workout'
               ? "How'd the session go? Energy, sleep, anything to remember..."

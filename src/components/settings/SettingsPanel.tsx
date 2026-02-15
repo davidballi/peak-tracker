@@ -65,43 +65,50 @@ export function SettingsPanel({
         onWeekChange(nextWeek)
       } else {
         // Advance to new block — auto-calculate TMs with safety cap
-        for (const ex of waveExercises) {
-          const currentMax = getEffectiveMax(ex.id)
-          let bestE1rm = currentMax
+        await db.execute('BEGIN TRANSACTION')
+        try {
+          for (const ex of waveExercises) {
+            const currentMax = getEffectiveMax(ex.id)
+            let bestE1rm = currentMax
 
-          const rows = await db.select<Array<{ weight: number; reps: number }>>(
-            `SELECT sl.weight, sl.reps FROM set_logs sl
-             JOIN workout_logs wl ON sl.workout_log_id = wl.id
-             WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
-               AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0
-               AND sl.is_completed = 1`,
-            [programId, ex.id, blockNum],
-          )
+            const rows = await db.select<Array<{ weight: number; reps: number }>>(
+              `SELECT sl.weight, sl.reps FROM set_logs sl
+               JOIN workout_logs wl ON sl.workout_log_id = wl.id
+               WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
+                 AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0
+                 AND sl.is_completed = 1`,
+              [programId, ex.id, blockNum],
+            )
 
-          for (const r of rows) {
-            const e1rm = estimatedOneRepMax(r.weight, r.reps)
-            if (e1rm > bestE1rm) bestE1rm = e1rm
-          }
+            for (const r of rows) {
+              const e1rm = estimatedOneRepMax(r.weight, r.reps)
+              if (e1rm > bestE1rm) bestE1rm = e1rm
+            }
 
-          let newTm: number
-          if (bestE1rm > currentMax) {
-            // Cap at MAX_TM_INCREASE_RATIO of current max
-            const capped = Math.min(bestE1rm, currentMax * MAX_TM_INCREASE_RATIO)
-            newTm = roundToNearest5(capped)
-          } else {
-            newTm = roundToNearest5(currentMax + 5)
+            let newTm: number
+            if (bestE1rm > currentMax) {
+              // Cap at MAX_TM_INCREASE_RATIO of current max
+              const capped = Math.min(bestE1rm, currentMax * MAX_TM_INCREASE_RATIO)
+              newTm = roundToNearest5(capped)
+            } else {
+              newTm = roundToNearest5(currentMax + 5)
+            }
+
+            await db.execute(
+              `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,
+              [uuid(), ex.id, newTm, blockNum + 1],
+            )
           }
 
           await db.execute(
-            `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,
-            [uuid(), ex.id, newTm, blockNum + 1],
+            `UPDATE programs SET block_num = block_num + 1, current_week = 0 WHERE id = ?`,
+            [programId],
           )
+          await db.execute('COMMIT')
+        } catch (err) {
+          await db.execute('ROLLBACK')
+          throw err
         }
-
-        await db.execute(
-          `UPDATE programs SET block_num = block_num + 1, current_week = 0 WHERE id = ?`,
-          [programId],
-        )
         onAdvance()
       }
     } finally {

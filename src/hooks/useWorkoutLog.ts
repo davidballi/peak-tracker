@@ -29,6 +29,7 @@ export function useWorkoutLog(
 ) {
   const [workoutLogId, setWorkoutLogId] = useState<string | null>(null)
   const [setLogs, setSetLogs] = useState<Record<string, SetLogState>>({})
+  const setLogsRef = useRef(setLogs)
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   // Create or find the workout log for this day/block/week combo
@@ -73,6 +74,7 @@ export function useWorkoutLog(
         }
       }
       setSetLogs(logs)
+      setLogsRef.current = logs
     }
     initLog()
 
@@ -92,6 +94,12 @@ export function useWorkoutLog(
   const upsertSetLog = useCallback(
     async (exerciseId: string, setIndex: number, field: 'weight' | 'reps', value: string) => {
       if (!workoutLogId) return
+
+      const ALLOWED_FIELDS = new Set(['weight', 'reps'])
+      if (!ALLOWED_FIELDS.has(field)) {
+        throw new Error(`Invalid field: ${field}`)
+      }
+
       const key = `${exerciseId}_${setIndex}`
       const raw = value === '' ? null : parseFloat(value)
       const numVal = field === 'weight' ? validateWeight(raw) : validateReps(raw)
@@ -99,20 +107,21 @@ export function useWorkoutLog(
       // Optimistic update
       setSetLogs((prev) => {
         const existing = prev[key]
-        if (existing) {
-          return { ...prev, [key]: { ...existing, [field]: numVal } }
-        }
-        return {
-          ...prev,
-          [key]: {
-            id: uuid(),
-            exerciseId,
-            setIndex,
-            weight: field === 'weight' ? numVal : null,
-            reps: field === 'reps' ? (numVal !== null ? Math.round(numVal) : null) : null,
-            isCompleted: false,
-          },
-        }
+        const updated = existing
+          ? { ...prev, [key]: { ...existing, [field]: numVal } }
+          : {
+              ...prev,
+              [key]: {
+                id: uuid(),
+                exerciseId,
+                setIndex,
+                weight: field === 'weight' ? numVal : null,
+                reps: field === 'reps' ? (numVal !== null ? Math.round(numVal) : null) : null,
+                isCompleted: false,
+              },
+            }
+        setLogsRef.current = updated
+        return updated
       })
 
       // Debounced DB write
@@ -123,14 +132,14 @@ export function useWorkoutLog(
 
       debounceTimers.current[timerKey] = setTimeout(async () => {
         const db = await getDb()
-        const current = setLogs[key]
+        const current = setLogsRef.current[key]
 
         if (current) {
           // Update existing
-          await db.execute(
-            `UPDATE set_logs SET ${field} = ? WHERE id = ?`,
-            [numVal, current.id],
-          )
+          const sql = field === 'weight'
+            ? `UPDATE set_logs SET weight = ? WHERE id = ?`
+            : `UPDATE set_logs SET reps = ? WHERE id = ?`
+          await db.execute(sql, [numVal, current.id])
         } else {
           // Insert new
           const newId = uuid()
@@ -144,14 +153,16 @@ export function useWorkoutLog(
           setSetLogs((prev) => {
             const entry = prev[key]
             if (entry && entry.id !== newId) {
-              return { ...prev, [key]: { ...entry, id: newId } }
+              const updated = { ...prev, [key]: { ...entry, id: newId } }
+              setLogsRef.current = updated
+              return updated
             }
             return prev
           })
         }
       }, 300)
     },
-    [workoutLogId, setLogs],
+    [workoutLogId],
   )
 
   const toggleComplete = useCallback(

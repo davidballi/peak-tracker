@@ -20,3 +20,6 @@ src-tauri/target/
 
 # Playwright MCP
 .playwright-mcp/
+
+# Database
+*.db
