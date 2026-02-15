@@ -49,9 +49,15 @@ export function useWorkoutLog(
       } else {
         logId = uuid()
         await db.execute(
-          `INSERT INTO workout_logs (id, program_id, day_id, block_num, week_index) VALUES (?, ?, ?, ?, ?)`,
+          `INSERT OR IGNORE INTO workout_logs (id, program_id, day_id, block_num, week_index) VALUES (?, ?, ?, ?, ?)`,
           [logId, programId, dayId, blockNum, weekIndex],
         )
+        // Re-fetch in case INSERT OR IGNORE hit a duplicate (StrictMode double-effect race)
+        const refetch = await db.select<Array<{ id: string }>>(
+          `SELECT id FROM workout_logs WHERE program_id = ? AND day_id = ? AND block_num = ? AND week_index = ?`,
+          [programId, dayId, blockNum, weekIndex],
+        )
+        if (refetch.length > 0) logId = refetch[0].id
       }
       setWorkoutLogId(logId)
 
@@ -146,7 +152,7 @@ export function useWorkoutLog(
           const w = field === 'weight' ? numVal : null
           const r = field === 'reps' ? (numVal !== null ? Math.round(numVal) : null) : null
           await db.execute(
-            `INSERT INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, 0)`,
+            `INSERT OR REPLACE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, 0)`,
             [newId, workoutLogId, exerciseId, setIndex, w, r],
           )
           // Update the ID in state
@@ -193,7 +199,7 @@ export function useWorkoutLog(
         setSetLogs((prev) => ({ ...prev, [key]: newLog }))
         const db = await getDb()
         await db.execute(
-          `INSERT INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, 1)`,
+          `INSERT OR REPLACE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, 1)`,
           [newId, workoutLogId, exerciseId, setIndex, null, null],
         )
       }

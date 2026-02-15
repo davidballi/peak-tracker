@@ -143,7 +143,7 @@ export async function importFromPwa(jsonString: string, programId: string): Prom
           } else {
             workoutLogId = uuid()
             await db.execute(
-              `INSERT INTO workout_logs (id, program_id, day_id, block_num, week_index) VALUES (?, ?, ?, ?, ?)`,
+              `INSERT OR IGNORE INTO workout_logs (id, program_id, day_id, block_num, week_index) VALUES (?, ?, ?, ?, ?)`,
               [workoutLogId, programId, exDay[0].day_id, blockNum, weekIndex],
             )
           }
@@ -156,7 +156,7 @@ export async function importFromPwa(jsonString: string, programId: string): Prom
 
           if (existingSet.length === 0) {
             await db.execute(
-              `INSERT INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+              `INSERT OR IGNORE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, ?)`,
               [uuid(), workoutLogId, exerciseId, setIndex, weight, reps, log.done ? 1 : 0],
             )
             result.setsImported++
