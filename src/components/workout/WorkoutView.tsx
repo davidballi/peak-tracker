@@ -116,11 +116,11 @@ export function WorkoutView({
               onClick={onOpenSettings}
               className={`min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[11px] ${
                 settingsOpen
-                  ? 'bg-[#f5a62320] border-accent text-accent'
-                  : 'bg-transparent border-[#30363d] text-muted'
+                  ? 'bg-accent/[0.125] border-accent text-accent'
+                  : 'bg-transparent border-border-elevated text-muted'
               }`}
             >
-              ⚙
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
           </div>
         </div>
@@ -141,18 +141,18 @@ export function WorkoutView({
             onClick={() => setNoteModal({ type: 'workout' })}
             className={`border rounded-lg px-2.5 py-1.5 cursor-pointer flex items-center gap-1 shrink-0 ${
               workoutNote
-                ? 'bg-[#f5a62320] border-accent'
-                : 'bg-transparent border-[#30363d]'
+                ? 'bg-accent/[0.125] border-accent'
+                : 'bg-transparent border-border-elevated'
             }`}
           >
-            <span className="text-[14px]">📝</span>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             <span className={`text-[10px] ${workoutNote ? 'text-accent' : 'text-dim'}`}>
               {workoutNote ? 'Notes' : 'Add note'}
             </span>
           </button>
         </div>
         {workoutNote && (
-          <div className="mt-2 p-2 bg-[#f5a62310] rounded-md border-l-[3px] border-accent text-[11px] text-[#d2a34a] leading-relaxed">
+          <div className="mt-2 p-2 bg-accent/[0.06] rounded-md border-l-[3px] border-accent text-[11px] text-accent leading-relaxed">
             {workoutNote}
           </div>
         )}
@@ -191,7 +191,7 @@ export function WorkoutView({
         ) : currentWeek < 3 ? (
           <button
             onClick={onAdvanceWeek}
-            className="w-full py-3 border-none rounded-lg bg-[#238636] text-white text-xs font-semibold cursor-pointer"
+            className="w-full py-3 border-none rounded-lg bg-success text-white text-xs font-semibold cursor-pointer"
           >
             Advance to Week {currentWeek + 2} →
           </button>

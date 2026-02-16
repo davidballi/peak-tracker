@@ -70,7 +70,7 @@ export function ProgramBrowser({ onBack }: ProgramBrowserProps) {
               <button
                 onClick={() => handleFork(t.id)}
                 disabled={forking}
-                className="text-[11px] bg-[#238636] text-white border-none rounded-md px-3 py-1.5 cursor-pointer disabled:opacity-50"
+                className="text-[11px] bg-success text-white border-none rounded-md px-3 py-1.5 cursor-pointer disabled:opacity-50"
               >
                 Fork
               </button>

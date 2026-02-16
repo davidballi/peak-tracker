@@ -21,9 +21,9 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
     <div
       className={`border rounded-lg p-3 shadow-card ${
         isAchieved
-          ? 'border-accent bg-[#f5a62310]'
+          ? 'border-accent bg-accent/[0.06]'
           : isPastDeadline
-            ? 'border-danger bg-[#e9456010]'
+            ? 'border-danger bg-danger/[0.06]'
             : 'border-border-elevated bg-card'
       }`}
     >

@@ -45,7 +45,7 @@ export function ConfirmModal({
           <button
             onClick={onConfirm}
             className={`flex-1 py-2.5 min-h-[44px] border-none rounded-lg cursor-pointer text-white text-[13px] font-semibold ${
-              danger ? 'bg-danger' : 'bg-[#238636]'
+              danger ? 'bg-danger' : 'bg-success'
             }`}
           >
             {confirmLabel}

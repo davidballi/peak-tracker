@@ -33,7 +33,7 @@ export function GoalsView({ programId }: GoalsViewProps) {
         <div className="text-xs font-semibold text-accent">STRENGTH GOALS</div>
         <button
           onClick={() => { setEditingGoal(null); setShowEditor(true) }}
-          className="text-[11px] bg-[#238636] text-white border-none rounded-md px-3 py-1.5 cursor-pointer"
+          className="text-[11px] bg-success text-white border-none rounded-md px-3 py-1.5 cursor-pointer"
         >
           + New Goal
         </button>
@@ -43,7 +43,7 @@ export function GoalsView({ programId }: GoalsViewProps) {
       <AnimatePresence>
       {toast && (
         <motion.div
-          className="mb-3 p-2.5 bg-[#f5a62320] border border-accent rounded-lg text-[12px] text-accent text-center font-semibold"
+          className="mb-3 p-2.5 bg-accent/[0.125] border border-accent rounded-lg text-[12px] text-accent text-center font-semibold"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
@@ -58,7 +58,7 @@ export function GoalsView({ programId }: GoalsViewProps) {
 
       {!loading && goals.length === 0 && (
         <div className="text-center py-12">
-          <div className="text-[32px] mb-2">&#127919;</div>
+          <div className="text-accent mb-2"><svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
           <div className="text-muted text-sm mb-1">No goals yet</div>
           <div className="text-faint text-xs">Set a strength target to track your progress.</div>
         </div>

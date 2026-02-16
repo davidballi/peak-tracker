@@ -94,7 +94,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
               className={`px-2.5 py-1 rounded-md text-[11px] border-none cursor-pointer transition-colors ${
                 selectedExerciseId === ml.exerciseId
                   ? 'text-bg font-bold'
-                  : 'bg-[#21262d] text-muted hover:text-bright active:text-bright'
+                  : 'bg-border text-muted hover:text-bright active:text-bright'
               }`}
               style={selectedExerciseId === ml.exerciseId ? { background: ml.color } : undefined}
             >
@@ -107,7 +107,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
               loadAllLiftsOverlay()
             }}
             className={`px-2.5 py-1 rounded-md text-[11px] border-none cursor-pointer transition-colors ${
-              showOverlay ? 'bg-accent text-bg font-bold' : 'bg-[#21262d] text-muted hover:text-bright active:text-bright'
+              showOverlay ? 'bg-accent text-bg font-bold' : 'bg-border text-muted hover:text-bright active:text-bright'
             }`}
           >
             All Lifts
@@ -123,7 +123,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
             setShowOverlay(false)
             loadExerciseHistory(e.target.value)
           }}
-          className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[12px]"
+          className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[12px]"
         >
           {exercises.map((ex) => (
             <option key={ex.id} value={ex.id}>{ex.name}</option>

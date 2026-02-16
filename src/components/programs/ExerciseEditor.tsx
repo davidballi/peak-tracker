@@ -73,7 +73,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
             value={data.name}
             onChange={(e) => setData({ ...data, name: e.target.value })}
             maxLength={100}
-            className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[13px] focus:border-accent outline-none"
+            className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[13px] focus:border-accent outline-none"
             placeholder="e.g. Bench Press"
             autoFocus
           />
@@ -88,7 +88,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
                 key={cat}
                 onClick={() => setData({ ...data, category: cat })}
                 className={`flex-1 py-2.5 min-h-[44px] rounded text-[10px] border-none cursor-pointer ${
-                  cat === data.category ? 'font-bold' : 'bg-[#21262d] text-muted'
+                  cat === data.category ? 'font-bold' : 'bg-border text-muted'
                 }`}
                 style={
                   cat === data.category
@@ -125,7 +125,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
               inputMode="decimal"
               value={data.baseMax || ''}
               onChange={(e) => setData({ ...data, baseMax: parseInt(e.target.value) || 0 })}
-              className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
+              className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
               placeholder="e.g. 315"
             />
             <div className="text-[10px] text-faint mt-1">
@@ -142,7 +142,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
                 inputMode="decimal"
                 value={data.sets}
                 onChange={(e) => setData({ ...data, sets: parseInt(e.target.value) || 0 })}
-                className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[16px] font-mono focus:border-accent outline-none"
+                className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[16px] font-mono focus:border-accent outline-none"
               />
             </div>
             <div>
@@ -152,7 +152,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
                 inputMode="decimal"
                 value={data.reps}
                 onChange={(e) => setData({ ...data, reps: parseInt(e.target.value) || 0 })}
-                className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[16px] font-mono focus:border-accent outline-none"
+                className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[16px] font-mono focus:border-accent outline-none"
               />
             </div>
             <div>
@@ -162,7 +162,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
                 inputMode="decimal"
                 value={data.defaultWeight || ''}
                 onChange={(e) => setData({ ...data, defaultWeight: parseInt(e.target.value) || 0 })}
-                className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
+                className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
             value={data.note}
             onChange={(e) => setData({ ...data, note: e.target.value })}
             maxLength={500}
-            className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[12px] focus:border-accent outline-none"
+            className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[12px] focus:border-accent outline-none"
             placeholder="Form cues, tips..."
           />
         </div>
@@ -185,13 +185,13 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
         <div className="flex gap-2">
           <button
             onClick={handleSubmit}
-            className="flex-1 py-2.5 border-none rounded-lg cursor-pointer bg-[#238636] text-white text-[13px] font-semibold"
+            className="flex-1 py-2.5 border-none rounded-lg cursor-pointer bg-success text-white text-[13px] font-semibold"
           >
             {initial ? 'Save Changes' : 'Add Exercise'}
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 border border-[#30363d] rounded-lg cursor-pointer bg-transparent text-muted text-[13px]"
+            className="px-4 py-2.5 border border-border-elevated rounded-lg cursor-pointer bg-transparent text-muted text-[13px]"
           >
             Cancel
           </button>

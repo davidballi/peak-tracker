@@ -135,7 +135,7 @@ export function SettingsPanel({
               className={`flex-1 py-2.5 min-h-[44px] border-none rounded text-[11px] cursor-pointer ${
                 w === currentWeek
                   ? 'bg-accent text-bg'
-                  : 'bg-[#21262d] text-muted'
+                  : 'bg-border text-muted'
               }`}
             >
               {w === 3 ? 'DL' : `W${w + 1}`}
@@ -162,7 +162,7 @@ export function SettingsPanel({
                     inputMode="decimal"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    className="w-[70px] bg-bg border border-[#30363d] rounded text-accent px-1.5 py-1.5 text-[16px] font-mono"
+                    className="w-[70px] bg-bg border border-border-elevated rounded text-accent px-1.5 py-1.5 text-[16px] font-mono"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSaveMax(ex.id)
@@ -179,7 +179,7 @@ export function SettingsPanel({
               ) : (
                 <button
                   onClick={() => { setEditingId(ex.id); setEditValue(String(mx)) }}
-                  className="bg-transparent border border-[#30363d] rounded text-accent px-2.5 py-1.5 min-h-[44px] text-xs cursor-pointer font-mono"
+                  className="bg-transparent border border-border-elevated rounded text-accent px-2.5 py-1.5 min-h-[44px] text-xs cursor-pointer font-mono"
                 >
                   {mx} lb
                 </button>
@@ -193,7 +193,7 @@ export function SettingsPanel({
       <button
         onClick={handleAdvanceClick}
         disabled={advancing}
-        className="w-full py-2.5 border-none rounded-md cursor-pointer bg-[#238636] text-white text-xs font-semibold disabled:opacity-50"
+        className="w-full py-2.5 border-none rounded-md cursor-pointer bg-success text-white text-xs font-semibold disabled:opacity-50"
       >
         {currentWeek < 3 ? `Advance to Week ${currentWeek + 2}` : 'Start New Block →'}
       </button>

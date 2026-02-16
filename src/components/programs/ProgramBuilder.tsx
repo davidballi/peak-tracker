@@ -224,7 +224,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
             key={day.id}
             onClick={() => setSelectedDay(i)}
             className={`px-2.5 py-1.5 rounded-md text-[11px] border-none cursor-pointer ${
-              i === selectedDay ? 'bg-accent text-bg font-bold' : 'bg-[#21262d] text-muted'
+              i === selectedDay ? 'bg-accent text-bg font-bold' : 'bg-border text-muted'
             }`}
           >
             {day.subtitle || day.name}
@@ -246,14 +246,14 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
               <input
                 value={dayEditValue.subtitle}
                 onChange={(e) => setDayEditValue({ ...dayEditValue, subtitle: e.target.value })}
-                className="w-full bg-bg border border-[#30363d] rounded text-bright p-1.5 text-[12px]"
+                className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[12px]"
                 placeholder="Day title"
                 autoFocus
               />
               <input
                 value={dayEditValue.focus}
                 onChange={(e) => setDayEditValue({ ...dayEditValue, focus: e.target.value })}
-                className="w-full bg-bg border border-[#30363d] rounded text-bright p-1.5 text-[12px]"
+                className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[12px]"
                 placeholder="Focus area"
               />
               <div className="flex gap-1">

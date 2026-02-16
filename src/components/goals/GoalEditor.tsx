@@ -92,7 +92,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
             <select
               value={exerciseId}
               onChange={(e) => setExerciseId(e.target.value)}
-              className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[12px]"
+              className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[12px]"
             >
               {exercises.map((ex) => (
                 <option key={ex.id} value={ex.id}>{ex.name}</option>
@@ -111,7 +111,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
                   key={gt}
                   onClick={() => setGoalType(gt)}
                   className={`flex-1 py-2.5 min-h-[44px] rounded text-[11px] border-none cursor-pointer ${
-                    gt === goalType ? 'bg-accent text-bg' : 'bg-[#21262d] text-muted'
+                    gt === goalType ? 'bg-accent text-bg' : 'bg-border text-muted'
                   }`}
                 >
                   {gt === 'e1rm' ? 'Est 1RM' : gt === 'weight' ? 'Weight' : 'Reps'}
@@ -131,7 +131,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
             inputMode="decimal"
             value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)}
-            className="w-full bg-bg border border-[#30363d] rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
+            className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
             placeholder={goalType === 'reps' ? 'e.g. 10' : 'e.g. 350'}
             autoFocus
           />
@@ -144,7 +144,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
             type="date"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="w-full bg-bg border border-[#30363d] rounded-lg text-bright p-2 text-[12px] focus:border-accent outline-none"
+            className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[12px] focus:border-accent outline-none"
           />
         </div>
 
@@ -152,13 +152,13 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
         <div className="flex gap-2">
           <button
             onClick={handleSubmit}
-            className="flex-1 py-2.5 border-none rounded-lg cursor-pointer bg-[#238636] text-white text-[13px] font-semibold"
+            className="flex-1 py-2.5 border-none rounded-lg cursor-pointer bg-success text-white text-[13px] font-semibold"
           >
             {editingGoal ? 'Update' : 'Create Goal'}
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 border border-[#30363d] rounded-lg cursor-pointer bg-transparent text-muted text-[13px]"
+            className="px-4 py-2.5 border border-border-elevated rounded-lg cursor-pointer bg-transparent text-muted text-[13px]"
           >
             Cancel
           </button>

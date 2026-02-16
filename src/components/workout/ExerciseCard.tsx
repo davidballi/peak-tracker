@@ -87,13 +87,13 @@ export function ExerciseCard({
             exerciseNote ? 'opacity-100' : 'opacity-30 grayscale'
           }`}
         >
-          💬
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </button>
       </div>
 
       {/* Exercise note display */}
       {exerciseNote && (
-        <div className="mx-3 mb-1.5 p-[5px_8px] bg-[#4a6fa512] rounded-[5px] border-l-2 border-superset text-[10px] text-[#7fa3c9] leading-relaxed">
+        <div className="mx-3 mb-1.5 p-[5px_8px] bg-superset/[0.07] rounded-[5px] border-l-2 border-superset text-[10px] text-muted leading-relaxed">
           {exerciseNote}
         </div>
       )}

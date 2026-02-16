@@ -33,7 +33,7 @@ export function SetRow({
   if (confirmClear) {
     return (
       <div className="relative mb-0.5">
-        <div className="flex items-center justify-center gap-2 p-[5px_6px] rounded-[5px] bg-[#e9456018]">
+        <div className="flex items-center justify-center gap-2 p-[5px_6px] rounded-[5px] bg-danger/[0.09]">
           <span className="text-[11px] text-danger font-semibold">Clear?</span>
           <button
             onClick={() => { onClear(exerciseId, set.index); setConfirmClear(false) }}
@@ -43,7 +43,7 @@ export function SetRow({
           </button>
           <button
             onClick={() => setConfirmClear(false)}
-            className="bg-[#21262d] border-none rounded-[5px] text-muted px-2.5 py-1 text-[11px] cursor-pointer min-h-[44px]"
+            className="bg-border border-none rounded-[5px] text-muted px-2.5 py-1 text-[11px] cursor-pointer min-h-[44px]"
           >
             No
           </button>
@@ -56,7 +56,7 @@ export function SetRow({
     <div className="mb-0.5">
       <div
         className={`flex items-center gap-1.5 p-[5px_6px] rounded-[5px] transition-all ${
-          isCompleted ? 'bg-[#2ea04312]' : 'bg-card'
+          isCompleted ? 'bg-success/[0.07]' : 'bg-card'
         } ${set.isWarmup ? 'opacity-65' : ''}`}
       >
         {/* Checkbox */}
@@ -66,8 +66,8 @@ export function SetRow({
         >
           <span className={`w-7 h-7 rounded-[5px] border-[1.5px] flex items-center justify-center text-[13px] ${
             isCompleted
-              ? 'border-success bg-[#2ea04330] text-success'
-              : 'border-[#30363d] bg-transparent text-transparent'
+              ? 'border-success bg-success/[0.19] text-success'
+              : 'border-border-elevated bg-transparent text-transparent'
           }`}>
             ✓
           </span>
@@ -101,7 +101,7 @@ export function SetRow({
           <span className="text-[9px] text-faint shrink-0">lb</span>
         </div>
 
-        <span className="text-[#30363d] text-xs">×</span>
+        <span className="text-faint text-xs">×</span>
 
         {/* Reps input */}
         <div className="w-[50px] flex items-center gap-0.5">

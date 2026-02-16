@@ -106,7 +106,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           onClick={() => setCurrentView('workout')}
           className="p-3 bg-card border border-border-elevated rounded-lg shadow-card cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
-          <div className="text-[14px] mb-1">&#127947;&#65039;</div>
+          <div className="text-accent mb-1"><svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6.5h0M17.5 6.5h0"/><path d="M2 12h2m16 0h2M6 12H4.5a2.5 2.5 0 0 1 0-5H6m0 5V7m0 5v5.5a2.5 2.5 0 0 0 5 0V12m-5 0h5m0 0h1m0 0h5m-5 0V7m0 5v5.5a2.5 2.5 0 0 1-5 0m10-5h1.5a2.5 2.5 0 0 0 0-5H18m0 5V7"/></svg></div>
           <div className="text-[12px] font-semibold text-bright">Start Workout</div>
           <div className="text-[10px] text-muted">Continue logging</div>
         </button>
@@ -114,7 +114,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           onClick={() => setCurrentView('history')}
           className="p-3 bg-card border border-border-elevated rounded-lg shadow-card cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
-          <div className="text-[14px] mb-1">&#128200;</div>
+          <div className="text-accent mb-1"><svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
           <div className="text-[12px] font-semibold text-bright">View History</div>
           <div className="text-[10px] text-muted">Charts & trends</div>
         </button>
@@ -163,7 +163,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           value={importJson}
           onChange={(e) => setImportJson(e.target.value)}
           placeholder='{"logs": {...}, "maxes": {...}, ...}'
-          className="w-full min-h-[80px] bg-bg border border-[#30363d] rounded-lg text-bright p-2.5 text-[11px] font-mono resize-y leading-relaxed focus:border-accent outline-none mb-2"
+          className="w-full min-h-[80px] bg-bg border border-border-elevated rounded-lg text-bright p-2.5 text-[11px] font-mono resize-y leading-relaxed focus:border-accent outline-none mb-2"
         />
         <button
           onClick={handleImport}
