@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { v4 as uuid } from 'uuid'
 import { useAppStore } from './store/appStore'
 import { getDb, withWriteLock } from './lib/db'
@@ -259,31 +260,18 @@ function MainApp({ programId }: { programId: string }) {
 
       case 'workout':
         return (
-          <>
-            <WorkoutView
-              programId={programId}
-              blockNum={program.blockNum}
-              currentWeek={program.currentWeek}
-              currentDay={program.currentDay}
-              days={program.days}
-              onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false) }}
-              onOpenSettings={() => setShowSettings(!showSettings)}
-              onAdvanceWeek={handleAdvanceWeek}
-              onAdvanceBlock={handleAdvanceBlock}
-              settingsOpen={showSettings}
-            />
-            {showSettings && (
-              <SettingsPanel
-                programId={programId}
-                blockNum={program.blockNum}
-                currentWeek={program.currentWeek}
-                waveExercises={waveExercises}
-                getEffectiveMax={getEffectiveMax}
-                onWeekChange={handleWeekChange}
-                onAdvance={handleAdvance}
-              />
-            )}
-          </>
+          <WorkoutView
+            programId={programId}
+            blockNum={program.blockNum}
+            currentWeek={program.currentWeek}
+            currentDay={program.currentDay}
+            days={program.days}
+            onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false) }}
+            onOpenSettings={() => setShowSettings(!showSettings)}
+            onAdvanceWeek={handleAdvanceWeek}
+            onAdvanceBlock={handleAdvanceBlock}
+            settingsOpen={showSettings}
+          />
         )
 
       case 'history':
@@ -316,6 +304,20 @@ function MainApp({ programId }: { programId: string }) {
         </div>
       </div>
       <BottomNav />
+      <AnimatePresence>
+        {showSettings && program && (
+          <SettingsPanel
+            programId={programId}
+            blockNum={program.blockNum}
+            currentWeek={program.currentWeek}
+            waveExercises={waveExercises}
+            getEffectiveMax={getEffectiveMax}
+            onWeekChange={handleWeekChange}
+            onAdvance={handleAdvance}
+            onClose={() => setShowSettings(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

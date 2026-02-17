@@ -4,6 +4,7 @@ import { estimatedOneRepMax } from '../../lib/calc'
 import { MAIN_LIFTS } from '../../lib/constants'
 import { useAppStore } from '../../store/appStore'
 import { importFromPwa } from '../../lib/import'
+import { importHistoryFromJson } from '../../lib/import-history'
 
 interface DashboardViewProps {
   programId: string
@@ -69,6 +70,31 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
     }
     loadDashboard()
   }, [programId])
+
+  async function handleNotesImport() {
+    setImporting(true)
+    setImportResult(null)
+    try {
+      const resp = await fetch('/workout-history.json')
+      if (!resp.ok) {
+        setImportResult('No workout-history.json found. Run: node scripts/parse-workout-notes.mjs')
+        return
+      }
+      const json = await resp.text()
+      const result = await importHistoryFromJson(json, programId)
+      const lines = []
+      lines.push(`${result.setsImported} sets imported across ${result.workoutsCreated} sessions`)
+      if (result.maxBlock > 0) lines.push(`Block range up to ${result.maxBlock} (program advanced to block ${result.maxBlock + 1})`)
+      if (result.exercisesMatched.length > 0) lines.push(`Matched: ${result.exercisesMatched.join(', ')}`)
+      if (result.exercisesUnmatched.length > 0) lines.push(`Unmatched: ${result.exercisesUnmatched.join(', ')}`)
+      if (result.errors.length > 0) lines.push(`Errors: ${result.errors.join('; ')}`)
+      setImportResult(lines.join('\n'))
+    } catch (err) {
+      setImportResult(`Import failed: ${err}`)
+    } finally {
+      setImporting(false)
+    }
+  }
 
   async function handleImport() {
     if (!importJson.trim()) return
@@ -156,8 +182,22 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
       {/* Data Import */}
       <div className="mb-5">
         <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">DATA IMPORT</div>
-        <div className="text-[17px] text-faint mb-2">
-          Paste your PWA localStorage data (forge-v2 key) to import history.
+
+        {/* Notes History Import */}
+        <button
+          onClick={handleNotesImport}
+          disabled={importing}
+          className="w-full py-2.5 mb-2 border border-border-elevated rounded-md cursor-pointer bg-card text-bright text-[18px] font-semibold disabled:opacity-50 hover:border-accent active:border-accent transition-colors"
+        >
+          {importing ? 'Importing...' : 'Import Notes History'}
+        </button>
+        <div className="text-[16px] text-faint mb-3">
+          Loads parsed Apple Notes data from /workout-history.json
+        </div>
+
+        {/* PWA Import */}
+        <div className="text-[16px] text-faint mb-2">
+          Or paste PWA localStorage data (forge-v2 key):
         </div>
         <textarea
           value={importJson}
@@ -170,10 +210,10 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           disabled={importing || !importJson.trim()}
           className="w-full py-2 border-none rounded-md cursor-pointer bg-accent text-bg text-[18px] font-semibold disabled:opacity-50"
         >
-          {importing ? 'Importing...' : 'Import Data'}
+          {importing ? 'Importing...' : 'Import PWA Data'}
         </button>
         {importResult && (
-          <div className="mt-2 text-[17px] text-muted bg-card border border-border rounded p-2">
+          <div className="mt-2 text-[17px] text-muted bg-card border border-border rounded p-2 whitespace-pre-wrap">
             {importResult}
           </div>
         )}

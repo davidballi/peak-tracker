@@ -28,7 +28,16 @@ export function E1rmChart({ data, color = '#f5a623' }: E1rmChartProps) {
             labelStyle={{ color: '#8b949e' }}
             itemStyle={{ color }}
           />
-          <Line type="monotone" dataKey="e1rm" stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} />
+          <Line type="monotone" dataKey="e1rm" stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} name="e1RM" />
+          <Line
+            type="monotone"
+            dataKey="rollingAvg"
+            stroke="#8b949e"
+            strokeWidth={1.5}
+            strokeDasharray="6 3"
+            dot={false}
+            name="180d avg"
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

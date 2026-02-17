@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { v4 as uuid } from 'uuid'
 import { getDb, withWriteLock } from '../../lib/db'
 import { estimatedOneRepMax, roundToNearest5, validateWeight } from '../../lib/calc'
@@ -16,6 +16,7 @@ interface SettingsPanelProps {
   getEffectiveMax: (exerciseId: string) => number
   onWeekChange: (week: number) => void
   onAdvance: () => void
+  onClose: () => void
 }
 
 export function SettingsPanel({
@@ -26,6 +27,7 @@ export function SettingsPanel({
   getEffectiveMax,
   onWeekChange,
   onAdvance,
+  onClose,
 }: SettingsPanelProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -121,8 +123,25 @@ export function SettingsPanel({
   }, [currentWeek, handleAdvanceWeek])
 
   return (
-    <div className="px-4 py-4 border-b border-border-elevated bg-card shadow-card">
-      <div className="text-[17px] font-semibold text-accent mb-3">SETTINGS</div>
+    <motion.div
+      className="fixed inset-0 bg-bg z-[200] flex flex-col pt-[env(safe-area-inset-top)]"
+      initial={{ y: '100%' }}
+      animate={{ y: 0 }}
+      exit={{ y: '100%' }}
+      transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center px-4 py-3 border-b border-border-elevated">
+        <div className="text-[19px] font-bold text-accent">Settings</div>
+        <button
+          onClick={onClose}
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-transparent border border-border-elevated rounded-lg text-muted cursor-pointer hover:border-accent active:border-accent"
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-[calc(32px+env(safe-area-inset-bottom))]">
 
       {/* Week selector */}
       <div className="mb-3">
@@ -215,6 +234,7 @@ export function SettingsPanel({
         />
       )}
       </AnimatePresence>
-    </div>
+      </div>
+    </motion.div>
   )
 }
