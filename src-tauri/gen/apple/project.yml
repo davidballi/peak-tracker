@@ -1,6 +1,6 @@
-name: peak-tracker
+name: forge
 options:
-  bundleIdPrefix: com.peaktracker.app
+  bundleIdPrefix: com.forge.app
   deploymentTarget:
     iOS: 14.0
 fileGroups: [../../src]
@@ -10,8 +10,8 @@ configs:
 settingGroups:
   app:
     base:
-      PRODUCT_NAME: Peak Tracker
-      PRODUCT_BUNDLE_IDENTIFIER: com.peaktracker.app
+      PRODUCT_NAME: Forge
+      PRODUCT_BUNDLE_IDENTIFIER: com.forge.app
 targetTemplates:
   app:
     type: application
@@ -24,20 +24,21 @@ targetTemplates:
     settings:
       groups: [app]
 targets:
-  peak-tracker_iOS:
+  forge_iOS:
     type: application
     platform: iOS
     sources:
       - path: Sources
       - path: Assets.xcassets
       - path: Externals
-      - path: peak-tracker_iOS
+      - path: forge_iOS
+      - path: forge_iOS/PrivacyInfo.xcprivacy
       - path: assets
         buildPhase: resources
         type: folder
       - path: LaunchScreen.storyboard
     info:
-      path: peak-tracker_iOS/Info.plist
+      path: forge_iOS/Info.plist
       properties:
         LSRequiresIPhoneOS: true
         UILaunchStoryboardName: LaunchScreen
@@ -47,9 +48,10 @@ targets:
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
         CFBundleShortVersionString: 1.0.0
-        CFBundleVersion: "1.0.0"
+        CFBundleVersion: "1"
+        UIRequiresFullScreen: true
     entitlements:
-      path: peak-tracker_iOS/peak-tracker_iOS.entitlements
+      path: forge_iOS/forge_iOS.entitlements
     scheme:
       environmentVariables:
         RUST_BACKTRACE: full
@@ -58,11 +60,16 @@ targets:
       base:
         ENABLE_BITCODE: false
         ARCHS: [arm64]
-        VALID_ARCHS: arm64 
+        VALID_ARCHS: arm64
+        LIBRARY_SEARCH_PATHS: $(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)
         LIBRARY_SEARCH_PATHS[arch=x86_64]: $(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)
         LIBRARY_SEARCH_PATHS[arch=arm64]: $(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: true
         EXCLUDED_ARCHS[sdk=iphoneos*]: x86_64
+        TARGETED_DEVICE_FAMILY: "1"
+        DEVELOPMENT_TEAM: G3DQP8CZ75
+        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_STYLE: Automatic
       groups: [app]
     dependencies:
       - framework: libapp.a

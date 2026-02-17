@@ -3,7 +3,6 @@ import { getDb } from '../../lib/db'
 import { estimatedOneRepMax } from '../../lib/calc'
 import { MAIN_LIFTS } from '../../lib/constants'
 import { useAppStore } from '../../store/appStore'
-import { importFromPwa } from '../../lib/import'
 
 interface DashboardViewProps {
   programId: string
@@ -21,9 +20,6 @@ interface LiftPr {
 export function DashboardView({ programId, programName, blockNum, currentWeek }: DashboardViewProps) {
   const [liftPrs, setLiftPrs] = useState<LiftPr[]>([])
   const [totalSessions, setTotalSessions] = useState(0)
-  const [importJson, setImportJson] = useState('')
-  const [importResult, setImportResult] = useState<string | null>(null)
-  const [importing, setImporting] = useState(false)
   const setCurrentView = useAppStore((s) => s.setCurrentView)
 
   useEffect(() => {
@@ -70,68 +66,47 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
     loadDashboard()
   }, [programId])
 
-  async function handleImport() {
-    if (!importJson.trim()) return
-    setImporting(true)
-    setImportResult(null)
-    try {
-      const result = await importFromPwa(importJson, programId)
-      const parts = []
-      if (result.setsImported > 0) parts.push(`${result.setsImported} sets`)
-      if (result.notesImported > 0) parts.push(`${result.notesImported} notes`)
-      if (result.maxesImported > 0) parts.push(`${result.maxesImported} training maxes`)
-      if (result.errors.length > 0) parts.push(`${result.errors.length} errors`)
-      setImportResult(parts.length > 0 ? `Imported: ${parts.join(', ')}` : 'No data to import')
-      setImportJson('')
-    } catch (err) {
-      setImportResult(`Import failed: ${err}`)
-    } finally {
-      setImporting(false)
-    }
-  }
-
   return (
     <div className="px-4 py-4">
       {/* Header */}
       <div className="mb-6">
         <div className="text-[20px] font-bold">
-          <span className="text-accent">PEAK</span>
-          <span className="text-dim"> TRACKER</span>
+          <span className="text-accent">FORGE</span>
         </div>
-        <div className="text-[11px] text-muted mt-1">{programName} · Block {blockNum} · Week {currentWeek + 1}</div>
+        <div className="text-[17px] text-muted mt-1">{programName} · Block {blockNum} · Week {currentWeek + 1}</div>
       </div>
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 gap-2 mb-5">
         <button
           onClick={() => setCurrentView('workout')}
-          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
+          className="p-3 bg-card border border-border-elevated rounded-lg shadow-card cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
-          <div className="text-[14px] mb-1">&#127947;&#65039;</div>
-          <div className="text-[12px] font-semibold text-bright">Start Workout</div>
-          <div className="text-[10px] text-muted">Continue logging</div>
+          <div className="text-accent mb-1"><svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6.5h0M17.5 6.5h0"/><path d="M2 12h2m16 0h2M6 12H4.5a2.5 2.5 0 0 1 0-5H6m0 5V7m0 5v5.5a2.5 2.5 0 0 0 5 0V12m-5 0h5m0 0h1m0 0h5m-5 0V7m0 5v5.5a2.5 2.5 0 0 1-5 0m10-5h1.5a2.5 2.5 0 0 0 0-5H18m0 5V7"/></svg></div>
+          <div className="text-[18px] font-semibold text-bright">Start Workout</div>
+          <div className="text-[16px] text-muted">Continue logging</div>
         </button>
         <button
           onClick={() => setCurrentView('history')}
-          className="p-3 bg-card border border-border rounded-lg cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
+          className="p-3 bg-card border border-border-elevated rounded-lg shadow-card cursor-pointer text-left hover:border-accent active:border-accent transition-colors"
         >
-          <div className="text-[14px] mb-1">&#128200;</div>
-          <div className="text-[12px] font-semibold text-bright">View History</div>
-          <div className="text-[10px] text-muted">Charts & trends</div>
+          <div className="text-accent mb-1"><svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+          <div className="text-[18px] font-semibold text-bright">View History</div>
+          <div className="text-[16px] text-muted">Charts & trends</div>
         </button>
       </div>
 
       {/* Stats */}
       <div className="mb-5">
-        <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">OVERVIEW</div>
+        <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">OVERVIEW</div>
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-card border border-border rounded-lg p-3">
+          <div className="bg-card border border-border-elevated rounded-lg shadow-card p-3">
             <div className="text-[20px] font-bold text-accent font-mono">{totalSessions}</div>
-            <div className="text-[10px] text-muted">Logged Sessions</div>
+            <div className="text-[16px] text-muted">Logged Sessions</div>
           </div>
-          <div className="bg-card border border-border rounded-lg p-3">
+          <div className="bg-card border border-border-elevated rounded-lg shadow-card p-3">
             <div className="text-[20px] font-bold text-bright font-mono">{blockNum}</div>
-            <div className="text-[10px] text-muted">Current Block</div>
+            <div className="text-[16px] text-muted">Current Block</div>
           </div>
         </div>
       </div>
@@ -139,46 +114,20 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
       {/* PRs */}
       {liftPrs.length > 0 && (
         <div className="mb-5">
-          <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">PERSONAL RECORDS (Est 1RM)</div>
+          <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">PERSONAL RECORDS (Est 1RM)</div>
           <div className="space-y-1.5">
             {liftPrs.map((pr) => (
-              <div key={pr.name} className="flex justify-between items-center p-2.5 bg-card border border-border rounded-lg">
+              <div key={pr.name} className="flex justify-between items-center p-2.5 bg-card border border-border-elevated rounded-lg shadow-card">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full" style={{ background: pr.color }} />
-                  <span className="text-[12px] text-bright">{pr.name}</span>
+                  <span className="text-[18px] text-bright">{pr.name}</span>
                 </div>
-                <span className="text-[13px] font-bold font-mono text-accent">{pr.bestE1rm} lb</span>
+                <span className="text-[19px] font-bold font-mono text-accent">{pr.bestE1rm} lb</span>
               </div>
             ))}
           </div>
         </div>
       )}
-
-      {/* Data Import */}
-      <div className="mb-5">
-        <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">DATA IMPORT</div>
-        <div className="text-[11px] text-faint mb-2">
-          Paste your PWA localStorage data (peak-tracker-v2 key) to import history.
-        </div>
-        <textarea
-          value={importJson}
-          onChange={(e) => setImportJson(e.target.value)}
-          placeholder='{"logs": {...}, "maxes": {...}, ...}'
-          className="w-full min-h-[80px] bg-bg border border-[#30363d] rounded-lg text-bright p-2.5 text-[11px] font-mono resize-y leading-relaxed focus:border-accent outline-none mb-2"
-        />
-        <button
-          onClick={handleImport}
-          disabled={importing || !importJson.trim()}
-          className="w-full py-2 border-none rounded-md cursor-pointer bg-accent text-bg text-[12px] font-semibold font-mono disabled:opacity-50"
-        >
-          {importing ? 'Importing...' : 'Import Data'}
-        </button>
-        {importResult && (
-          <div className="mt-2 text-[11px] text-muted bg-card border border-border rounded p-2">
-            {importResult}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

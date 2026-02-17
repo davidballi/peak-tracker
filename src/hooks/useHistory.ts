@@ -6,6 +6,7 @@ import { MAIN_LIFTS } from '../lib/constants'
 export interface E1rmDataPoint {
   label: string
   e1rm: number
+  rollingAvg?: number
   blockNum: number
   weekIndex: number
 }
@@ -70,6 +71,18 @@ interface TmRow {
   value: number
 }
 
+// ~180 days at 1 data point per block/week (~7 days each)
+const ROLLING_WINDOW = 26
+
+function addRollingAverage(points: E1rmDataPoint[]): E1rmDataPoint[] {
+  return points.map((point, i) => {
+    const start = Math.max(0, i - ROLLING_WINDOW + 1)
+    const window = points.slice(start, i + 1)
+    const avg = window.reduce((sum, p) => sum + p.e1rm, 0) / window.length
+    return { ...point, rollingAvg: Math.round(avg) }
+  })
+}
+
 export function useHistory(programId: string) {
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null)
   const [e1rmData, setE1rmData] = useState<E1rmDataPoint[]>([])
@@ -107,12 +120,14 @@ export function useHistory(programId: string) {
           grouped.set(key, { blockNum: r.block_num, weekIndex: r.week_index, bestE1rm: e1rm })
         }
       }
-      const e1rmPoints: E1rmDataPoint[] = Array.from(grouped.values()).map((g) => ({
-        label: `B${g.blockNum} W${g.weekIndex + 1}`,
-        e1rm: g.bestE1rm,
-        blockNum: g.blockNum,
-        weekIndex: g.weekIndex,
-      }))
+      const e1rmPoints = addRollingAverage(
+        Array.from(grouped.values()).map((g) => ({
+          label: `B${g.blockNum} W${g.weekIndex + 1}`,
+          e1rm: g.bestE1rm,
+          blockNum: g.blockNum,
+          weekIndex: g.weekIndex,
+        })),
+      )
       setE1rmData(e1rmPoints)
 
       // Get volume per block/week

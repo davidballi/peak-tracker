@@ -1,13 +1,13 @@
 # Uncomment the next line to define a global platform for your project
 
-target 'peak-tracker_iOS' do
+target 'forge_iOS' do
 platform :ios, '14.0'
-  # Pods for peak-tracker_iOS
+  # Pods for forge_iOS
 end
 
-target 'peak-tracker_macOS' do
+target 'forge_macOS' do
 platform :osx, '11.0'
-  # Pods for peak-tracker_macOS
+  # Pods for forge_macOS
 end
 
 # Delete the deployment target for iOS and macOS, causing it to be inherited from the Podfile

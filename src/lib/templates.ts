@@ -1,13 +1,13 @@
 import type { ProgramTemplate } from '../types/template'
 
 /**
- * Peak Strength template — exact replica of the current PROGRAM object.
+ * Wave Periodization template — default 4-day program.
  * This is the default template seeded into program_templates on first launch.
  */
 export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
   id: 'peak-strength-v1',
-  name: 'Peak Strength',
-  author: 'Garage Strength',
+  name: 'Wave Periodization',
+  author: 'Forge',
   description: 'Wave-loaded periodization: 3 working weeks + 1 deload. 4 days/week targeting squat, bench, OHP, and deadlift with technical primers, supersets, and accessories.',
   days: [
     {

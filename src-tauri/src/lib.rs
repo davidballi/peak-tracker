@@ -20,7 +20,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(
             SqlBuilder::default()
-                .add_migrations("sqlite:peak-tracker.db", migrations)
+                .add_migrations("sqlite:forge.db", migrations)
                 .build(),
         )
         .plugin(tauri_plugin_log::Builder::default().build())

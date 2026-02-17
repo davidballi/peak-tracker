@@ -1,4 +1,4 @@
-# Peak Tracker
+# Forge
 
 An iOS workout tracker with wave-loaded periodization (Garage Strength / Peak Strength style), built with Tauri v2.
 

@@ -54,7 +54,7 @@ export function ExerciseCard({
 
   return (
     <div
-      className="mb-2 rounded-lg overflow-hidden"
+      className="mb-2 rounded-lg overflow-hidden shadow-card"
       style={{
         border: `1px solid ${cat.border}22`,
         background: cat.bg,
@@ -64,7 +64,7 @@ export function ExerciseCard({
       <div className="p-[10px_12px_6px] flex justify-between items-start">
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[13px] font-semibold text-bright">{exercise.name}</span>
+            <span className="text-[19px] font-semibold text-bright">{exercise.name}</span>
             <span
               className="text-[9px] font-bold tracking-wider rounded-[3px] px-1.5 py-0.5"
               style={{ color: cat.badge, background: `${cat.badge}18` }}
@@ -73,12 +73,12 @@ export function ExerciseCard({
             </span>
           </div>
           {exercise.isWave && (
-            <span className="text-[10px] text-dim">
+            <span className="text-[16px] text-dim">
               {waveLabel} · TM: {currentMax} lb
             </span>
           )}
           {exercise.note && !exercise.isWave && (
-            <div className="text-[10px] text-faint mt-0.5">{exercise.note}</div>
+            <div className="text-[16px] text-faint mt-0.5">{exercise.note}</div>
           )}
         </div>
         <button
@@ -87,13 +87,13 @@ export function ExerciseCard({
             exerciseNote ? 'opacity-100' : 'opacity-30 grayscale'
           }`}
         >
-          💬
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </button>
       </div>
 
       {/* Exercise note display */}
       {exerciseNote && (
-        <div className="mx-3 mb-1.5 p-[5px_8px] bg-[#4a6fa512] rounded-[5px] border-l-2 border-superset text-[10px] text-[#7fa3c9] leading-relaxed">
+        <div className="mx-3 mb-1.5 p-[5px_8px] bg-superset/[0.07] rounded-[5px] border-l-2 border-superset text-[16px] text-muted leading-relaxed">
           {exerciseNote}
         </div>
       )}

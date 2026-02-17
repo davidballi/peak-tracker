@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { v4 as uuid } from 'uuid'
 import { useAppStore } from './store/appStore'
-import { getDb } from './lib/db'
+import { getDb, withWriteLock } from './lib/db'
 import { seedIfNeeded, forkTemplate } from './lib/seed'
 import { estimatedOneRepMax, roundToNearest5 } from './lib/calc'
 import { PEAK_STRENGTH_TEMPLATE } from './lib/templates'
@@ -30,7 +31,11 @@ export default function App() {
   const [templates, setTemplates] = useState<TemplateRow[]>([])
   const [error, setError] = useState<string | null>(null)
 
+  const initRan = useRef(false)
   useEffect(() => {
+    if (initRan.current) return
+    initRan.current = true
+
     async function init() {
       try {
         await getDb()
@@ -51,7 +56,7 @@ export default function App() {
         }
       } catch (err) {
         console.error('Failed to initialize database:', err)
-        setError('Failed to initialize the app. Please restart.')
+        setError(`Failed to initialize the app: ${err instanceof Error ? err.message : String(err)}`)
       } finally {
         setLoading(false)
       }
@@ -70,10 +75,10 @@ export default function App() {
 
   if (loading || !dbReady) {
     return (
-      <div className="flex items-center justify-center h-screen bg-bg text-text font-mono">
+      <div className="flex items-center justify-center h-screen bg-bg text-text">
         <div className="text-center">
-          <div className="text-accent font-bold text-lg tracking-wider mb-2">PEAK TRACKER</div>
-          <div className="text-muted text-sm">Loading...</div>
+          <div className="text-accent font-bold text-lg tracking-wider mb-2">FORGE</div>
+          <div className="text-muted text-base">Loading...</div>
         </div>
       </div>
     )
@@ -103,14 +108,13 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg text-text font-mono pt-[env(safe-area-inset-top)]">
+    <div className="flex items-center justify-center min-h-screen bg-bg text-text pt-[env(safe-area-inset-top)]">
       <div className="max-w-md w-full px-6">
         <div className="text-center mb-10">
           <h1 className="text-2xl font-bold">
-            <span className="text-accent">PEAK</span>
-            <span className="text-dim"> TRACKER</span>
+            <span className="text-accent">FORGE</span>
           </h1>
-          <p className="text-muted text-sm mt-2">Choose a program to get started</p>
+          <p className="text-muted text-base mt-2">Choose a program to get started</p>
         </div>
         <div className="space-y-3">
           {templates.map((t) => (
@@ -118,25 +122,25 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
               key={t.id}
               onClick={() => handleFork(t.id)}
               disabled={forking}
-              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent active:border-accent transition-colors disabled:opacity-50"
+              className="w-full text-left p-4 bg-card border border-border-elevated rounded-lg shadow-card hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-bright font-semibold text-sm">{t.name}</span>
-                <span className="text-faint text-xs">{t.days_per_week} days/wk</span>
+                <span className="text-bright font-semibold text-base">{t.name}</span>
+                <span className="text-faint text-[17px]">{t.days_per_week} days/wk</span>
               </div>
-              <div className="text-muted text-xs mb-1">{t.author}</div>
-              <div className="text-dim text-xs leading-relaxed">{t.description}</div>
+              <div className="text-muted text-[17px] mb-1">{t.author}</div>
+              <div className="text-dim text-[17px] leading-relaxed">{t.description}</div>
             </button>
           ))}
           {templates.length === 0 && (
             <button
               onClick={() => handleFork(PEAK_STRENGTH_TEMPLATE.id)}
               disabled={forking}
-              className="w-full text-left p-4 bg-card border border-border rounded-lg hover:border-accent active:border-accent transition-colors disabled:opacity-50"
+              className="w-full text-left p-4 bg-card border border-border-elevated rounded-lg shadow-card hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
-              <div className="text-bright font-semibold text-sm mb-1">Peak Strength</div>
-              <div className="text-muted text-xs mb-1">Garage Strength</div>
-              <div className="text-dim text-xs leading-relaxed">
+              <div className="text-bright font-semibold text-base mb-1">Wave Periodization</div>
+              <div className="text-muted text-[17px] mb-1">Forge</div>
+              <div className="text-dim text-[17px] leading-relaxed">
                 Wave-loaded periodization: 3 working weeks + 1 deload.
               </div>
             </button>
@@ -187,11 +191,9 @@ function MainApp({ programId }: { programId: string }) {
 
   const handleAdvanceBlock = useCallback(async () => {
     if (!program) return
-    const db = await getDb()
+    await withWriteLock(async () => {
+      const db = await getDb()
 
-    await db.execute('BEGIN TRANSACTION')
-    try {
-      // Auto-calculate new TMs from week 3 (index 2) completed logs
       for (const ex of waveExercises) {
         const currentMax = getEffectiveMax(ex.id)
         let bestE1rm = currentMax
@@ -212,7 +214,6 @@ function MainApp({ programId }: { programId: string }) {
 
         let newTm: number
         if (bestE1rm > currentMax) {
-          // Cap at 20% increase per block for safety
           const capped = Math.min(bestE1rm, currentMax * 1.2)
           newTm = roundToNearest5(capped)
         } else {
@@ -229,11 +230,7 @@ function MainApp({ programId }: { programId: string }) {
         `UPDATE programs SET block_num = block_num + 1, current_week = 0, current_day = 0 WHERE id = ?`,
         [programId],
       )
-      await db.execute('COMMIT')
-    } catch (err) {
-      await db.execute('ROLLBACK')
-      throw err
-    }
+    })
 
     await reload()
     await reloadMaxes()
@@ -241,7 +238,7 @@ function MainApp({ programId }: { programId: string }) {
 
   if (loading || !program) {
     return (
-      <div className="flex items-center justify-center h-screen bg-bg text-muted font-mono text-sm">
+      <div className="flex items-center justify-center h-screen bg-bg text-muted text-base">
         Loading program...
       </div>
     )
@@ -263,31 +260,18 @@ function MainApp({ programId }: { programId: string }) {
 
       case 'workout':
         return (
-          <>
-            <WorkoutView
-              programId={programId}
-              blockNum={program.blockNum}
-              currentWeek={program.currentWeek}
-              currentDay={program.currentDay}
-              days={program.days}
-              onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false) }}
-              onOpenSettings={() => setShowSettings(!showSettings)}
-              onAdvanceWeek={handleAdvanceWeek}
-              onAdvanceBlock={handleAdvanceBlock}
-              settingsOpen={showSettings}
-            />
-            {showSettings && (
-              <SettingsPanel
-                programId={programId}
-                blockNum={program.blockNum}
-                currentWeek={program.currentWeek}
-                waveExercises={waveExercises}
-                getEffectiveMax={getEffectiveMax}
-                onWeekChange={handleWeekChange}
-                onAdvance={handleAdvance}
-              />
-            )}
-          </>
+          <WorkoutView
+            programId={programId}
+            blockNum={program.blockNum}
+            currentWeek={program.currentWeek}
+            currentDay={program.currentDay}
+            days={program.days}
+            onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false) }}
+            onOpenSettings={() => setShowSettings(!showSettings)}
+            onAdvanceWeek={handleAdvanceWeek}
+            onAdvanceBlock={handleAdvanceBlock}
+            settingsOpen={showSettings}
+          />
         )
 
       case 'history':
@@ -313,13 +297,27 @@ function MainApp({ programId }: { programId: string }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg text-text font-mono text-[13px] pt-[env(safe-area-inset-top)]">
-      <div className="flex-1 overflow-y-auto pb-[calc(60px+env(safe-area-inset-bottom))]">
+    <div className="h-screen flex flex-col bg-bg text-text text-[19px] pt-[env(safe-area-inset-top)]">
+      <div className="flex-1 overflow-y-auto pb-[calc(64px+env(safe-area-inset-bottom))]">
         <div className="max-w-[500px] mx-auto pb-8">
           {renderContent()}
         </div>
       </div>
       <BottomNav />
+      <AnimatePresence>
+        {showSettings && program && (
+          <SettingsPanel
+            programId={programId}
+            blockNum={program.blockNum}
+            currentWeek={program.currentWeek}
+            waveExercises={waveExercises}
+            getEffectiveMax={getEffectiveMax}
+            onWeekChange={handleWeekChange}
+            onAdvance={handleAdvance}
+            onClose={() => setShowSettings(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -17,7 +17,7 @@ export function E1rmChart({ data, color = '#f5a623' }: E1rmChartProps) {
 
   return (
     <div className="mb-4">
-      <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">ESTIMATED 1RM TREND</div>
+      <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">ESTIMATED 1RM TREND</div>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#21262d" />
@@ -28,7 +28,16 @@ export function E1rmChart({ data, color = '#f5a623' }: E1rmChartProps) {
             labelStyle={{ color: '#8b949e' }}
             itemStyle={{ color }}
           />
-          <Line type="monotone" dataKey="e1rm" stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} />
+          <Line type="monotone" dataKey="e1rm" stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} name="e1RM" />
+          <Line
+            type="monotone"
+            dataKey="rollingAvg"
+            stroke="#8b949e"
+            strokeWidth={1.5}
+            strokeDasharray="6 3"
+            dot={false}
+            name="180d avg"
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -1,4 +1,5 @@
 import { useMemo, useCallback, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import type { DayWithExercises } from '../../types/program'
 import { useWorkoutLog } from '../../hooks/useWorkoutLog'
 import { useTrainingMaxes } from '../../hooks/useTrainingMaxes'
@@ -105,22 +106,21 @@ export function WorkoutView({
       <div className="px-4 pt-1 pb-3 border-b border-border sticky top-0 bg-bg z-[100]">
         <div className="flex justify-between items-center mb-2">
           <div>
-            <span className="text-accent font-bold text-[15px] tracking-wider">PEAK</span>
-            <span className="text-dim font-normal text-[15px] tracking-wider"> TRACKER</span>
+            <span className="text-accent font-bold text-[19px] tracking-wider">FORGE</span>
           </div>
           <div className="flex gap-2 items-center">
-            <span className="text-dim text-[11px]">
+            <span className="text-dim text-[17px]">
               Block {blockNum} · Wk {currentWeek + 1}
             </span>
             <button
               onClick={onOpenSettings}
-              className={`min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[11px] ${
+              className={`min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[17px] ${
                 settingsOpen
-                  ? 'bg-[#f5a62320] border-accent text-accent'
-                  : 'bg-transparent border-[#30363d] text-muted'
+                  ? 'bg-accent/[0.125] border-accent text-accent'
+                  : 'bg-transparent border-border-elevated text-muted'
               }`}
             >
-              ⚙
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
           </div>
         </div>
@@ -133,7 +133,7 @@ export function WorkoutView({
         <div className="flex justify-between items-start">
           <div>
             <div className="text-lg font-bold text-bright">{day.subtitle}</div>
-            <div className="text-xs text-dim mt-0.5">
+            <div className="text-[17px] text-dim mt-0.5">
               {day.focus} · {percentage}% complete
             </div>
           </div>
@@ -141,18 +141,18 @@ export function WorkoutView({
             onClick={() => setNoteModal({ type: 'workout' })}
             className={`border rounded-lg px-2.5 py-1.5 cursor-pointer flex items-center gap-1 shrink-0 ${
               workoutNote
-                ? 'bg-[#f5a62320] border-accent'
-                : 'bg-transparent border-[#30363d]'
+                ? 'bg-accent/[0.125] border-accent'
+                : 'bg-transparent border-border-elevated'
             }`}
           >
-            <span className="text-[14px]">📝</span>
-            <span className={`text-[10px] font-mono ${workoutNote ? 'text-accent' : 'text-dim'}`}>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span className={`text-[16px] ${workoutNote ? 'text-accent' : 'text-dim'}`}>
               {workoutNote ? 'Notes' : 'Add note'}
             </span>
           </button>
         </div>
         {workoutNote && (
-          <div className="mt-2 p-2 bg-[#f5a62310] rounded-md border-l-[3px] border-accent text-[11px] text-[#d2a34a] leading-relaxed">
+          <div className="mt-2 p-2 bg-accent/[0.06] rounded-md border-l-[3px] border-accent text-[17px] text-accent leading-relaxed">
             {workoutNote}
           </div>
         )}
@@ -184,21 +184,21 @@ export function WorkoutView({
         {currentDay < days.length - 1 ? (
           <button
             onClick={() => onSelectDay(currentDay + 1)}
-            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-xs font-semibold font-mono cursor-pointer hover:border-accent active:border-accent transition-colors"
+            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-[17px] font-semibold cursor-pointer hover:border-accent active:border-accent transition-colors"
           >
             Next Day →
           </button>
         ) : currentWeek < 3 ? (
           <button
             onClick={onAdvanceWeek}
-            className="w-full py-3 border-none rounded-lg bg-[#238636] text-white text-xs font-semibold font-mono cursor-pointer"
+            className="w-full py-3 border-none rounded-lg bg-success text-white text-[17px] font-semibold cursor-pointer"
           >
             Advance to Week {currentWeek + 2} →
           </button>
         ) : (
           <button
             onClick={onAdvanceBlock}
-            className="w-full py-3 border-none rounded-lg bg-accent text-bg text-xs font-semibold font-mono cursor-pointer"
+            className="w-full py-3 border-none rounded-lg bg-accent text-bg text-[17px] font-semibold cursor-pointer"
           >
             Start New Block →
           </button>
@@ -206,6 +206,7 @@ export function WorkoutView({
       </div>
 
       {/* Note modal */}
+      <AnimatePresence>
       {noteModal && (
         <NoteModal
           type={noteModal.type}
@@ -231,6 +232,7 @@ export function WorkoutView({
           loadPreviousNotes={loadPreviousNotesForModal}
         />
       )}
+      </AnimatePresence>
 
     </>
   )

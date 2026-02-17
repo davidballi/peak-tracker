@@ -13,7 +13,7 @@ html {
 body {
   background: #0d1117;
   overflow-x: hidden;
-  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
 }
 
 /* Hide number input spinners */

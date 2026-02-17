@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Peak Tracker",
+  "productName": "Forge",
   "version": "1.0.0",
-  "identifier": "com.peaktracker.app",
+  "identifier": "com.forge.app",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -15,7 +15,7 @@
     },
     "windows": [
       {
-        "title": "Peak Tracker",
+        "title": "Forge",
         "fullscreen": false,
         "resizable": true,
         "width": 390,
