@@ -106,15 +106,15 @@ export function WorkoutView({
       <div className="px-4 pt-1 pb-3 border-b border-border sticky top-0 bg-bg z-[100]">
         <div className="flex justify-between items-center mb-2">
           <div>
-            <span className="text-accent font-bold text-[15px] tracking-wider">FORGE</span>
+            <span className="text-accent font-bold text-[19px] tracking-wider">FORGE</span>
           </div>
           <div className="flex gap-2 items-center">
-            <span className="text-dim text-[11px]">
+            <span className="text-dim text-[17px]">
               Block {blockNum} · Wk {currentWeek + 1}
             </span>
             <button
               onClick={onOpenSettings}
-              className={`min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[11px] ${
+              className={`min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[17px] ${
                 settingsOpen
                   ? 'bg-accent/[0.125] border-accent text-accent'
                   : 'bg-transparent border-border-elevated text-muted'
@@ -133,7 +133,7 @@ export function WorkoutView({
         <div className="flex justify-between items-start">
           <div>
             <div className="text-lg font-bold text-bright">{day.subtitle}</div>
-            <div className="text-xs text-dim mt-0.5">
+            <div className="text-[17px] text-dim mt-0.5">
               {day.focus} · {percentage}% complete
             </div>
           </div>
@@ -146,13 +146,13 @@ export function WorkoutView({
             }`}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            <span className={`text-[10px] ${workoutNote ? 'text-accent' : 'text-dim'}`}>
+            <span className={`text-[16px] ${workoutNote ? 'text-accent' : 'text-dim'}`}>
               {workoutNote ? 'Notes' : 'Add note'}
             </span>
           </button>
         </div>
         {workoutNote && (
-          <div className="mt-2 p-2 bg-accent/[0.06] rounded-md border-l-[3px] border-accent text-[11px] text-accent leading-relaxed">
+          <div className="mt-2 p-2 bg-accent/[0.06] rounded-md border-l-[3px] border-accent text-[17px] text-accent leading-relaxed">
             {workoutNote}
           </div>
         )}
@@ -184,21 +184,21 @@ export function WorkoutView({
         {currentDay < days.length - 1 ? (
           <button
             onClick={() => onSelectDay(currentDay + 1)}
-            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-xs font-semibold cursor-pointer hover:border-accent active:border-accent transition-colors"
+            className="w-full py-3 border border-border rounded-lg bg-card text-bright text-[17px] font-semibold cursor-pointer hover:border-accent active:border-accent transition-colors"
           >
             Next Day →
           </button>
         ) : currentWeek < 3 ? (
           <button
             onClick={onAdvanceWeek}
-            className="w-full py-3 border-none rounded-lg bg-success text-white text-xs font-semibold cursor-pointer"
+            className="w-full py-3 border-none rounded-lg bg-success text-white text-[17px] font-semibold cursor-pointer"
           >
             Advance to Week {currentWeek + 2} →
           </button>
         ) : (
           <button
             onClick={onAdvanceBlock}
-            className="w-full py-3 border-none rounded-lg bg-accent text-bg text-xs font-semibold cursor-pointer"
+            className="w-full py-3 border-none rounded-lg bg-accent text-bg text-[17px] font-semibold cursor-pointer"
           >
             Start New Block →
           </button>

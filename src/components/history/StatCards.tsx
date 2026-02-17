@@ -22,7 +22,7 @@ export function StatCards({ stats }: StatCardsProps) {
       {cards.map((card) => (
         <div key={card.label} className="bg-card border border-border-elevated rounded-lg shadow-card p-2.5 text-center">
           <div className="text-[9px] text-faint font-semibold tracking-wider mb-1">{card.label}</div>
-          <div className={`text-[16px] font-bold font-mono ${card.color ?? 'text-accent'}`}>
+          <div className={`text-[18px] font-bold font-mono ${card.color ?? 'text-accent'}`}>
             {card.value}
           </div>
           <div className="text-[9px] text-faint">{card.unit}</div>

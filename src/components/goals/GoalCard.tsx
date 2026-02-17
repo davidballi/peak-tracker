@@ -29,17 +29,17 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
     >
       <div className="flex justify-between items-start mb-2">
         <div>
-          <div className="text-[13px] font-semibold text-bright">{goal.exerciseName}</div>
-          <div className="text-[10px] text-faint">
+          <div className="text-[19px] font-semibold text-bright">{goal.exerciseName}</div>
+          <div className="text-[16px] text-faint">
             {GOAL_TYPE_LABELS[goal.goalType]} target
           </div>
         </div>
-        {isAchieved && <span className="text-[16px]">&#x2B50;</span>}
+        {isAchieved && <span className="text-[18px]">&#x2B50;</span>}
       </div>
 
       {/* Progress bar */}
       <div className="mb-2">
-        <div className="flex justify-between text-[10px] mb-1">
+        <div className="flex justify-between text-[16px] mb-1">
           <span className="text-muted">
             {goal.currentValue} / {goal.targetValue} {GOAL_TYPE_UNITS[goal.goalType]}
           </span>
@@ -57,7 +57,7 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
 
       {/* Deadline */}
       {goal.deadline && (
-        <div className={`text-[10px] mb-2 ${isPastDeadline ? 'text-danger' : 'text-faint'}`}>
+        <div className={`text-[16px] mb-2 ${isPastDeadline ? 'text-danger' : 'text-faint'}`}>
           {isAchieved ? 'Achieved' : isPastDeadline ? 'Past deadline' : 'Deadline'}:{' '}
           {new Date(goal.deadline).toLocaleDateString()}
         </div>
@@ -67,13 +67,13 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
       <div className="flex gap-2">
         <button
           onClick={() => onEdit(goal)}
-          className="text-[10px] text-muted bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-bright active:text-bright"
+          className="text-[16px] text-muted bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-bright active:text-bright"
         >
           Edit
         </button>
         <button
           onClick={() => setShowDeleteConfirm(true)}
-          className="text-[10px] text-faint bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
+          className="text-[16px] text-faint bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
         >
           Delete
         </button>

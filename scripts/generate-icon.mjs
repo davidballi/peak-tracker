@@ -6,11 +6,21 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
-// Anvil SVG — bold geometric silhouette, gold on dark background
+// Anvil SVG — gold anvil+hammer with sparks on rich dark navy
 const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <rect width="1024" height="1024" rx="180" fill="#0d1117"/>
-  <!-- Anvil body -->
-  <g transform="translate(512, 520)" fill="#f5a623">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffc044"/>
+      <stop offset="100%" stop-color="#e8951c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="180" fill="url(#bg)"/>
+  <!-- Anvil body — centered -->
+  <g transform="translate(512, 530)" fill="url(#gold)">
     <!-- Top face / horn -->
     <rect x="-260" y="-180" width="520" height="60" rx="10"/>
     <!-- Horn (left taper) -->
@@ -25,11 +35,20 @@ const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
     <rect x="-280" y="115" width="560" height="45" rx="10"/>
   </g>
   <!-- Hammer (angled above anvil) -->
-  <g transform="translate(512, 520) rotate(-35, 80, -260)" fill="#f5a623">
+  <g transform="translate(512, 530) rotate(-35, 80, -260)" fill="url(#gold)">
     <!-- Handle -->
-    <rect x="70" y="-360" width="20" height="180" rx="5"/>
+    <rect x="70" y="-360" width="20" height="200" rx="5"/>
     <!-- Head -->
-    <rect x="30" y="-390" width="100" height="45" rx="8"/>
+    <rect x="25" y="-400" width="110" height="50" rx="8"/>
+  </g>
+  <!-- Sparks flying from hammer strike -->
+  <g fill="url(#gold)" opacity="0.9">
+    <circle cx="580" cy="240" r="8"/>
+    <circle cx="620" cy="200" r="6"/>
+    <circle cx="550" cy="195" r="5"/>
+    <circle cx="600" cy="160" r="4"/>
+    <circle cx="650" cy="175" r="5"/>
+    <circle cx="570" cy="150" r="3"/>
   </g>
 </svg>`
 

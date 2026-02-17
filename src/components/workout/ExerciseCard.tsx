@@ -64,7 +64,7 @@ export function ExerciseCard({
       <div className="p-[10px_12px_6px] flex justify-between items-start">
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-[13px] font-semibold text-bright">{exercise.name}</span>
+            <span className="text-[19px] font-semibold text-bright">{exercise.name}</span>
             <span
               className="text-[9px] font-bold tracking-wider rounded-[3px] px-1.5 py-0.5"
               style={{ color: cat.badge, background: `${cat.badge}18` }}
@@ -73,12 +73,12 @@ export function ExerciseCard({
             </span>
           </div>
           {exercise.isWave && (
-            <span className="text-[10px] text-dim">
+            <span className="text-[16px] text-dim">
               {waveLabel} · TM: {currentMax} lb
             </span>
           )}
           {exercise.note && !exercise.isWave && (
-            <div className="text-[10px] text-faint mt-0.5">{exercise.note}</div>
+            <div className="text-[16px] text-faint mt-0.5">{exercise.note}</div>
           )}
         </div>
         <button
@@ -93,7 +93,7 @@ export function ExerciseCard({
 
       {/* Exercise note display */}
       {exerciseNote && (
-        <div className="mx-3 mb-1.5 p-[5px_8px] bg-superset/[0.07] rounded-[5px] border-l-2 border-superset text-[10px] text-muted leading-relaxed">
+        <div className="mx-3 mb-1.5 p-[5px_8px] bg-superset/[0.07] rounded-[5px] border-l-2 border-superset text-[16px] text-muted leading-relaxed">
           {exerciseNote}
         </div>
       )}

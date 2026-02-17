@@ -77,7 +77,7 @@ export default function App() {
       <div className="flex items-center justify-center h-screen bg-bg text-text">
         <div className="text-center">
           <div className="text-accent font-bold text-lg tracking-wider mb-2">FORGE</div>
-          <div className="text-muted text-sm">Loading...</div>
+          <div className="text-muted text-base">Loading...</div>
         </div>
       </div>
     )
@@ -113,7 +113,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
           <h1 className="text-2xl font-bold">
             <span className="text-accent">FORGE</span>
           </h1>
-          <p className="text-muted text-sm mt-2">Choose a program to get started</p>
+          <p className="text-muted text-base mt-2">Choose a program to get started</p>
         </div>
         <div className="space-y-3">
           {templates.map((t) => (
@@ -124,11 +124,11 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
               className="w-full text-left p-4 bg-card border border-border-elevated rounded-lg shadow-card hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
               <div className="flex items-center justify-between mb-1">
-                <span className="text-bright font-semibold text-sm">{t.name}</span>
-                <span className="text-faint text-xs">{t.days_per_week} days/wk</span>
+                <span className="text-bright font-semibold text-base">{t.name}</span>
+                <span className="text-faint text-[17px]">{t.days_per_week} days/wk</span>
               </div>
-              <div className="text-muted text-xs mb-1">{t.author}</div>
-              <div className="text-dim text-xs leading-relaxed">{t.description}</div>
+              <div className="text-muted text-[17px] mb-1">{t.author}</div>
+              <div className="text-dim text-[17px] leading-relaxed">{t.description}</div>
             </button>
           ))}
           {templates.length === 0 && (
@@ -137,9 +137,9 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
               disabled={forking}
               className="w-full text-left p-4 bg-card border border-border-elevated rounded-lg shadow-card hover:border-accent active:border-accent transition-colors disabled:opacity-50"
             >
-              <div className="text-bright font-semibold text-sm mb-1">Peak Strength</div>
-              <div className="text-muted text-xs mb-1">Garage Strength</div>
-              <div className="text-dim text-xs leading-relaxed">
+              <div className="text-bright font-semibold text-base mb-1">Wave Periodization</div>
+              <div className="text-muted text-[17px] mb-1">Forge</div>
+              <div className="text-dim text-[17px] leading-relaxed">
                 Wave-loaded periodization: 3 working weeks + 1 deload.
               </div>
             </button>
@@ -237,7 +237,7 @@ function MainApp({ programId }: { programId: string }) {
 
   if (loading || !program) {
     return (
-      <div className="flex items-center justify-center h-screen bg-bg text-muted text-sm">
+      <div className="flex items-center justify-center h-screen bg-bg text-muted text-base">
         Loading program...
       </div>
     )
@@ -309,7 +309,7 @@ function MainApp({ programId }: { programId: string }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg text-text text-[13px] pt-[env(safe-area-inset-top)]">
+    <div className="h-screen flex flex-col bg-bg text-text text-[19px] pt-[env(safe-area-inset-top)]">
       <div className="flex-1 overflow-y-auto pb-[calc(64px+env(safe-area-inset-bottom))]">
         <div className="max-w-[500px] mx-auto pb-8">
           {renderContent()}

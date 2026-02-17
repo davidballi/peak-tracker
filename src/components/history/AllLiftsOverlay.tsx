@@ -33,7 +33,7 @@ export function AllLiftsOverlay({ data }: AllLiftsOverlayProps) {
 
   return (
     <div className="mb-4">
-      <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">ALL LIFTS OVERLAY</div>
+      <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">ALL LIFTS OVERLAY</div>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#21262d" />

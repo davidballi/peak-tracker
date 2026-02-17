@@ -15,7 +15,7 @@ function NavIcon({ view }: { view: AppView; active: boolean }) {
     case 'dashboard':
       return <svg {...props}><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /></svg>
     case 'workout':
-      return <svg {...props}><path d="M3 12h1m16 0h1M5.5 8.5l.5-.5m12 .5l-.5-.5M12 3v1m0 16v1M7 12a5 5 0 015-5m0 0a5 5 0 015 5M9 17l-1.5 2M15 17l1.5 2M8 12h8M8 12a1.5 1.5 0 01-1.5-1.5M16 12a1.5 1.5 0 001.5-1.5" /><rect x="6" y="10" width="2" height="4" rx="1" /><rect x="16" y="10" width="2" height="4" rx="1" /><line x1="8" y1="12" x2="16" y2="12" /></svg>
+      return <svg {...props}><rect x="2" y="11" width="20" height="2" rx="1" /><rect x="4" y="7" width="3.5" height="10" rx="1.5" /><rect x="16.5" y="7" width="3.5" height="10" rx="1.5" /></svg>
     case 'history':
       return <svg {...props}><path d="M3 3v18h18" /><path d="M7 16l4-6 4 4 5-8" /></svg>
     case 'programs':
@@ -53,7 +53,7 @@ export function BottomNav() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-accent rounded-b-full" />
               )}
               <NavIcon view={item.view} active={active} />
-              <span className="text-[10px]">{item.label}</span>
+              <span className="text-[14px]">{item.label}</span>
             </button>
           )
         })}

@@ -77,7 +77,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
         transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
       >
         <div className="flex justify-between items-center mb-4">
-          <div className="text-[14px] font-bold text-accent">
+          <div className="text-[18px] font-bold text-accent">
             {editingGoal ? 'Edit Goal' : 'New Goal'}
           </div>
           <button onClick={onClose} className="bg-transparent border-none text-dim text-xl cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center">
@@ -88,11 +88,11 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
         {/* Exercise selector */}
         {!editingGoal && (
           <div className="mb-3">
-            <label className="text-[11px] text-muted block mb-1">Exercise</label>
+            <label className="text-[17px] text-muted block mb-1">Exercise</label>
             <select
               value={exerciseId}
               onChange={(e) => setExerciseId(e.target.value)}
-              className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[12px]"
+              className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[18px]"
             >
               {exercises.map((ex) => (
                 <option key={ex.id} value={ex.id}>{ex.name}</option>
@@ -104,13 +104,13 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
         {/* Goal type */}
         {!editingGoal && (
           <div className="mb-3">
-            <label className="text-[11px] text-muted block mb-1">Goal Type</label>
+            <label className="text-[17px] text-muted block mb-1">Goal Type</label>
             <div className="flex gap-1">
               {(['e1rm', 'weight', 'reps'] as GoalType[]).map((gt) => (
                 <button
                   key={gt}
                   onClick={() => setGoalType(gt)}
-                  className={`flex-1 py-2.5 min-h-[44px] rounded text-[11px] border-none cursor-pointer ${
+                  className={`flex-1 py-2.5 min-h-[44px] rounded text-[17px] border-none cursor-pointer ${
                     gt === goalType ? 'bg-accent text-bg' : 'bg-border text-muted'
                   }`}
                 >
@@ -123,7 +123,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
 
         {/* Target value */}
         <div className="mb-3">
-          <label className="text-[11px] text-muted block mb-1">
+          <label className="text-[17px] text-muted block mb-1">
             Target {goalType === 'reps' ? '(reps)' : '(lb)'}
           </label>
           <input
@@ -131,7 +131,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
             inputMode="decimal"
             value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)}
-            className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[16px] font-mono focus:border-accent outline-none"
+            className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[18px] font-mono focus:border-accent outline-none"
             placeholder={goalType === 'reps' ? 'e.g. 10' : 'e.g. 350'}
             autoFocus
           />
@@ -139,12 +139,12 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
 
         {/* Deadline */}
         <div className="mb-4">
-          <label className="text-[11px] text-muted block mb-1">Deadline (optional)</label>
+          <label className="text-[17px] text-muted block mb-1">Deadline (optional)</label>
           <input
             type="date"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[12px] focus:border-accent outline-none"
+            className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[18px] focus:border-accent outline-none"
           />
         </div>
 
@@ -152,13 +152,13 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
         <div className="flex gap-2">
           <button
             onClick={handleSubmit}
-            className="flex-1 py-2.5 border-none rounded-lg cursor-pointer bg-success text-white text-[13px] font-semibold"
+            className="flex-1 py-2.5 border-none rounded-lg cursor-pointer bg-success text-white text-[19px] font-semibold"
           >
             {editingGoal ? 'Update' : 'Create Goal'}
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2.5 border border-border-elevated rounded-lg cursor-pointer bg-transparent text-muted text-[13px]"
+            className="px-4 py-2.5 border border-border-elevated rounded-lg cursor-pointer bg-transparent text-muted text-[19px]"
           >
             Cancel
           </button>

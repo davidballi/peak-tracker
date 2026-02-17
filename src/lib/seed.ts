@@ -214,6 +214,15 @@ async function _seedIfNeeded(): Promise<void> {
     await seedTemplate(FIVE_THREE_ONE_TEMPLATE)
   }
 
+  // Rename "Peak Strength" → "Wave Periodization" in existing data
+  await db.execute(
+    `UPDATE program_templates SET name = 'Wave Periodization', author = 'Forge' WHERE id = ? AND name = 'Peak Strength'`,
+    [PEAK_STRENGTH_TEMPLATE.id],
+  )
+  await db.execute(
+    `UPDATE programs SET name = 'Wave Periodization' WHERE name = 'Peak Strength'`,
+  )
+
   // Clean up duplicates from earlier UUID-based seeding.
   // Keep deterministic IDs (contain '_d'), delete random UUID dupes.
   await cleanupDuplicateTemplates(db)

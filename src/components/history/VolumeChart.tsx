@@ -16,7 +16,7 @@ export function VolumeChart({ data }: VolumeChartProps) {
 
   return (
     <div className="mb-4">
-      <div className="text-[10px] text-dim font-semibold tracking-wider mb-2">VOLUME PER SESSION</div>
+      <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">VOLUME PER SESSION</div>
       <ResponsiveContainer width="100%" height={160}>
         <BarChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#21262d" />

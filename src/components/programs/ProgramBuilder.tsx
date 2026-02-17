@@ -206,12 +206,12 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
     <div className="px-4 py-4">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <div className="text-xs font-semibold text-accent">PROGRAM EDITOR</div>
-          <div className="text-[11px] text-muted mt-0.5">{programName}</div>
+          <div className="text-[17px] font-semibold text-accent">PROGRAM EDITOR</div>
+          <div className="text-[17px] text-muted mt-0.5">{programName}</div>
         </div>
         <button
           onClick={onBrowseTemplates}
-          className="text-[11px] bg-transparent text-muted border border-border rounded-md px-3 py-2 min-h-[44px] cursor-pointer hover:text-bright active:text-bright"
+          className="text-[17px] bg-transparent text-muted border border-border rounded-md px-3 py-2 min-h-[44px] cursor-pointer hover:text-bright active:text-bright"
         >
           Browse Templates
         </button>
@@ -223,7 +223,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           <button
             key={day.id}
             onClick={() => setSelectedDay(i)}
-            className={`px-2.5 py-1.5 rounded-md text-[11px] border-none cursor-pointer ${
+            className={`px-2.5 py-1.5 rounded-md text-[17px] border-none cursor-pointer ${
               i === selectedDay ? 'bg-accent text-bg font-bold' : 'bg-border text-muted'
             }`}
           >
@@ -232,7 +232,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
         ))}
         <button
           onClick={handleAddDay}
-          className="px-2.5 py-1.5 rounded-md text-[11px] border border-dashed border-border bg-transparent text-faint cursor-pointer hover:text-muted"
+          className="px-2.5 py-1.5 rounded-md text-[17px] border border-dashed border-border bg-transparent text-faint cursor-pointer hover:text-muted"
         >
           + Day
         </button>
@@ -246,38 +246,38 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
               <input
                 value={dayEditValue.subtitle}
                 onChange={(e) => setDayEditValue({ ...dayEditValue, subtitle: e.target.value })}
-                className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[12px]"
+                className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[18px]"
                 placeholder="Day title"
                 autoFocus
               />
               <input
                 value={dayEditValue.focus}
                 onChange={(e) => setDayEditValue({ ...dayEditValue, focus: e.target.value })}
-                className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[12px]"
+                className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[18px]"
                 placeholder="Focus area"
               />
               <div className="flex gap-1">
-                <button onClick={() => handleSaveDayEdit(currentDay.id)} className="text-[10px] bg-success text-white border-none rounded px-3 py-2 min-h-[44px] cursor-pointer">Save</button>
-                <button onClick={() => setEditingDay(null)} className="text-[10px] text-muted border border-border bg-transparent rounded px-3 py-2 min-h-[44px] cursor-pointer">Cancel</button>
+                <button onClick={() => handleSaveDayEdit(currentDay.id)} className="text-[16px] bg-success text-white border-none rounded px-3 py-2 min-h-[44px] cursor-pointer">Save</button>
+                <button onClick={() => setEditingDay(null)} className="text-[16px] text-muted border border-border bg-transparent rounded px-3 py-2 min-h-[44px] cursor-pointer">Cancel</button>
               </div>
             </div>
           ) : (
             <div className="flex justify-between items-start">
               <div>
-                <div className="text-[13px] font-bold text-bright">{currentDay.subtitle || currentDay.name}</div>
-                {currentDay.focus && <div className="text-[10px] text-dim mt-0.5">{currentDay.focus}</div>}
+                <div className="text-[19px] font-bold text-bright">{currentDay.subtitle || currentDay.name}</div>
+                {currentDay.focus && <div className="text-[16px] text-dim mt-0.5">{currentDay.focus}</div>}
               </div>
               <div className="flex gap-1">
                 <button
                   onClick={() => { setEditingDay(currentDay.id); setDayEditValue({ subtitle: currentDay.subtitle, focus: currentDay.focus }) }}
-                  className="text-[10px] text-muted bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer active:text-bright"
+                  className="text-[16px] text-muted bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer active:text-bright"
                 >
                   Edit
                 </button>
                 {days.length > 1 && (
                   <button
                     onClick={() => confirmDeleteDay(currentDay.id)}
-                    className="text-[10px] text-faint bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
+                    className="text-[16px] text-faint bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
                   >
                     Delete
                   </button>
@@ -300,14 +300,14 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
                   <button
                     onClick={() => handleMoveExercise(ex.id, currentDay.id, -1)}
                     disabled={idx === 0}
-                    className="text-[10px] text-faint bg-transparent border-none cursor-pointer disabled:opacity-20 min-w-[44px] min-h-[44px] flex items-center justify-center leading-none"
+                    className="text-[16px] text-faint bg-transparent border-none cursor-pointer disabled:opacity-20 min-w-[44px] min-h-[44px] flex items-center justify-center leading-none"
                   >
                     &#9650;
                   </button>
                   <button
                     onClick={() => handleMoveExercise(ex.id, currentDay.id, 1)}
                     disabled={idx === currentExercises.length - 1}
-                    className="text-[10px] text-faint bg-transparent border-none cursor-pointer disabled:opacity-20 min-w-[44px] min-h-[44px] flex items-center justify-center leading-none"
+                    className="text-[16px] text-faint bg-transparent border-none cursor-pointer disabled:opacity-20 min-w-[44px] min-h-[44px] flex items-center justify-center leading-none"
                   >
                     &#9660;
                   </button>
@@ -316,7 +316,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
                 {/* Exercise info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[12px] font-semibold text-bright truncate">{ex.name}</span>
+                    <span className="text-[18px] font-semibold text-bright truncate">{ex.name}</span>
                     <span
                       className="text-[8px] font-bold tracking-wider rounded-[3px] px-1 py-0.5 shrink-0"
                       style={{ color: cat.badge, background: `${cat.badge}18` }}
@@ -324,7 +324,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
                       {cat.label}
                     </span>
                   </div>
-                  <div className="text-[10px] text-faint">
+                  <div className="text-[16px] text-faint">
                     {ex.is_wave ? 'Wave-loaded' : `${ex.sets}x${ex.reps}${ex.default_weight ? ` @ ${ex.default_weight}lb` : ''}`}
                   </div>
                 </div>
@@ -333,13 +333,13 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
                 <div className="flex gap-1 shrink-0">
                   <button
                     onClick={() => setEditingExercise({ dayId: currentDay.id, exercise: ex })}
-                    className="text-[10px] text-muted bg-transparent border border-border rounded px-2.5 py-1.5 min-h-[44px] cursor-pointer active:text-bright"
+                    className="text-[16px] text-muted bg-transparent border border-border rounded px-2.5 py-1.5 min-h-[44px] cursor-pointer active:text-bright"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => confirmDeleteExercise(ex.id, currentDay.id)}
-                    className="text-[10px] text-faint bg-transparent border border-border rounded px-2.5 py-1.5 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
+                    className="text-[16px] text-faint bg-transparent border border-border rounded px-2.5 py-1.5 min-h-[44px] cursor-pointer hover:text-danger active:text-danger"
                   >
                     x
                   </button>
@@ -352,7 +352,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           {currentDay && (
             <button
               onClick={() => setEditingExercise({ dayId: currentDay.id })}
-              className="w-full py-2.5 border border-dashed border-border rounded-lg bg-transparent text-faint text-[11px] cursor-pointer hover:text-muted hover:border-muted"
+              className="w-full py-2.5 border border-dashed border-border rounded-lg bg-transparent text-faint text-[17px] cursor-pointer hover:text-muted hover:border-muted"
             >
               + Add Exercise
             </button>
