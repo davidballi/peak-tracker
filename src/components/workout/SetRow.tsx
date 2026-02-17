@@ -26,9 +26,9 @@ export function SetRow({
   const [confirmClear, setConfirmClear] = useState(false)
 
   const isCompleted = logState?.isCompleted ?? false
-  const displayWeight = logState?.weight ?? set.weight
-  const displayReps = logState?.reps ?? set.reps
-  const hasData = logState?.weight != null || logState?.reps != null
+  const displayWeight = logState !== undefined ? logState.weight : set.weight
+  const displayReps = logState !== undefined ? logState.reps : set.reps
+  const hasData = logState !== undefined && (logState.weight != null || logState.reps != null)
 
   if (confirmClear) {
     return (
