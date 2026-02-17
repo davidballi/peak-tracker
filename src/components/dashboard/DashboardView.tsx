@@ -3,8 +3,6 @@ import { getDb } from '../../lib/db'
 import { estimatedOneRepMax } from '../../lib/calc'
 import { MAIN_LIFTS } from '../../lib/constants'
 import { useAppStore } from '../../store/appStore'
-import { importFromPwa } from '../../lib/import'
-import { importHistoryFromJson } from '../../lib/import-history'
 
 interface DashboardViewProps {
   programId: string
@@ -22,9 +20,6 @@ interface LiftPr {
 export function DashboardView({ programId, programName, blockNum, currentWeek }: DashboardViewProps) {
   const [liftPrs, setLiftPrs] = useState<LiftPr[]>([])
   const [totalSessions, setTotalSessions] = useState(0)
-  const [importJson, setImportJson] = useState('')
-  const [importResult, setImportResult] = useState<string | null>(null)
-  const [importing, setImporting] = useState(false)
   const setCurrentView = useAppStore((s) => s.setCurrentView)
 
   useEffect(() => {
@@ -70,51 +65,6 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
     }
     loadDashboard()
   }, [programId])
-
-  async function handleNotesImport() {
-    setImporting(true)
-    setImportResult(null)
-    try {
-      const resp = await fetch('/workout-history.json')
-      if (!resp.ok) {
-        setImportResult('No workout-history.json found. Run: node scripts/parse-workout-notes.mjs')
-        return
-      }
-      const json = await resp.text()
-      const result = await importHistoryFromJson(json, programId)
-      const lines = []
-      lines.push(`${result.setsImported} sets imported across ${result.workoutsCreated} sessions`)
-      if (result.maxBlock > 0) lines.push(`Block range up to ${result.maxBlock} (program advanced to block ${result.maxBlock + 1})`)
-      if (result.exercisesMatched.length > 0) lines.push(`Matched: ${result.exercisesMatched.join(', ')}`)
-      if (result.exercisesUnmatched.length > 0) lines.push(`Unmatched: ${result.exercisesUnmatched.join(', ')}`)
-      if (result.errors.length > 0) lines.push(`Errors: ${result.errors.join('; ')}`)
-      setImportResult(lines.join('\n'))
-    } catch (err) {
-      setImportResult(`Import failed: ${err}`)
-    } finally {
-      setImporting(false)
-    }
-  }
-
-  async function handleImport() {
-    if (!importJson.trim()) return
-    setImporting(true)
-    setImportResult(null)
-    try {
-      const result = await importFromPwa(importJson, programId)
-      const parts = []
-      if (result.setsImported > 0) parts.push(`${result.setsImported} sets`)
-      if (result.notesImported > 0) parts.push(`${result.notesImported} notes`)
-      if (result.maxesImported > 0) parts.push(`${result.maxesImported} training maxes`)
-      if (result.errors.length > 0) parts.push(`${result.errors.length} errors`)
-      setImportResult(parts.length > 0 ? `Imported: ${parts.join(', ')}` : 'No data to import')
-      setImportJson('')
-    } catch (err) {
-      setImportResult(`Import failed: ${err}`)
-    } finally {
-      setImporting(false)
-    }
-  }
 
   return (
     <div className="px-4 py-4">
@@ -178,46 +128,6 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           </div>
         </div>
       )}
-
-      {/* Data Import */}
-      <div className="mb-5">
-        <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">DATA IMPORT</div>
-
-        {/* Notes History Import */}
-        <button
-          onClick={handleNotesImport}
-          disabled={importing}
-          className="w-full py-2.5 mb-2 border border-border-elevated rounded-md cursor-pointer bg-card text-bright text-[18px] font-semibold disabled:opacity-50 hover:border-accent active:border-accent transition-colors"
-        >
-          {importing ? 'Importing...' : 'Import Notes History'}
-        </button>
-        <div className="text-[16px] text-faint mb-3">
-          Loads parsed Apple Notes data from /workout-history.json
-        </div>
-
-        {/* PWA Import */}
-        <div className="text-[16px] text-faint mb-2">
-          Or paste PWA localStorage data (forge-v2 key):
-        </div>
-        <textarea
-          value={importJson}
-          onChange={(e) => setImportJson(e.target.value)}
-          placeholder='{"logs": {...}, "maxes": {...}, ...}'
-          className="w-full min-h-[80px] bg-bg border border-border-elevated rounded-lg text-bright p-2.5 text-[17px] font-mono resize-y leading-relaxed focus:border-accent outline-none mb-2"
-        />
-        <button
-          onClick={handleImport}
-          disabled={importing || !importJson.trim()}
-          className="w-full py-2 border-none rounded-md cursor-pointer bg-accent text-bg text-[18px] font-semibold disabled:opacity-50"
-        >
-          {importing ? 'Importing...' : 'Import PWA Data'}
-        </button>
-        {importResult && (
-          <div className="mt-2 text-[17px] text-muted bg-card border border-border rounded p-2 whitespace-pre-wrap">
-            {importResult}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

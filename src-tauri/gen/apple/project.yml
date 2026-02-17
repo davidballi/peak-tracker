@@ -32,6 +32,7 @@ targets:
       - path: Assets.xcassets
       - path: Externals
       - path: forge_iOS
+      - path: forge_iOS/PrivacyInfo.xcprivacy
       - path: assets
         buildPhase: resources
         type: folder
@@ -47,7 +48,7 @@ targets:
         UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
         CFBundleShortVersionString: 1.0.0
-        CFBundleVersion: "1.0.0"
+        CFBundleVersion: "1"
     entitlements:
       path: forge_iOS/forge_iOS.entitlements
     scheme:
@@ -65,7 +66,7 @@ targets:
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: true
         EXCLUDED_ARCHS[sdk=iphoneos*]: x86_64
         DEVELOPMENT_TEAM: G3DQP8CZ75
-        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_IDENTITY: "Apple Distribution"
         CODE_SIGN_STYLE: Automatic
       groups: [app]
     dependencies:
