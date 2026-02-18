@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Model Routing
+
+**Sonnet is the default for this project.** This is a single-app codebase (Tauri + React + SQLite) where Sonnet handles virtually all work at parity with Opus.
+
+Only spawn **Opus subagents** (via Task tool with `model: "opus"`) for:
+- Major architectural changes to the data model or migration system (SQLite schema redesigns)
+- Tauri/Rust bridge work requiring deep reasoning about the native layer
+- Complex debugging involving the SQLite connection pool or cross-layer Tauri ↔ WebView issues
+
+For everything else (features, UI, bug fixes, new hooks, Zustand stores, charts, tests), handle directly with Sonnet.
+
 ## Project Overview
 
 Forge is an iOS app for tracking workouts with wave-loaded periodization. Built with **Tauri v2 + React 18 + TypeScript + Vite + Tailwind CSS + SQLite**. Bundle ID: `com.forge.app`.
