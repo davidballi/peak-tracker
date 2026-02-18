@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getDb } from '../../lib/db'
 import { estimatedOneRepMax } from '../../lib/calc'
 import { MAIN_LIFTS } from '../../lib/constants'
 import { useAppStore } from '../../store/appStore'
+import { importWorkoutHistory } from '../../lib/import-history'
 
 interface DashboardViewProps {
   programId: string
@@ -20,51 +21,69 @@ interface LiftPr {
 export function DashboardView({ programId, programName, blockNum, currentWeek }: DashboardViewProps) {
   const [liftPrs, setLiftPrs] = useState<LiftPr[]>([])
   const [totalSessions, setTotalSessions] = useState(0)
+  const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'done' | 'error'>('idle')
+  const [importCount, setImportCount] = useState(0)
+  const [importError, setImportError] = useState('')
   const setCurrentView = useAppStore((s) => s.setCurrentView)
 
-  useEffect(() => {
-    async function loadDashboard() {
-      const db = await getDb()
+  const loadDashboard = useCallback(async () => {
+    const db = await getDb()
 
-      // Total workout sessions
-      const sessions = await db.select<Array<{ cnt: number }>>(
-        `SELECT COUNT(*) as cnt FROM workout_logs WHERE program_id = ?`,
-        [programId],
+    const sessions = await db.select<Array<{ cnt: number }>>(
+      `SELECT COUNT(*) as cnt FROM workout_logs WHERE program_id = ?`,
+      [programId],
+    )
+    setTotalSessions(sessions[0]?.cnt ?? 0)
+
+    const prs: LiftPr[] = []
+    for (const lift of MAIN_LIFTS) {
+      const exercises = await db.select<Array<{ id: string }>>(
+        `SELECT e.id FROM exercises e JOIN days d ON e.day_id = d.id WHERE d.program_id = ? AND e.name = ? LIMIT 1`,
+        [programId, lift.name],
       )
-      setTotalSessions(sessions[0]?.cnt ?? 0)
+      if (exercises.length === 0) continue
 
-      // Best e1RM per main lift
-      const prs: LiftPr[] = []
-      for (const lift of MAIN_LIFTS) {
-        const exercises = await db.select<Array<{ id: string }>>(
-          `SELECT e.id FROM exercises e JOIN days d ON e.day_id = d.id WHERE d.program_id = ? AND e.name = ? LIMIT 1`,
-          [programId, lift.name],
-        )
-        if (exercises.length === 0) continue
+      const rows = await db.select<Array<{ weight: number; reps: number }>>(
+        `SELECT sl.weight, sl.reps FROM set_logs sl
+         JOIN workout_logs wl ON sl.workout_log_id = wl.id
+         WHERE sl.exercise_id = ? AND wl.program_id = ?
+           AND sl.weight IS NOT NULL AND sl.weight > 0
+           AND sl.reps IS NOT NULL AND sl.reps > 0`,
+        [exercises[0].id, programId],
+      )
 
-        const rows = await db.select<Array<{ weight: number; reps: number }>>(
-          `SELECT sl.weight, sl.reps FROM set_logs sl
-           JOIN workout_logs wl ON sl.workout_log_id = wl.id
-           WHERE sl.exercise_id = ? AND wl.program_id = ?
-             AND sl.weight IS NOT NULL AND sl.weight > 0
-             AND sl.reps IS NOT NULL AND sl.reps > 0`,
-          [exercises[0].id, programId],
-        )
-
-        let best = 0
-        for (const r of rows) {
-          const e1rm = estimatedOneRepMax(r.weight, r.reps)
-          if (e1rm > best) best = e1rm
-        }
-
-        if (best > 0) {
-          prs.push({ name: lift.name, color: lift.color, bestE1rm: best })
-        }
+      let best = 0
+      for (const r of rows) {
+        const e1rm = estimatedOneRepMax(r.weight, r.reps)
+        if (e1rm > best) best = e1rm
       }
-      setLiftPrs(prs)
+
+      if (best > 0) {
+        prs.push({ name: lift.name, color: lift.color, bestE1rm: best })
+      }
     }
-    loadDashboard()
+    setLiftPrs(prs)
   }, [programId])
+
+  useEffect(() => {
+    loadDashboard()
+  }, [loadDashboard])
+
+  const handleImport = useCallback(async () => {
+    setImportStatus('importing')
+    setImportError('')
+    try {
+      const count = await importWorkoutHistory(programId)
+      setImportCount(count)
+      setImportStatus('done')
+      if (count > 0) {
+        await loadDashboard()
+      }
+    } catch (err) {
+      setImportStatus('error')
+      setImportError(err instanceof Error ? err.message : String(err))
+    }
+  }, [programId, loadDashboard])
 
   return (
     <div className="px-4 py-4">
@@ -95,6 +114,45 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           <div className="text-[16px] text-muted">Charts & trends</div>
         </button>
       </div>
+
+      {/* Import History */}
+      {importStatus !== 'done' && (
+        <div className="mb-5 p-3 bg-card border border-border-elevated rounded-lg">
+          <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">IMPORT DATA</div>
+          {importStatus === 'idle' && (
+            <button
+              onClick={handleImport}
+              className="w-full py-3 min-h-[44px] bg-accent text-bg rounded-lg text-[17px] font-semibold border-none cursor-pointer active:opacity-80"
+            >
+              Import Workout History
+            </button>
+          )}
+          {importStatus === 'importing' && (
+            <div className="text-[17px] text-accent text-center py-3">Importing... this may take a moment</div>
+          )}
+          {importStatus === 'error' && (
+            <div>
+              <div className="text-[16px] text-danger mb-2">Import failed: {importError}</div>
+              <button
+                onClick={handleImport}
+                className="w-full py-3 min-h-[44px] bg-danger text-white rounded-lg text-[17px] font-semibold border-none cursor-pointer active:opacity-80"
+              >
+                Retry Import
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+      {importStatus === 'done' && importCount > 0 && (
+        <div className="mb-5 p-3 bg-card border border-success rounded-lg">
+          <div className="text-[17px] text-success text-center">Imported {importCount} workout sessions</div>
+        </div>
+      )}
+      {importStatus === 'done' && importCount === 0 && totalSessions === 0 && (
+        <div className="mb-5 p-3 bg-card border border-border-elevated rounded-lg">
+          <div className="text-[16px] text-muted text-center">No history data to import (already imported or no data found)</div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="mb-5">

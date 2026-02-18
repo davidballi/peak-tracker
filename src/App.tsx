@@ -157,6 +157,7 @@ function MainApp({ programId }: { programId: string }) {
   const [showSettings, setShowSettings] = useState(false)
   const [showBrowser, setShowBrowser] = useState(false)
 
+
   const allExercises = useMemo(
     () => (program?.days ?? []).flatMap((d) => d.exercises),
     [program?.days],

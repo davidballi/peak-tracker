@@ -702,10 +702,6 @@
           {
             "weight": 70,
             "reps": 8
-          },
-          {
-            "weight": 70,
-            "reps": 88
           }
         ]
       },
@@ -2254,12 +2250,7 @@
       },
       {
         "name": "Goblet Squat",
-        "sets": [
-          {
-            "weight": 95,
-            "reps": 35
-          }
-        ]
+        "sets": []
       }
     ]
   },
@@ -2953,12 +2944,7 @@
       },
       {
         "name": "Goblet Squat",
-        "sets": [
-          {
-            "weight": 95,
-            "reps": 31
-          }
-        ]
+        "sets": []
       }
     ]
   },
@@ -4625,12 +4611,7 @@
       },
       {
         "name": "Goblet Squat",
-        "sets": [
-          {
-            "weight": 95,
-            "reps": 31
-          }
-        ]
+        "sets": []
       }
     ]
   },
@@ -4692,12 +4673,7 @@
       },
       {
         "name": "Goblet Squat",
-        "sets": [
-          {
-            "weight": 95,
-            "reps": 32
-          }
-        ]
+        "sets": []
       }
     ]
   },
@@ -5180,12 +5156,7 @@
       },
       {
         "name": "Goblet Squat",
-        "sets": [
-          {
-            "weight": 95,
-            "reps": 35
-          }
-        ]
+        "sets": []
       }
     ]
   },
@@ -5242,10 +5213,6 @@
           {
             "weight": 105,
             "reps": 8
-          },
-          {
-            "weight": 105,
-            "reps": 88
           }
         ]
       },
@@ -5456,10 +5423,6 @@
         "name": "Deadlift",
         "sets": [
           {
-            "weight": 10,
-            "reps": 45
-          },
-          {
             "weight": 135,
             "reps": 5
           },
@@ -5481,20 +5444,12 @@
         "name": "Bench Press",
         "sets": [
           {
-            "weight": 10,
-            "reps": 45
-          },
-          {
             "weight": 135,
             "reps": 5
           },
           {
             "weight": 225,
             "reps": 1
-          },
-          {
-            "weight": 10,
-            "reps": 185
           }
         ]
       }
@@ -7755,10 +7710,6 @@
           {
             "weight": 100,
             "reps": 6
-          },
-          {
-            "weight": 100,
-            "reps": 66
           }
         ]
       },
@@ -9099,12 +9050,7 @@
       },
       {
         "name": "Incline Curl",
-        "sets": [
-          {
-            "weight": 25,
-            "reps": 1515
-          }
-        ]
+        "sets": []
       },
       {
         "name": "Dips",
@@ -11992,10 +11938,6 @@
           {
             "weight": 60,
             "reps": 15
-          },
-          {
-            "weight": 55,
-            "reps": 60
           }
         ]
       }
@@ -12243,14 +12185,6 @@
           {
             "weight": 60,
             "reps": 15
-          },
-          {
-            "weight": 55,
-            "reps": 60
-          },
-          {
-            "weight": 55,
-            "reps": 60
           }
         ]
       }
@@ -12319,12 +12253,7 @@
       },
       {
         "name": "Bicep Curl",
-        "sets": [
-          {
-            "weight": 15,
-            "reps": 34
-          }
-        ]
+        "sets": []
       }
     ]
   },
@@ -12904,10 +12833,6 @@
           {
             "weight": 175,
             "reps": 8
-          },
-          {
-            "weight": 175,
-            "reps": 88
           }
         ]
       },
@@ -19855,12 +19780,7 @@
       },
       {
         "name": "Hammer Curl",
-        "sets": [
-          {
-            "weight": 25,
-            "reps": 2017
-          }
-        ]
+        "sets": []
       },
       {
         "name": "Tricep Extension",
@@ -20154,10 +20074,6 @@
           {
             "weight": 115,
             "reps": 10
-          },
-          {
-            "weight": 115,
-            "reps": 60
           }
         ]
       },
@@ -20448,10 +20364,6 @@
         "name": "OHP",
         "sets": [
           {
-            "weight": 5,
-            "reps": 40
-          },
-          {
             "weight": 115,
             "reps": 5
           },
@@ -20573,10 +20485,6 @@
       {
         "name": "Bench Press",
         "sets": [
-          {
-            "weight": 10,
-            "reps": 135
-          },
           {
             "weight": 185,
             "reps": 5
@@ -25153,10 +25061,6 @@
           {
             "weight": 155,
             "reps": 10
-          },
-          {
-            "weight": 155,
-            "reps": 86
           }
         ]
       },
