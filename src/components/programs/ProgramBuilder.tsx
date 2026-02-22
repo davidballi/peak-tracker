@@ -10,6 +10,7 @@ import { ConfirmModal } from '../ui/ConfirmModal'
 interface ProgramBuilderProps {
   programId: string
   onBrowseTemplates: () => void
+  onCreateNew: () => void
 }
 
 interface DayRow {
@@ -34,7 +35,7 @@ interface ExRow {
   is_wave: number
 }
 
-export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderProps) {
+export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: ProgramBuilderProps) {
   const [days, setDays] = useState<DayRow[]>([])
   const [exercises, setExercises] = useState<Map<string, ExRow[]>>(new Map())
   const [selectedDay, setSelectedDay] = useState(0)
@@ -205,7 +206,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
 
   return (
     <div className="px-4 py-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-3">
         <div>
           <div className="text-[17px] font-semibold text-accent">PROGRAM EDITOR</div>
           <div className="text-[17px] text-muted mt-0.5">{programName}</div>
@@ -217,6 +218,13 @@ export function ProgramBuilder({ programId, onBrowseTemplates }: ProgramBuilderP
           Browse Templates
         </button>
       </div>
+
+      <button
+        onClick={onCreateNew}
+        className="w-full py-3 mb-4 border border-accent rounded-lg bg-accent/[0.08] text-accent text-[17px] font-semibold cursor-pointer hover:bg-accent/[0.15] active:bg-accent/[0.15] transition-colors"
+      >
+        + Create New Program
+      </button>
 
       {/* Day tabs */}
       <div className="flex gap-1 mb-3 flex-wrap">

@@ -16,6 +16,7 @@ import { ProgramBuilder } from './components/programs/ProgramBuilder'
 import { ProgramBrowser } from './components/programs/ProgramBrowser'
 import { GoalsView } from './components/goals/GoalsView'
 import { DashboardView } from './components/dashboard/DashboardView'
+import { WorkoutBuilder } from './components/builder/WorkoutBuilder'
 
 interface TemplateRow {
   id: string
@@ -30,6 +31,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [templates, setTemplates] = useState<TemplateRow[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [showBuilder, setShowBuilder] = useState(false)
 
   const initRan = useRef(false)
   useEffect(() => {
@@ -85,13 +87,21 @@ export default function App() {
   }
 
   if (!activeProgramId) {
-    return <TemplateSelector templates={templates} />
+    if (showBuilder) {
+      return <WorkoutBuilder onComplete={(id) => setActiveProgramId(id)} onCancel={() => setShowBuilder(false)} />
+    }
+    return <LandingPage templates={templates} onBuildNew={() => setShowBuilder(true)} />
   }
 
   return <MainApp programId={activeProgramId} />
 }
 
-function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
+interface LandingPageProps {
+  templates: TemplateRow[]
+  onBuildNew: () => void
+}
+
+function LandingPage({ templates, onBuildNew }: LandingPageProps) {
   const setActiveProgramId = useAppStore((s) => s.setActiveProgramId)
   const [forking, setForking] = useState(false)
 
@@ -114,8 +124,35 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
           <h1 className="text-2xl font-bold">
             <span className="text-accent">FORGE</span>
           </h1>
-          <p className="text-muted text-base mt-2">Choose a program to get started</p>
+          <p className="text-muted text-base mt-2">Build your perfect workout</p>
         </div>
+
+        {/* Build Your Program card */}
+        <button
+          onClick={onBuildNew}
+          className="w-full text-left p-5 bg-card border-2 border-accent rounded-lg shadow-card hover:bg-accent/[0.08] active:bg-accent/[0.08] transition-colors mb-6"
+        >
+          <div className="flex items-center gap-4">
+            <div className="shrink-0">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-accent font-bold text-[18px]">Build Your Program</div>
+              <div className="text-muted text-[15px] mt-1">Create a custom program tailored to your goals</div>
+            </div>
+          </div>
+        </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-faint text-[14px] tracking-wide">or choose a template</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+
+        {/* Template cards */}
         <div className="space-y-3">
           {templates.map((t) => (
             <button
@@ -153,9 +190,11 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
 
 function MainApp({ programId }: { programId: string }) {
   const { currentView } = useAppStore()
+  const setActiveProgramId = useAppStore((s) => s.setActiveProgramId)
   const { program, loading, reload, setCurrentDay, setCurrentWeek, deleteExercise } = useProgram(programId)
   const [showSettings, setShowSettings] = useState(false)
   const [showBrowser, setShowBrowser] = useState(false)
+  const [showNewBuilder, setShowNewBuilder] = useState(false)
 
 
   const allExercises = useMemo(
@@ -280,6 +319,14 @@ function MainApp({ programId }: { programId: string }) {
         return <HistoryView programId={programId} />
 
       case 'programs':
+        if (showNewBuilder) {
+          return (
+            <WorkoutBuilder
+              onComplete={(id) => { setActiveProgramId(id); setShowNewBuilder(false) }}
+              onCancel={() => setShowNewBuilder(false)}
+            />
+          )
+        }
         if (showBrowser) {
           return <ProgramBrowser onBack={() => setShowBrowser(false)} />
         }
@@ -287,6 +334,7 @@ function MainApp({ programId }: { programId: string }) {
           <ProgramBuilder
             programId={programId}
             onBrowseTemplates={() => setShowBrowser(true)}
+            onCreateNew={() => setShowNewBuilder(true)}
           />
         )
 
