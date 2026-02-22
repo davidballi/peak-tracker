@@ -11,13 +11,15 @@ interface ReviewStepProps {
   onConfirm: () => void
 }
 
+/* Index of the exercise pending delete confirmation, or null */
+
 function exerciseToFormData(ex: GeneratedExercise): ExerciseFormData {
   return {
     name: ex.name,
     category: ex.category,
     sets: ex.isWave ? 3 : ex.sets,
     reps: ex.isWave ? 5 : ex.reps,
-    defaultWeight: ex.isWave ? 0 : ex.defaultWeight,
+    defaultWeight: ex.defaultWeight,
     note: ex.note,
     isWave: ex.isWave,
     baseMax: ex.baseMax,
@@ -50,6 +52,7 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isAdding, setIsAdding] = useState(false)
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null)
 
   const activeDay = program.days[activeDayIndex]
 
@@ -62,6 +65,7 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
       }
     })
     onUpdate({ ...program, days: newDays })
+    setPendingDeleteIndex(null)
   }
 
   function handleEditSave(formData: ExerciseFormData) {
@@ -154,21 +158,38 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
                 </div>
               </div>
               {/* Delete button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleDeleteExercise(ei)
-                }}
-                className="bg-transparent border-none text-dim hover:text-danger active:text-danger cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 6h18" />
-                  <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                  <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                </svg>
-              </button>
+              {pendingDeleteIndex === ei ? (
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    onClick={() => handleDeleteExercise(ei)}
+                    className="bg-danger border-none rounded text-white px-2 py-1 text-[14px] font-semibold cursor-pointer min-h-[44px]"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setPendingDeleteIndex(null)}
+                    className="bg-border border-none rounded text-muted px-2 py-1 text-[14px] cursor-pointer min-h-[44px]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setPendingDeleteIndex(ei)
+                  }}
+                  className="bg-transparent border-none text-dim hover:text-danger active:text-danger cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center transition-colors"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                  </svg>
+                </button>
+              )}
             </div>
           )
         })}

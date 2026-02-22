@@ -20,6 +20,7 @@ export function WorkoutBuilder({ onComplete, onCancel }: WorkoutBuilderProps) {
   const [program, setProgram] = useState<GeneratedProgram | null>(null)
   const [programName, setProgramName] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   function handleGoalSelect(g: Goal) {
     setGoal(g)
@@ -41,12 +42,14 @@ export function WorkoutBuilder({ onComplete, onCancel }: WorkoutBuilderProps) {
   async function handleFinalConfirm() {
     if (!program || saving) return
     setSaving(true)
+    setSaveError(false)
     try {
       const programId = await createProgramFromBuilder({ ...program, name: programName })
       onComplete(programId)
     } catch (err) {
       console.error('Failed to create program:', err)
       setSaving(false)
+      setSaveError(true)
     }
   }
 
@@ -111,6 +114,7 @@ export function WorkoutBuilder({ onComplete, onCancel }: WorkoutBuilderProps) {
             onNameChange={setProgramName}
             onConfirm={handleFinalConfirm}
             saving={saving}
+            error={saveError}
           />
         )}
       </div>

@@ -6,9 +6,10 @@ interface ConfirmStepProps {
   onNameChange: (name: string) => void
   onConfirm: () => void
   saving: boolean
+  error?: boolean
 }
 
-export function ConfirmStep({ program, programName, onNameChange, onConfirm, saving }: ConfirmStepProps) {
+export function ConfirmStep({ program, programName, onNameChange, onConfirm, saving, error }: ConfirmStepProps) {
   const totalExercises = program.days.reduce((sum, d) => sum + d.exercises.length, 0)
   const waveCount = program.days.reduce(
     (sum, d) => sum + d.exercises.filter((e) => e.isWave).length,
@@ -64,6 +65,12 @@ export function ConfirmStep({ program, programName, onNameChange, onConfirm, sav
       >
         {saving ? 'Saving...' : 'Start Training'}
       </button>
+
+      {error && (
+        <div className="text-[15px] text-danger text-center">
+          Something went wrong. Please try again.
+        </div>
+      )}
     </div>
   )
 }

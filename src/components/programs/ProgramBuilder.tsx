@@ -5,6 +5,7 @@ import { getDb } from '../../lib/db'
 import { insertDefaultWaveConfig } from '../../lib/wave-defaults'
 import { CATEGORY_CONFIG } from '../../lib/constants'
 import { ExerciseEditor, type ExerciseFormData } from './ExerciseEditor'
+import type { ExerciseCategory } from '../../types/program'
 import { ConfirmModal } from '../ui/ConfirmModal'
 
 interface ProgramBuilderProps {
@@ -425,5 +426,3 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
     </div>
   )
 }
-
-type ExerciseCategory = 'tech' | 'absolute' | 'ss' | 'acc'

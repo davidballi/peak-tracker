@@ -17,11 +17,6 @@ const DAY_DESCRIPTIONS: Record<number, string> = {
 export function ScheduleStep({ onSelect }: ScheduleStepProps) {
   const [selected, setSelected] = useState<number | null>(null)
 
-  function handleTap(n: number) {
-    setSelected(n)
-    onSelect(n)
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <div className="text-[18px] font-bold text-bright">
@@ -32,7 +27,7 @@ export function ScheduleStep({ onSelect }: ScheduleStepProps) {
         {DAY_OPTIONS.map((n) => (
           <button
             key={n}
-            onClick={() => handleTap(n)}
+            onClick={() => setSelected(n)}
             className={`min-w-[56px] min-h-[56px] rounded-xl text-lg font-bold cursor-pointer transition-colors border ${
               selected === n
                 ? 'bg-accent text-bg border-accent'
@@ -45,9 +40,17 @@ export function ScheduleStep({ onSelect }: ScheduleStepProps) {
       </div>
 
       {selected !== null && (
-        <div className="text-center text-[16px] text-muted">
-          {DAY_DESCRIPTIONS[selected]}
-        </div>
+        <>
+          <div className="text-center text-[16px] text-muted">
+            {DAY_DESCRIPTIONS[selected]}
+          </div>
+          <button
+            onClick={() => onSelect(selected)}
+            className="w-full bg-accent text-bg font-bold text-[17px] py-3 rounded-lg border-none cursor-pointer min-h-[48px] hover:opacity-90 active:opacity-80 transition-opacity"
+          >
+            Continue
+          </button>
+        </>
       )}
     </div>
   )
