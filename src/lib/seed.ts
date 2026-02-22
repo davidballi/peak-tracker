@@ -2,6 +2,8 @@ import { v4 as uuid } from 'uuid'
 import { getDb, withWriteLock } from './db'
 import { PEAK_STRENGTH_TEMPLATE, FIVE_THREE_ONE_TEMPLATE } from './templates'
 import type { ProgramTemplate, TemplateExercise } from '../types/template'
+import type { GeneratedProgram } from './program-generator'
+import { insertDefaultWaveConfig } from './wave-defaults'
 
 /**
  * Seed a program template into the database.
@@ -179,6 +181,79 @@ async function _forkTemplate(templateId: string): Promise<string> {
         await db.execute(
           `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, 1, 'template')`,
           [uuid(), exerciseId, wc.base_max],
+        )
+      }
+    }
+  }
+
+  return programId
+}
+
+/**
+ * Create a program from the program builder wizard output.
+ * Similar to forkTemplate but data comes from an in-memory GeneratedProgram
+ * rather than template DB tables, and source_template_id is NULL.
+ * Returns the new program ID.
+ */
+export function createProgramFromBuilder(program: GeneratedProgram): Promise<string> {
+  return withWriteLock(() => _createProgramFromBuilder(program))
+}
+
+async function _createProgramFromBuilder(program: GeneratedProgram): Promise<string> {
+  const db = await getDb()
+  const programId = uuid()
+
+  // Deactivate all existing programs
+  await db.execute(`UPDATE programs SET is_active = 0`)
+
+  // Create program (source_template_id is NULL — not from a template)
+  await db.execute(
+    `INSERT INTO programs (id, name, source_template_id, current_day, current_week, block_num, is_active) VALUES (?, ?, NULL, 0, 0, 1, 1)`,
+    [programId, program.name],
+  )
+
+  // Create days + exercises
+  for (let di = 0; di < program.days.length; di++) {
+    const day = program.days[di]
+    const dayId = uuid()
+
+    await db.execute(
+      `INSERT INTO days (id, program_id, day_index, name, subtitle, focus) VALUES (?, ?, ?, ?, ?, ?)`,
+      [dayId, programId, di, day.name, day.subtitle, day.focus],
+    )
+
+    for (let ei = 0; ei < day.exercises.length; ei++) {
+      const ex = day.exercises[ei]
+      const exerciseId = uuid()
+
+      if (ex.isWave) {
+        // Wave exercises: sets/reps/weight managed by wave config
+        await db.execute(
+          `INSERT INTO exercises (id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave) VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, ?, 1)`,
+          [exerciseId, dayId, ei, ex.key, ex.name, ex.category, ex.note],
+        )
+
+        if (ex.baseMax > 0) {
+          // Create wave_configs row
+          await db.execute(
+            `INSERT INTO wave_configs (id, exercise_id, base_max) VALUES (?, ?, ?)`,
+            [uuid(), exerciseId, ex.baseMax],
+          )
+
+          // Populate default warmups + weeks via shared helper
+          await insertDefaultWaveConfig(db, exerciseId, ex.baseMax)
+
+          // Insert initial training max
+          await db.execute(
+            `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, 1, 'manual')`,
+            [uuid(), exerciseId, ex.baseMax],
+          )
+        }
+      } else {
+        // Standard exercises: use actual sets/reps/weight
+        await db.execute(
+          `INSERT INTO exercises (id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+          [exerciseId, dayId, ei, ex.key, ex.name, ex.category, ex.sets, ex.reps, ex.defaultWeight, ex.note],
         )
       }
     }
