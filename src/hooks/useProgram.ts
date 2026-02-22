@@ -159,5 +159,19 @@ export function useProgram(programId: string) {
     setProgram((prev) => prev ? { ...prev, currentWeek: weekIndex } : prev)
   }, [programId])
 
-  return { program, loading, reload: load, setCurrentDay, setCurrentWeek }
+  const deleteExercise = useCallback(async (exerciseId: string, dayId: string) => {
+    const db = await getDb()
+    await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
+    // Reindex remaining exercises in this day
+    const remaining = await db.select<DbRow[]>(
+      `SELECT id FROM exercises WHERE day_id = ? ORDER BY exercise_index`,
+      [dayId],
+    )
+    for (let i = 0; i < remaining.length; i++) {
+      await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [i, remaining[i].id as string])
+    }
+    await load()
+  }, [load])
+
+  return { program, loading, reload: load, setCurrentDay, setCurrentWeek, deleteExercise }
 }

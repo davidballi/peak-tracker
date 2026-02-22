@@ -4,10 +4,12 @@ import type { DayWithExercises } from '../../types/program'
 import { useWorkoutLog } from '../../hooks/useWorkoutLog'
 import { useTrainingMaxes } from '../../hooks/useTrainingMaxes'
 import { useNotes } from '../../hooks/useNotes'
+import { getDb } from '../../lib/db'
 import { DayTabs } from './DayTabs'
 import { ProgressBar } from './ProgressBar'
 import { ExerciseCard, getExerciseTotalSets } from './ExerciseCard'
 import { NoteModal } from './NoteModal'
+import { ConfirmModal } from '../ui/ConfirmModal'
 
 interface WorkoutViewProps {
   programId: string
@@ -19,6 +21,7 @@ interface WorkoutViewProps {
   onOpenSettings: () => void
   onAdvanceWeek: () => void
   onAdvanceBlock: () => void
+  onDeleteExercise: (exerciseId: string, dayId: string) => Promise<void>
   settingsOpen: boolean
 }
 
@@ -32,6 +35,7 @@ export function WorkoutView({
   onOpenSettings,
   onAdvanceWeek,
   onAdvanceBlock,
+  onDeleteExercise,
   settingsOpen,
 }: WorkoutViewProps) {
   const day = days[currentDay]
@@ -64,6 +68,23 @@ export function WorkoutView({
     exerciseId?: string
     exerciseName?: string
   } | null>(null)
+
+  // Delete exercise confirmation
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string
+    dayId: string
+    name: string
+    logCount: number
+  } | null>(null)
+
+  const confirmDeleteExercise = useCallback(async (exerciseId: string, exerciseName: string) => {
+    const db = await getDb()
+    const logs = await db.select<Array<{ cnt: number }>>(
+      `SELECT COUNT(*) as cnt FROM set_logs WHERE exercise_id = ?`,
+      [exerciseId],
+    )
+    setPendingDelete({ id: exerciseId, dayId: day.id, name: exerciseName, logCount: logs[0]?.cnt ?? 0 })
+  }, [day.id])
 
   // Compute completion percentage
   const exerciseSetsInfo = useMemo(
@@ -171,6 +192,7 @@ export function WorkoutView({
             onRepsChange={handleRepsChange}
             onToggleComplete={toggleComplete}
             onClearSet={clearSet}
+            onDelete={() => confirmDeleteExercise(ex.id, ex.name)}
             exerciseNote={exerciseNotes[ex.id]}
             onNoteClick={() =>
               setNoteModal({ type: 'exercise', exerciseId: ex.id, exerciseName: ex.name })
@@ -233,6 +255,18 @@ export function WorkoutView({
         />
       )}
       </AnimatePresence>
+
+      {pendingDelete && (
+        <ConfirmModal
+          title="Delete Exercise"
+          message={`Remove "${pendingDelete.name}" from this day?`}
+          detail={pendingDelete.logCount > 0 ? `This will also delete ${pendingDelete.logCount} logged set(s).` : undefined}
+          confirmLabel="Delete"
+          danger
+          onConfirm={() => { onDeleteExercise(pendingDelete.id, pendingDelete.dayId); setPendingDelete(null) }}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
 
     </>
   )

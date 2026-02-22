@@ -172,57 +172,65 @@ export function useWorkoutLog(
   )
 
   const toggleComplete = useCallback(
-    async (exerciseId: string, setIndex: number) => {
+    async (exerciseId: string, setIndex: number, defaultWeight?: number, defaultReps?: number) => {
       if (!workoutLogId) return
       const key = `${exerciseId}_${setIndex}`
-      const existing = setLogs[key]
+      const existing = setLogsRef.current[key]
 
       if (existing) {
         const newVal = !existing.isCompleted
-        setSetLogs((prev) => ({
-          ...prev,
-          [key]: { ...existing, isCompleted: newVal },
-        }))
+        setSetLogs((prev) => {
+          const updated = { ...prev, [key]: { ...prev[key], isCompleted: newVal } }
+          setLogsRef.current = updated
+          return updated
+        })
         const db = await getDb()
         await db.execute(`UPDATE set_logs SET is_completed = ? WHERE id = ?`, [newVal ? 1 : 0, existing.id])
       } else {
-        // Create a new set log marked as complete
+        // Create a new set log marked as complete, preserving default values
+        const w = defaultWeight ?? null
+        const r = defaultReps ?? null
         const newId = uuid()
         const newLog: SetLogState = {
           id: newId,
           exerciseId,
           setIndex,
-          weight: null,
-          reps: null,
+          weight: w,
+          reps: r,
           isCompleted: true,
         }
-        setSetLogs((prev) => ({ ...prev, [key]: newLog }))
+        setSetLogs((prev) => {
+          const updated = { ...prev, [key]: newLog }
+          setLogsRef.current = updated
+          return updated
+        })
         const db = await getDb()
         await db.execute(
           `INSERT OR REPLACE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, 1)`,
-          [newId, workoutLogId, exerciseId, setIndex, null, null],
+          [newId, workoutLogId, exerciseId, setIndex, w, r],
         )
       }
     },
-    [workoutLogId, setLogs],
+    [workoutLogId],
   )
 
   const clearSet = useCallback(
     async (exerciseId: string, setIndex: number) => {
       const key = `${exerciseId}_${setIndex}`
-      const existing = setLogs[key]
+      const existing = setLogsRef.current[key]
       if (!existing) return
 
       setSetLogs((prev) => {
         const next = { ...prev }
         delete next[key]
+        setLogsRef.current = next
         return next
       })
 
       const db = await getDb()
       await db.execute(`DELETE FROM set_logs WHERE id = ?`, [existing.id])
     },
-    [setLogs],
+    [],
   )
 
   const getCompletionPercentage = useCallback(

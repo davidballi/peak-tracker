@@ -13,6 +13,7 @@ interface ExerciseCardProps {
   onRepsChange: (exerciseId: string, setIndex: number, value: string) => void
   onToggleComplete: (exerciseId: string, setIndex: number) => void
   onClearSet: (exerciseId: string, setIndex: number) => void
+  onDelete: () => void
   exerciseNote?: string
   onNoteClick: () => void
 }
@@ -26,6 +27,7 @@ export function ExerciseCard({
   onRepsChange,
   onToggleComplete,
   onClearSet,
+  onDelete,
   exerciseNote,
   onNoteClick,
 }: ExerciseCardProps) {
@@ -81,14 +83,22 @@ export function ExerciseCard({
             <div className="text-[16px] text-faint mt-0.5">{exercise.note}</div>
           )}
         </div>
-        <button
-          onClick={onNoteClick}
-          className={`bg-transparent border-none cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center text-[18px] shrink-0 transition-opacity ${
-            exerciseNote ? 'opacity-100' : 'opacity-30 grayscale'
-          }`}
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </button>
+        <div className="flex items-center shrink-0">
+          <button
+            onClick={onNoteClick}
+            className={`bg-transparent border-none cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center text-[18px] transition-opacity ${
+              exerciseNote ? 'opacity-100' : 'opacity-30 grayscale'
+            }`}
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </button>
+          <button
+            onClick={onDelete}
+            className="bg-transparent border-none cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center text-danger/40 hover:text-danger active:text-danger transition-colors"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
       </div>
 
       {/* Exercise note display */}

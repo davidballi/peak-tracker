@@ -153,7 +153,7 @@ function TemplateSelector({ templates }: { templates: TemplateRow[] }) {
 
 function MainApp({ programId }: { programId: string }) {
   const { currentView } = useAppStore()
-  const { program, loading, reload, setCurrentDay, setCurrentWeek } = useProgram(programId)
+  const { program, loading, reload, setCurrentDay, setCurrentWeek, deleteExercise } = useProgram(programId)
   const [showSettings, setShowSettings] = useState(false)
   const [showBrowser, setShowBrowser] = useState(false)
 
@@ -271,6 +271,7 @@ function MainApp({ programId }: { programId: string }) {
             onOpenSettings={() => setShowSettings(!showSettings)}
             onAdvanceWeek={handleAdvanceWeek}
             onAdvanceBlock={handleAdvanceBlock}
+            onDeleteExercise={deleteExercise}
             settingsOpen={showSettings}
           />
         )

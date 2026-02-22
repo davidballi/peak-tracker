@@ -9,7 +9,7 @@ interface SetRowProps {
   logState?: SetLogState
   onWeightChange: (exerciseId: string, setIndex: number, value: string) => void
   onRepsChange: (exerciseId: string, setIndex: number, value: string) => void
-  onToggleComplete: (exerciseId: string, setIndex: number) => void
+  onToggleComplete: (exerciseId: string, setIndex: number, defaultWeight?: number, defaultReps?: number) => void
   onClear: (exerciseId: string, setIndex: number) => void
 }
 
@@ -61,7 +61,7 @@ export function SetRow({
       >
         {/* Checkbox */}
         <button
-          onClick={() => onToggleComplete(exerciseId, set.index)}
+          onClick={() => onToggleComplete(exerciseId, set.index, set.weight, set.reps)}
           className={`min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer shrink-0`}
         >
           <span className={`w-7 h-7 rounded-[5px] border-[1.5px] flex items-center justify-center text-[19px] ${
@@ -94,8 +94,9 @@ export function SetRow({
             inputMode="decimal"
             value={displayWeight ?? ''}
             onChange={(e) => onWeightChange(exerciseId, set.index, e.target.value)}
-            className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[18px] font-mono text-right focus:border-accent outline-none ${
-              isCompleted ? 'text-success' : 'text-bright'
+            readOnly={isCompleted}
+            className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[18px] font-mono text-right outline-none ${
+              isCompleted ? 'text-success opacity-60' : 'text-bright focus:border-accent'
             }`}
           />
           <span className="text-[9px] text-faint shrink-0">lb</span>
@@ -110,8 +111,9 @@ export function SetRow({
             inputMode="decimal"
             value={displayReps ?? ''}
             onChange={(e) => onRepsChange(exerciseId, set.index, e.target.value)}
-            className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[18px] font-mono text-right focus:border-accent outline-none ${
-              isCompleted ? 'text-success' : 'text-bright'
+            readOnly={isCompleted}
+            className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[18px] font-mono text-right outline-none ${
+              isCompleted ? 'text-success opacity-60' : 'text-bright focus:border-accent'
             }`}
           />
         </div>
