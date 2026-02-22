@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { useState, useRef, useCallback } from 'react'
+import { AnimatePresence, Reorder } from 'framer-motion'
 import type { GeneratedProgram, GeneratedExercise } from '../../lib/program-generator'
 import { CATEGORY_CONFIG } from '../../lib/constants'
 import { ExerciseEditor, type ExerciseFormData } from '../programs/ExerciseEditor'
@@ -11,7 +11,10 @@ interface ReviewStepProps {
   onConfirm: () => void
 }
 
-/* Index of the exercise pending delete confirmation, or null */
+/** Exercise with a stable UID for Reorder identity */
+type TaggedExercise = GeneratedExercise & { _uid: string }
+
+let _counter = 0
 
 function exerciseToFormData(ex: GeneratedExercise): ExerciseFormData {
   return {
@@ -53,8 +56,54 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null)
+  const isDragging = useRef(false)
 
   const activeDay = program.days[activeDayIndex]
+
+  // Maintain stable UIDs per day as a ref map: dayIndex → TaggedExercise[]
+  const uidMapRef = useRef<Map<number, TaggedExercise[]>>(new Map())
+
+  const getTagged = useCallback((dayIdx: number, exercises: GeneratedExercise[]): TaggedExercise[] => {
+    const prev = uidMapRef.current.get(dayIdx) ?? []
+    const tagged: TaggedExercise[] = exercises.map((ex, i) => {
+      // Try to match existing UID by position if exercise name matches
+      const existing = prev[i]
+      if (existing && existing.name === ex.name && existing.key === ex.key) {
+        return { ...ex, _uid: existing._uid }
+      }
+      // Otherwise try to find by name+key anywhere in previous list (handles reorder)
+      const found = prev.find((p) => p.name === ex.name && p.key === ex.key && !tagged.some((t) => t._uid === p._uid))
+      if (found) {
+        return { ...ex, _uid: found._uid }
+      }
+      return { ...ex, _uid: `ex_${++_counter}` }
+    })
+    uidMapRef.current.set(dayIdx, tagged)
+    return tagged
+  }, [])
+
+  const activeTagged = getTagged(activeDayIndex, activeDay.exercises)
+
+  function handleReorder(reordered: TaggedExercise[]) {
+    isDragging.current = true
+    // Update UID map with new order
+    uidMapRef.current.set(activeDayIndex, reordered)
+    const newDays = program.days.map((day, di) => {
+      if (di !== activeDayIndex) return day
+      return {
+        ...day,
+        exercises: reordered.map(({ _uid, ...ex }) => ex),
+      }
+    })
+    onUpdate({ ...program, days: newDays })
+    // Reset drag flag after a tick so click handler can check it
+    requestAnimationFrame(() => { isDragging.current = false })
+  }
+
+  function handleCardClick(ei: number) {
+    if (isDragging.current) return
+    setEditingIndex(ei)
+  }
 
   function handleDeleteExercise(exIndex: number) {
     const newDays = program.days.map((day, di) => {
@@ -108,7 +157,7 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
         {program.days.map((day, i) => (
           <button
             key={i}
-            onClick={() => setActiveDayIndex(i)}
+            onClick={() => { setActiveDayIndex(i); setPendingDeleteIndex(null) }}
             className={`flex-shrink-0 px-3 py-2 rounded-lg text-[15px] font-medium cursor-pointer transition-colors border whitespace-nowrap min-h-[44px] ${
               i === activeDayIndex
                 ? 'bg-accent text-bg border-accent'
@@ -126,17 +175,39 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
         <div className="text-[14px] text-dim">{activeDay.focus}</div>
       </div>
 
-      {/* Exercise cards */}
-      <div className="flex flex-col gap-2">
-        {activeDay.exercises.map((ex, ei) => {
+      <div className="text-[13px] text-faint">Drag to reorder</div>
+
+      {/* Exercise cards — drag to reorder */}
+      <Reorder.Group
+        axis="y"
+        values={activeTagged}
+        onReorder={handleReorder}
+        className="flex flex-col gap-2 list-none p-0 m-0"
+      >
+        {activeTagged.map((ex, ei) => {
           const catConfig = CATEGORY_CONFIG[ex.category as ExerciseCategory]
           return (
-            <div
-              key={ei}
-              className="bg-card border border-border-elevated rounded-lg p-3 flex items-center gap-3 cursor-pointer hover:border-accent active:border-accent transition-colors"
-              onClick={() => setEditingIndex(ei)}
+            <Reorder.Item
+              key={ex._uid}
+              value={ex}
+              className="bg-card border border-border-elevated rounded-lg p-3 flex items-center gap-3 cursor-grab active:cursor-grabbing hover:border-accent transition-colors"
+              style={{ touchAction: 'none' }}
+              whileDrag={{ scale: 1.02, boxShadow: '0 8px 24px rgba(0,0,0,0.4)', zIndex: 50 }}
+              onDragStart={() => { isDragging.current = true }}
+              onDragEnd={() => { setTimeout(() => { isDragging.current = false }, 100) }}
             >
-              <div className="flex-1 min-w-0">
+              {/* Drag handle icon */}
+              <div className="shrink-0 text-faint">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="9" cy="6" r="1.5" />
+                  <circle cx="15" cy="6" r="1.5" />
+                  <circle cx="9" cy="12" r="1.5" />
+                  <circle cx="15" cy="12" r="1.5" />
+                  <circle cx="9" cy="18" r="1.5" />
+                  <circle cx="15" cy="18" r="1.5" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0" onClick={() => handleCardClick(ei)}>
                 <div className="flex items-center gap-2">
                   <span className="text-[16px] font-semibold text-bright truncate">
                     {ex.name}
@@ -159,7 +230,7 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
               </div>
               {/* Delete button */}
               {pendingDeleteIndex === ei ? (
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleDeleteExercise(ei)}
                     className="bg-danger border-none rounded text-white px-2 py-1 text-[14px] font-semibold cursor-pointer min-h-[44px]"
@@ -190,10 +261,10 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
                   </svg>
                 </button>
               )}
-            </div>
+            </Reorder.Item>
           )
         })}
-      </div>
+      </Reorder.Group>
 
       {/* Add exercise button */}
       <button

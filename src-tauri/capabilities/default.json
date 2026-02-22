@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/mobile-schema.json",
   "identifier": "default",
   "description": "enables the default permissions",
-  "platforms": ["iOS"],
+  "platforms": ["iOS", "macOS"],
   "windows": ["main"],
   "webviews": ["main"],
   "permissions": [
