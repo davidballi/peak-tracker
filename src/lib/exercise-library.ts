@@ -1,0 +1,461 @@
+import type { ExerciseCategory } from '../types/program'
+
+export interface LibraryExercise {
+  key: string           // e.g. 'bench_press' -- matches exerciseKey for history
+  name: string          // 'Bench Press'
+  category: ExerciseCategory  // 'tech' | 'absolute' | 'ss' | 'acc'
+  defaultSets: number
+  defaultReps: number
+  defaultWeight: number
+  waveEligible: boolean // true for main compounds
+  muscles: string[]     // 'chest', 'back', 'shoulders', 'legs', 'arms', 'core'
+}
+
+/**
+ * Canonical exercise library (~40 exercises).
+ *
+ * Keys match existing template exercise IDs where possible so that
+ * workout history cross-references correctly. New exercises use the
+ * same key format: name.toLowerCase().replace(/[^a-z0-9]/g, '_').
+ */
+export const EXERCISE_LIBRARY: LibraryExercise[] = [
+  // ── Main Compounds (waveEligible, category: 'absolute') ──────────────
+  {
+    key: 'squat',
+    name: 'Back Squat',
+    category: 'absolute',
+    defaultSets: 4,
+    defaultReps: 5,
+    defaultWeight: 225,
+    waveEligible: true,
+    muscles: ['legs'],
+  },
+  {
+    key: 'bench',
+    name: 'Bench Press',
+    category: 'absolute',
+    defaultSets: 4,
+    defaultReps: 5,
+    defaultWeight: 185,
+    waveEligible: true,
+    muscles: ['chest', 'shoulders', 'arms'],
+  },
+  {
+    key: 'deadlift',
+    name: 'Deadlift',
+    category: 'absolute',
+    defaultSets: 4,
+    defaultReps: 5,
+    defaultWeight: 315,
+    waveEligible: true,
+    muscles: ['back', 'legs'],
+  },
+  {
+    key: 'ohp',
+    name: 'Overhead Press',
+    category: 'absolute',
+    defaultSets: 4,
+    defaultReps: 5,
+    defaultWeight: 135,
+    waveEligible: true,
+    muscles: ['shoulders', 'arms'],
+  },
+  {
+    key: 'front_squat',
+    name: 'Front Squat',
+    category: 'absolute',
+    defaultSets: 3,
+    defaultReps: 6,
+    defaultWeight: 185,
+    waveEligible: true,
+    muscles: ['legs', 'core'],
+  },
+  {
+    key: 'barbell_row',
+    name: 'Barbell Row',
+    category: 'absolute',
+    defaultSets: 4,
+    defaultReps: 6,
+    defaultWeight: 185,
+    waveEligible: true,
+    muscles: ['back', 'arms'],
+  },
+
+  // ── Tech / Coordination (category: 'tech') ──────────────────────────
+  {
+    key: 'db_snatch',
+    name: 'DB Snatch',
+    category: 'tech',
+    defaultSets: 3,
+    defaultReps: 3,
+    defaultWeight: 55,
+    waveEligible: false,
+    muscles: ['shoulders', 'legs'],
+  },
+  {
+    key: 'hang_clean',
+    name: 'Hang Power Clean',
+    category: 'tech',
+    defaultSets: 4,
+    defaultReps: 3,
+    defaultWeight: 135,
+    waveEligible: false,
+    muscles: ['legs', 'back', 'shoulders'],
+  },
+  {
+    key: 'push_press',
+    name: 'Push Press',
+    category: 'tech',
+    defaultSets: 3,
+    defaultReps: 3,
+    defaultWeight: 145,
+    waveEligible: false,
+    muscles: ['shoulders', 'legs', 'arms'],
+  },
+  {
+    key: 'box_jump',
+    name: 'Box Jump',
+    category: 'tech',
+    defaultSets: 3,
+    defaultReps: 5,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'kettlebell_swing',
+    name: 'Kettlebell Swing',
+    category: 'tech',
+    defaultSets: 3,
+    defaultReps: 15,
+    defaultWeight: 53,
+    waveEligible: false,
+    muscles: ['legs', 'back', 'core'],
+  },
+
+  // ── Chest Accessories (category: 'acc') ──────────────────────────────
+  {
+    key: 'incline_db',
+    name: 'Incline DB Press',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 65,
+    waveEligible: false,
+    muscles: ['chest', 'shoulders', 'arms'],
+  },
+  {
+    key: 'dips',
+    name: 'Dips',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['chest', 'arms'],
+  },
+  {
+    key: 'chest_fly',
+    name: 'Chest Fly',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 50,
+    waveEligible: false,
+    muscles: ['chest'],
+  },
+  {
+    key: 'push_up',
+    name: 'Push-Up',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 15,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['chest', 'arms', 'shoulders'],
+  },
+
+  // ── Back Accessories (category: 'acc') ───────────────────────────────
+  {
+    key: 'lat_pulldown',
+    name: 'Lat Pulldown',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 130,
+    waveEligible: false,
+    muscles: ['back', 'arms'],
+  },
+  {
+    key: 'seated_row',
+    name: 'Seated Cable Row',
+    category: 'acc',
+    defaultSets: 4,
+    defaultReps: 10,
+    defaultWeight: 140,
+    waveEligible: false,
+    muscles: ['back', 'arms'],
+  },
+  {
+    key: 'db_row',
+    name: 'DB Row',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 60,
+    waveEligible: false,
+    muscles: ['back', 'arms'],
+  },
+  {
+    key: 'face_pull',
+    name: 'Face Pull',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 15,
+    defaultWeight: 30,
+    waveEligible: false,
+    muscles: ['back', 'shoulders'],
+  },
+  {
+    key: 'chin_up',
+    name: 'Chin-Up',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 8,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['back', 'arms'],
+  },
+  {
+    key: 'pull_up',
+    name: 'Pull-Up',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 8,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['back', 'arms'],
+  },
+
+  // ── Shoulder Accessories (category: 'acc') ───────────────────────────
+  {
+    key: 'lat_raise',
+    name: 'Lateral Raise',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 20,
+    waveEligible: false,
+    muscles: ['shoulders'],
+  },
+  {
+    key: 'rear_delt_fly',
+    name: 'Rear Delt Fly',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 15,
+    defaultWeight: 15,
+    waveEligible: false,
+    muscles: ['shoulders', 'back'],
+  },
+
+  // ── Leg Accessories (category: 'acc') ────────────────────────────────
+  {
+    key: 'rdl',
+    name: 'Romanian Deadlift',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 8,
+    defaultWeight: 225,
+    waveEligible: false,
+    muscles: ['legs', 'back'],
+  },
+  {
+    key: 'leg_press',
+    name: 'Leg Press',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 270,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'leg_ext',
+    name: 'Leg Extension',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 155,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'leg_curl',
+    name: 'Leg Curl',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 110,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'bulgarian_split_squat',
+    name: 'Bulgarian Split Squat',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 40,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'calf_raise',
+    name: 'Calf Raise',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 15,
+    defaultWeight: 185,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'hip_thrust',
+    name: 'Hip Thrust',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 185,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'walking_lunge',
+    name: 'Walking Lunge',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 40,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+
+  // ── Arm Accessories (category: 'acc') ────────────────────────────────
+  {
+    key: 'bb_curl',
+    name: 'Barbell Curl',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 80,
+    waveEligible: false,
+    muscles: ['arms'],
+  },
+  {
+    key: 'hammer_curl',
+    name: 'Hammer Curl',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 30,
+    waveEligible: false,
+    muscles: ['arms'],
+  },
+  {
+    key: 'tricep_pushdown',
+    name: 'Tricep Pushdown',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 60,
+    waveEligible: false,
+    muscles: ['arms'],
+  },
+  {
+    key: 'overhead_tricep_extension',
+    name: 'Overhead Tricep Extension',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 50,
+    waveEligible: false,
+    muscles: ['arms'],
+  },
+  {
+    key: 'skullcrusher',
+    name: 'Skullcrusher',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 65,
+    waveEligible: false,
+    muscles: ['arms'],
+  },
+
+  // ── Core (category: 'ss') ────────────────────────────────────────────
+  {
+    key: 'hang_leg_raise',
+    name: 'Hanging Leg Raise',
+    category: 'ss',
+    defaultSets: 4,
+    defaultReps: 10,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['core'],
+  },
+  {
+    key: 'ab_wheel',
+    name: 'Ab Wheel Rollout',
+    category: 'ss',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['core'],
+  },
+  {
+    key: 'plank',
+    name: 'Plank',
+    category: 'ss',
+    defaultSets: 3,
+    defaultReps: 1,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['core'],
+  },
+  {
+    key: 'cable_crunch',
+    name: 'Cable Crunch',
+    category: 'ss',
+    defaultSets: 3,
+    defaultReps: 15,
+    defaultWeight: 70,
+    waveEligible: false,
+    muscles: ['core'],
+  },
+
+  // ── Functional (category: 'acc') ─────────────────────────────────────
+  {
+    key: 'farmer_carry',
+    name: "Farmer's Carry",
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 1,
+    defaultWeight: 70,
+    waveEligible: false,
+    muscles: ['core', 'legs', 'arms'],
+  },
+]
+
+// ── Helper functions ─────────────────────────────────────────────────────
+
+/** Return all exercises that target a given muscle group. */
+export function getExercisesByMuscle(muscle: string): LibraryExercise[] {
+  return EXERCISE_LIBRARY.filter((ex) => ex.muscles.includes(muscle))
+}
+
+/** Return all compound exercises eligible for wave periodization. */
+export function getCompounds(): LibraryExercise[] {
+  return EXERCISE_LIBRARY.filter((ex) => ex.waveEligible)
+}
