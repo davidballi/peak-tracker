@@ -21,5 +21,8 @@ src-tauri/target/
 # Playwright MCP
 .playwright-mcp/
 
+# Test coverage
+coverage/
+
 # Database
 *.db
