@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../../hooks/useSettings'
 import { ConfirmModal } from '../ui/ConfirmModal'
 import { getDb } from '../../lib/db'
-import type { UnitSystem, Theme, TmRule, SettingsKey } from '../../store/settingsStore'
+import type { UnitSystem, Theme, TmRule } from '../../store/settingsStore'
 
 interface SettingsPageProps {
   onClose: () => void
