@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getDb } from '../../lib/db'
-import { estimatedOneRepMax } from '../../lib/calc'
+import { estimatedOneRepMax, bwMultiple } from '../../lib/calc'
 import { MAIN_LIFTS } from '../../lib/constants'
 import { useAppStore } from '../../store/appStore'
+import { useSettings } from '../../hooks/useSettings'
 import { importWorkoutHistory } from '../../lib/import-history'
 
 interface DashboardViewProps {
@@ -25,6 +26,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
   const [importCount, setImportCount] = useState(0)
   const [importError, setImportError] = useState('')
   const setCurrentView = useAppStore((s) => s.setCurrentView)
+  const { settings } = useSettings()
 
   const loadDashboard = useCallback(async () => {
     const db = await getDb()
@@ -174,15 +176,25 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
         <div className="mb-5">
           <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">PERSONAL RECORDS (Est 1RM)</div>
           <div className="space-y-1.5">
-            {liftPrs.map((pr) => (
-              <div key={pr.name} className="flex justify-between items-center p-2.5 bg-card border border-border-elevated rounded-lg shadow-card">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ background: pr.color }} />
-                  <span className="text-[18px] text-bright">{pr.name}</span>
+            {liftPrs.map((pr) => {
+              const bwx = bwMultiple(pr.bestE1rm, settings.bodyWeight)
+              return (
+                <div key={pr.name} className="flex justify-between items-center p-2.5 bg-card border border-border-elevated rounded-lg shadow-card">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ background: pr.color }} />
+                    <span className="text-[18px] text-bright">{pr.name}</span>
+                  </div>
+                  <span className="text-[19px] font-bold font-mono text-accent">
+                    {pr.bestE1rm} lb
+                    {bwx !== null && (
+                      <span className="text-[14px] font-normal text-muted ml-1.5">
+                        ({bwx.toFixed(1)}x BW)
+                      </span>
+                    )}
+                  </span>
                 </div>
-                <span className="text-[19px] font-bold font-mono text-accent">{pr.bestE1rm} lb</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

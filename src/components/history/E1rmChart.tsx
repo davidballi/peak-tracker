@@ -1,5 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import type { E1rmDataPoint } from '../../hooks/useHistory'
+import { useSettingsStore, parseSettings } from '../../store/settingsStore'
+import { bwMultiple } from '../../lib/calc'
 
 interface E1rmChartProps {
   data: E1rmDataPoint[]
@@ -7,6 +9,24 @@ interface E1rmChartProps {
 }
 
 export function E1rmChart({ data, color = '#f5a623' }: E1rmChartProps) {
+  const raw = useSettingsStore((s) => s.raw)
+  const bodyWeight = parseSettings(raw).bodyWeight
+
+  function CustomTooltip({ active, payload, label }: any) {
+    if (!active || !payload?.length) return null
+    const e1rm = payload[0]?.value
+    const bwx = bodyWeight > 0 && e1rm ? bwMultiple(e1rm, bodyWeight) : null
+    return (
+      <div className="bg-card border border-border rounded-md px-3 py-2">
+        <div className="text-[11px] text-muted">{label}</div>
+        <div className="text-[13px] text-accent font-mono">{e1rm} lb</div>
+        {bwx !== null && (
+          <div className="text-[11px] text-dim">{bwx.toFixed(1)}x BW</div>
+        )}
+      </div>
+    )
+  }
+
   if (data.length === 0) {
     return (
       <div className="text-center py-6 text-faint text-xs">
@@ -23,11 +43,7 @@ export function E1rmChart({ data, color = '#f5a623' }: E1rmChartProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="#21262d" />
           <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#636e72' }} />
           <YAxis tick={{ fontSize: 9, fill: '#636e72' }} domain={['dataMin - 10', 'dataMax + 10']} />
-          <Tooltip
-            contentStyle={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 6, fontSize: 11 }}
-            labelStyle={{ color: '#8b949e' }}
-            itemStyle={{ color }}
-          />
+          <Tooltip content={<CustomTooltip />} />
           <Line type="monotone" dataKey="e1rm" stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} name="e1RM" />
           <Line
             type="monotone"
