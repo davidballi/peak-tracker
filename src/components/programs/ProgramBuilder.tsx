@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { v4 as uuid } from 'uuid'
-import { getDb } from '../../lib/db'
+import { getDb, withWriteLock } from '../../lib/db'
 import { insertDefaultWaveConfig } from '../../lib/wave-defaults'
 import { CATEGORY_CONFIG } from '../../lib/constants'
 import { ExerciseEditor, type ExerciseFormData } from './ExerciseEditor'
@@ -102,11 +102,13 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
 
   async function handleDeleteDay(dayId: string) {
     const db = await getDb()
-    await db.execute(`DELETE FROM days WHERE id = ?`, [dayId])
     const remaining = days.filter((d) => d.id !== dayId)
-    for (let i = 0; i < remaining.length; i++) {
-      await db.execute(`UPDATE days SET day_index = ? WHERE id = ?`, [i, remaining[i].id])
-    }
+    await withWriteLock(async () => {
+      await db.execute(`DELETE FROM days WHERE id = ?`, [dayId])
+      for (let i = 0; i < remaining.length; i++) {
+        await db.execute(`UPDATE days SET day_index = ? WHERE id = ?`, [i, remaining[i].id])
+      }
+    })
     if (selectedDay >= remaining.length) setSelectedDay(Math.max(0, remaining.length - 1))
     await loadProgram()
   }
@@ -114,8 +116,8 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
   async function handleSaveDayEdit(dayId: string) {
     const db = await getDb()
     await db.execute(`UPDATE days SET subtitle = ?, focus = ? WHERE id = ?`, [
-      dayEditValue.subtitle,
-      dayEditValue.focus,
+      dayEditValue.subtitle.trim().slice(0, 100),
+      dayEditValue.focus.trim().slice(0, 200),
       dayId,
     ])
     setEditingDay(null)
@@ -183,11 +185,13 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
 
   async function handleDeleteExercise(exerciseId: string, dayId: string) {
     const db = await getDb()
-    await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
     const remaining = (exercises.get(dayId) ?? []).filter((e) => e.id !== exerciseId)
-    for (let i = 0; i < remaining.length; i++) {
-      await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [i, remaining[i].id])
-    }
+    await withWriteLock(async () => {
+      await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
+      for (let i = 0; i < remaining.length; i++) {
+        await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [i, remaining[i].id])
+      }
+    })
     await loadProgram()
   }
 
@@ -200,8 +204,10 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
 
     const db = await getDb()
     const other = dayExercises[newIdx]
-    await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [newIdx, exerciseId])
-    await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [idx, other.id])
+    await withWriteLock(async () => {
+      await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [newIdx, exerciseId])
+      await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [idx, other.id])
+    })
     await loadProgram()
   }
 

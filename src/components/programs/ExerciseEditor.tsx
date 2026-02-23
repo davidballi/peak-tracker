@@ -35,8 +35,13 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
   const [data, setData] = useState<ExerciseFormData>(initial ?? DEFAULT_DATA)
 
   function handleSubmit() {
-    if (!data.name.trim()) return
-    onSave(data)
+    const trimmedName = data.name.trim().slice(0, 100)
+    if (!trimmedName) return
+    onSave({
+      ...data,
+      name: trimmedName,
+      note: data.note.trim().slice(0, 500),
+    })
     onClose()
   }
 

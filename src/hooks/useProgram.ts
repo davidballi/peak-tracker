@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { getDb } from '../lib/db'
+import { getDb, withWriteLock } from '../lib/db'
 import type { DayWithExercises, ExerciseWithWave, WaveConfig, WaveWarmup, WaveWeek, WaveWeekSet } from '../types/program'
 
 interface ProgramData {
@@ -161,15 +161,16 @@ export function useProgram(programId: string) {
 
   const deleteExercise = useCallback(async (exerciseId: string, dayId: string) => {
     const db = await getDb()
-    await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
-    // Reindex remaining exercises in this day
-    const remaining = await db.select<DbRow[]>(
-      `SELECT id FROM exercises WHERE day_id = ? ORDER BY exercise_index`,
-      [dayId],
-    )
-    for (let i = 0; i < remaining.length; i++) {
-      await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [i, remaining[i].id as string])
-    }
+    await withWriteLock(async () => {
+      await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
+      const remaining = await db.select<DbRow[]>(
+        `SELECT id FROM exercises WHERE day_id = ? ORDER BY exercise_index`,
+        [dayId],
+      )
+      for (let i = 0; i < remaining.length; i++) {
+        await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [i, remaining[i].id as string])
+      }
+    })
     await load()
   }, [load])
 

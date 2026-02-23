@@ -31,6 +31,7 @@ export function useWorkoutLog(
   const [setLogs, setSetLogs] = useState<Record<string, SetLogState>>({})
   const setLogsRef = useRef(setLogs)
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+  const pendingWrites = useRef<Record<string, () => Promise<void>>>({})
 
   // Create or find the workout log for this day/block/week combo
   useEffect(() => {
@@ -84,8 +85,21 @@ export function useWorkoutLog(
     }
     initLog()
 
+    // Flush all pending debounced writes immediately (iOS app backgrounding)
+    function flushPendingWrites() {
+      for (const [key, timer] of Object.entries(debounceTimers.current)) {
+        clearTimeout(timer)
+        delete debounceTimers.current[key]
+      }
+      for (const [key, writeFn] of Object.entries(pendingWrites.current)) {
+        writeFn()
+        delete pendingWrites.current[key]
+      }
+    }
+    window.addEventListener('pagehide', flushPendingWrites)
+
     return () => {
-      // Clear all debounce timers on unmount
+      window.removeEventListener('pagehide', flushPendingWrites)
       Object.values(debounceTimers.current).forEach(clearTimeout)
     }
   }, [programId, dayId, blockNum, weekIndex])
@@ -136,18 +150,17 @@ export function useWorkoutLog(
         clearTimeout(debounceTimers.current[timerKey])
       }
 
-      debounceTimers.current[timerKey] = setTimeout(async () => {
+      const doWrite = async () => {
+        delete pendingWrites.current[timerKey]
         const db = await getDb()
         const current = setLogsRef.current[key]
 
         if (current) {
-          // Update existing
           const sql = field === 'weight'
             ? `UPDATE set_logs SET weight = ? WHERE id = ?`
             : `UPDATE set_logs SET reps = ? WHERE id = ?`
           await db.execute(sql, [numVal, current.id])
         } else {
-          // Insert new
           const newId = uuid()
           const w = field === 'weight' ? numVal : null
           const r = field === 'reps' ? (numVal !== null ? Math.round(numVal) : null) : null
@@ -155,7 +168,6 @@ export function useWorkoutLog(
             `INSERT OR REPLACE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, 0)`,
             [newId, workoutLogId, exerciseId, setIndex, w, r],
           )
-          // Update the ID in state
           setSetLogs((prev) => {
             const entry = prev[key]
             if (entry && entry.id !== newId) {
@@ -166,7 +178,10 @@ export function useWorkoutLog(
             return prev
           })
         }
-      }, 300)
+      }
+
+      pendingWrites.current[timerKey] = doWrite
+      debounceTimers.current[timerKey] = setTimeout(doWrite, 300)
     },
     [workoutLogId],
   )
