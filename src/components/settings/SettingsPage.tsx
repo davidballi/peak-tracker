@@ -390,11 +390,8 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
         {/* ── ABOUT ─────────────────────────────────────────── */}
         <SectionHeader title="About" />
         <SectionCard>
-          <SettingRow label="Version">
+          <SettingRow label="Version" last>
             <span className="text-[16px] text-muted font-mono">1.0.0</span>
-          </SettingRow>
-          <SettingRow label="Send Feedback" last>
-            <svg className="w-4 h-4 text-dim" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </SettingRow>
         </SectionCard>
 
