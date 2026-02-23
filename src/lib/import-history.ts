@@ -2,17 +2,17 @@ import { v4 as uuid } from 'uuid'
 import { getDb, withWriteLock } from './db'
 import workoutData from '../../public/workout-history.json'
 
-interface ImportSet {
+export interface ImportSet {
   weight: number
   reps: number
 }
 
-interface ImportExercise {
+export interface ImportExercise {
   name: string
   sets: ImportSet[]
 }
 
-interface ImportWorkout {
+export interface ImportWorkout {
   block: number
   week: number
   day: number
@@ -24,7 +24,7 @@ const rawWorkouts = workoutData as ImportWorkout[]
 /**
  * Deduplicate exercises within a single workout (merge sets for same-name exercises).
  */
-function dedupeExercises(exercises: ImportExercise[]): ImportExercise[] {
+export function dedupeExercises(exercises: ImportExercise[]): ImportExercise[] {
   const map = new Map<string, ImportExercise>()
   for (const ex of exercises) {
     const existing = map.get(ex.name)
@@ -40,7 +40,7 @@ function dedupeExercises(exercises: ImportExercise[]): ImportExercise[] {
 /**
  * Merge duplicate (block, week, day) sessions and deduplicate exercises within each.
  */
-function mergeWorkouts(data: ImportWorkout[]): ImportWorkout[] {
+export function mergeWorkouts(data: ImportWorkout[]): ImportWorkout[] {
   const map = new Map<string, ImportWorkout>()
   for (const w of data) {
     const key = `${w.block}_${w.week}_${w.day}`

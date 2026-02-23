@@ -4,6 +4,7 @@ import type { GeneratedProgram, GeneratedExercise } from '../../lib/program-gene
 import { CATEGORY_CONFIG } from '../../lib/constants'
 import { ExerciseEditor, type ExerciseFormData } from '../programs/ExerciseEditor'
 import type { ExerciseCategory } from '../../types/program'
+import { exerciseToFormData, formDataToExercise, exerciseSummary } from './review-step-utils'
 
 interface ReviewStepProps {
   program: GeneratedProgram
@@ -15,41 +16,6 @@ interface ReviewStepProps {
 type TaggedExercise = GeneratedExercise & { _uid: string }
 
 let _counter = 0
-
-function exerciseToFormData(ex: GeneratedExercise): ExerciseFormData {
-  return {
-    name: ex.name,
-    category: ex.category,
-    sets: ex.isWave ? 3 : ex.sets,
-    reps: ex.isWave ? 5 : ex.reps,
-    defaultWeight: ex.defaultWeight,
-    note: ex.note,
-    isWave: ex.isWave,
-    baseMax: ex.baseMax,
-  }
-}
-
-function formDataToExercise(formData: ExerciseFormData): GeneratedExercise {
-  return {
-    name: formData.name,
-    key: formData.name.toLowerCase().replace(/[^a-z0-9]/g, '_'),
-    category: formData.category,
-    sets: formData.isWave ? 0 : formData.sets,
-    reps: formData.isWave ? 0 : formData.reps,
-    defaultWeight: formData.isWave ? 0 : formData.defaultWeight,
-    note: formData.note,
-    isWave: formData.isWave,
-    baseMax: formData.baseMax,
-  }
-}
-
-function exerciseSummary(ex: GeneratedExercise): string {
-  if (ex.isWave) {
-    return `Wave \u00b7 TM: ${ex.baseMax}`
-  }
-  const weightStr = ex.defaultWeight > 0 ? ` @ ${ex.defaultWeight} lb` : ''
-  return `${ex.sets}\u00d7${ex.reps}${weightStr}`
-}
 
 export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
   const [activeDayIndex, setActiveDayIndex] = useState(0)
