@@ -11,6 +11,7 @@ import { useTrainingMaxes } from './hooks/useTrainingMaxes'
 import { BottomNav } from './components/layout/BottomNav'
 import { WorkoutView } from './components/workout/WorkoutView'
 import { SettingsPage } from './components/settings/SettingsPage'
+import { useSettings } from './hooks/useSettings'
 import { HistoryView } from './components/history/HistoryView'
 import { ProgramBuilder } from './components/programs/ProgramBuilder'
 import { ProgramBrowser } from './components/programs/ProgramBrowser'
@@ -193,6 +194,15 @@ function MainApp({ programId }: { programId: string }) {
   const setActiveProgramId = useAppStore((s) => s.setActiveProgramId)
   const { program, loading, reload, setCurrentDay, setCurrentWeek, deleteExercise } = useProgram(programId)
   const [showSettings, setShowSettings] = useState(false)
+  const { settings } = useSettings()
+
+  useEffect(() => {
+    if (settings.theme === 'oled') {
+      document.documentElement.classList.add('oled')
+    } else {
+      document.documentElement.classList.remove('oled')
+    }
+  }, [settings.theme])
   const [showBrowser, setShowBrowser] = useState(false)
   const [showNewBuilder, setShowNewBuilder] = useState(false)
 

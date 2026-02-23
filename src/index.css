@@ -25,3 +25,8 @@ input[type='number']::-webkit-outer-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
+
+/* OLED theme overrides — applies to Tailwind's bg-bg and bg-card via specificity */
+.oled .bg-bg { background-color: #000000 !important; }
+.oled .bg-card { background-color: #0a0a0a !important; }
+.oled body { background: #000000; }
