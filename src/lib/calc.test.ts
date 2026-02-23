@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { roundToNearest5, estimatedOneRepMax, validateWeight, validateReps, MAX_WEIGHT, MAX_REPS } from './calc'
+import { roundToNearest5, estimatedOneRepMax, validateWeight, validateReps, MAX_WEIGHT, MAX_REPS, convertWeight, roundToNearest, bwMultiple } from './calc'
 
 describe('roundToNearest5', () => {
   it('returns exact multiples unchanged', () => {
@@ -102,5 +102,55 @@ describe('validateReps', () => {
 
   it('returns null for negative', () => {
     expect(validateReps(-1)).toBe(null)
+  })
+})
+
+describe('convertWeight', () => {
+  it('converts lb to kg', () => {
+    expect(convertWeight(225, 'lb', 'kg')).toBeCloseTo(102.06, 1)
+  })
+
+  it('converts kg to lb', () => {
+    expect(convertWeight(100, 'kg', 'lb')).toBeCloseTo(220.46, 1)
+  })
+
+  it('returns same value when units match', () => {
+    expect(convertWeight(100, 'lb', 'lb')).toBe(100)
+  })
+
+  it('returns 0 for non-finite input', () => {
+    expect(convertWeight(NaN, 'lb', 'kg')).toBe(0)
+  })
+})
+
+describe('roundToNearest', () => {
+  it('rounds to 5 by default', () => {
+    expect(roundToNearest(132, 5)).toBe(130)
+  })
+
+  it('rounds to 2.5 for kg', () => {
+    expect(roundToNearest(51, 2.5)).toBe(50)
+  })
+
+  it('returns 0 for non-finite input', () => {
+    expect(roundToNearest(NaN, 5)).toBe(0)
+  })
+})
+
+describe('bwMultiple', () => {
+  it('returns ratio when both values are positive', () => {
+    expect(bwMultiple(370, 185)).toBeCloseTo(2.0)
+  })
+
+  it('returns null when bodyWeight is 0', () => {
+    expect(bwMultiple(370, 0)).toBe(null)
+  })
+
+  it('returns null when bodyWeight is not set (NaN)', () => {
+    expect(bwMultiple(370, NaN)).toBe(null)
+  })
+
+  it('returns null when e1rm is 0', () => {
+    expect(bwMultiple(0, 185)).toBe(null)
   })
 })

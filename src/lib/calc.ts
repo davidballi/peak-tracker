@@ -29,3 +29,28 @@ export function validateReps(value: number | null): number | null {
   if (!Number.isFinite(value) || value < 0) return null
   return Math.min(Math.round(value), MAX_REPS)
 }
+
+const LB_TO_KG = 0.453592
+const KG_TO_LB = 2.20462
+
+export type WeightUnit = 'lb' | 'kg'
+
+/** Convert a weight value between lb and kg. */
+export function convertWeight(value: number, from: WeightUnit, to: WeightUnit): number {
+  if (!Number.isFinite(value)) return 0
+  if (from === to) return value
+  return from === 'lb' ? value * LB_TO_KG : value * KG_TO_LB
+}
+
+/** Round to the nearest increment (5 for lb, 2.5 for kg). */
+export function roundToNearest(value: number, increment: number): number {
+  if (!Number.isFinite(value) || value < 0) return 0
+  return Math.round(value / increment) * increment
+}
+
+/** Calculate bodyweight multiple. Returns null if either value is invalid. */
+export function bwMultiple(e1rm: number, bodyWeight: number): number | null {
+  if (!Number.isFinite(e1rm) || !Number.isFinite(bodyWeight)) return null
+  if (e1rm <= 0 || bodyWeight <= 0) return null
+  return Math.round((e1rm / bodyWeight) * 100) / 100
+}
