@@ -10,7 +10,7 @@ import { useProgram } from './hooks/useProgram'
 import { useTrainingMaxes } from './hooks/useTrainingMaxes'
 import { BottomNav } from './components/layout/BottomNav'
 import { WorkoutView } from './components/workout/WorkoutView'
-import { SettingsPanel } from './components/settings/SettingsPanel'
+import { SettingsPage } from './components/settings/SettingsPage'
 import { HistoryView } from './components/history/HistoryView'
 import { ProgramBuilder } from './components/programs/ProgramBuilder'
 import { ProgramBrowser } from './components/programs/ProgramBrowser'
@@ -306,12 +306,15 @@ function MainApp({ programId }: { programId: string }) {
             currentWeek={program.currentWeek}
             currentDay={program.currentDay}
             days={program.days}
+            waveExercises={waveExercises}
+            getEffectiveMax={getEffectiveMax}
             onSelectDay={(i) => { setCurrentDay(i); setShowSettings(false) }}
-            onOpenSettings={() => setShowSettings(!showSettings)}
+            onOpenSettings={() => setShowSettings(true)}
+            onWeekChange={handleWeekChange}
+            onReload={handleAdvance}
             onAdvanceWeek={handleAdvanceWeek}
             onAdvanceBlock={handleAdvanceBlock}
             onDeleteExercise={deleteExercise}
-            settingsOpen={showSettings}
           />
         )
 
@@ -355,17 +358,8 @@ function MainApp({ programId }: { programId: string }) {
       </div>
       <BottomNav />
       <AnimatePresence>
-        {showSettings && program && (
-          <SettingsPanel
-            programId={programId}
-            blockNum={program.blockNum}
-            currentWeek={program.currentWeek}
-            waveExercises={waveExercises}
-            getEffectiveMax={getEffectiveMax}
-            onWeekChange={handleWeekChange}
-            onAdvance={handleAdvance}
-            onClose={() => setShowSettings(false)}
-          />
+        {showSettings && (
+          <SettingsPage onClose={() => setShowSettings(false)} />
         )}
       </AnimatePresence>
     </div>

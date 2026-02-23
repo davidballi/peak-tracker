@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import type { DayWithExercises } from '../../types/program'
+import type { DayWithExercises, ExerciseWithWave } from '../../types/program'
 import { useWorkoutLog } from '../../hooks/useWorkoutLog'
 import { useTrainingMaxes } from '../../hooks/useTrainingMaxes'
 import { useNotes } from '../../hooks/useNotes'
@@ -8,6 +8,7 @@ import { getDb } from '../../lib/db'
 import { DayTabs } from './DayTabs'
 import { ProgressBar } from './ProgressBar'
 import { ExerciseCard, getExerciseTotalSets } from './ExerciseCard'
+import { WorkoutControls } from './WorkoutControls'
 import { NoteModal } from './NoteModal'
 import { ConfirmModal } from '../ui/ConfirmModal'
 
@@ -17,12 +18,15 @@ interface WorkoutViewProps {
   currentWeek: number
   currentDay: number
   days: DayWithExercises[]
+  waveExercises: ExerciseWithWave[]
+  getEffectiveMax: (exerciseId: string) => number
   onSelectDay: (index: number) => void
   onOpenSettings: () => void
+  onWeekChange: (week: number) => void
+  onReload: () => void
   onAdvanceWeek: () => void
   onAdvanceBlock: () => void
   onDeleteExercise: (exerciseId: string, dayId: string) => Promise<void>
-  settingsOpen: boolean
 }
 
 export function WorkoutView({
@@ -31,12 +35,15 @@ export function WorkoutView({
   currentWeek,
   currentDay,
   days,
+  waveExercises,
+  getEffectiveMax: getEffectiveMaxProp,
   onSelectDay,
   onOpenSettings,
+  onWeekChange,
+  onReload,
   onAdvanceWeek,
   onAdvanceBlock,
   onDeleteExercise,
-  settingsOpen,
 }: WorkoutViewProps) {
   const day = days[currentDay]
   if (!day) return null
@@ -135,11 +142,7 @@ export function WorkoutView({
             </span>
             <button
               onClick={onOpenSettings}
-              className={`min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[17px] ${
-                settingsOpen
-                  ? 'bg-accent/[0.125] border-accent text-accent'
-                  : 'bg-transparent border-border-elevated text-muted'
-              }`}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center border rounded-md px-2 py-1 text-[17px] bg-transparent border-border-elevated text-muted hover:border-accent active:border-accent"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
             </button>
@@ -148,6 +151,17 @@ export function WorkoutView({
         <DayTabs days={days} currentDay={currentDay} onSelectDay={onSelectDay} />
         <ProgressBar percentage={percentage} />
       </div>
+
+      {/* Workout controls (week selector, training maxes, advance) */}
+      <WorkoutControls
+        programId={programId}
+        blockNum={blockNum}
+        currentWeek={currentWeek}
+        waveExercises={waveExercises}
+        getEffectiveMax={getEffectiveMaxProp}
+        onWeekChange={onWeekChange}
+        onAdvance={onReload}
+      />
 
       {/* Day header */}
       <div className="px-4 pt-4 pb-2">
