@@ -16,7 +16,7 @@ const TOTAL_STEPS = 4
 export function WorkoutBuilder({ onComplete, onCancel }: WorkoutBuilderProps) {
   const [step, setStep] = useState(1)
   const [goal, setGoal] = useState<Goal | null>(null)
-  const [dayCount, setDayCount] = useState<number | null>(null)
+  const [_dayCount, setDayCount] = useState<number | null>(null)
   const [program, setProgram] = useState<GeneratedProgram | null>(null)
   const [programName, setProgramName] = useState('')
   const [saving, setSaving] = useState(false)

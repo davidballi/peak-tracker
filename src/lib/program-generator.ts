@@ -39,7 +39,7 @@ function findExercise(key: string): LibraryExercise {
 
 function buildExercise(
   key: string,
-  goal: Goal,
+  _goal: Goal,
   overrides?: Partial<Pick<GeneratedExercise, 'sets' | 'reps' | 'defaultWeight' | 'isWave' | 'category' | 'note'>>,
 ): GeneratedExercise {
   const lib = findExercise(key)
