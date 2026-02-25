@@ -54,3 +54,26 @@ export function bwMultiple(e1rm: number, bodyWeight: number): number | null {
   if (e1rm <= 0 || bodyWeight <= 0) return null
   return Math.round((e1rm / bodyWeight) * 100) / 100
 }
+
+/** Calculate plates needed per side for a target weight. Greedy algorithm. */
+export function calculatePlates(
+  targetWeight: number,
+  barWeight: number,
+  availablePlates: number[],
+): number[] {
+  if (!Number.isFinite(targetWeight) || !Number.isFinite(barWeight)) return []
+  if (targetWeight <= barWeight) return []
+
+  let remaining = (targetWeight - barWeight) / 2
+  const sorted = [...availablePlates].sort((a, b) => b - a)
+  const result: number[] = []
+
+  for (const plate of sorted) {
+    while (remaining >= plate) {
+      result.push(plate)
+      remaining -= plate
+    }
+  }
+
+  return result
+}

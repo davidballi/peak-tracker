@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { roundToNearest5, estimatedOneRepMax, validateWeight, validateReps, MAX_WEIGHT, MAX_REPS, convertWeight, roundToNearest, bwMultiple } from './calc'
+import { roundToNearest5, estimatedOneRepMax, validateWeight, validateReps, MAX_WEIGHT, MAX_REPS, convertWeight, roundToNearest, bwMultiple, calculatePlates } from './calc'
 
 describe('roundToNearest5', () => {
   it('returns exact multiples unchanged', () => {
@@ -152,5 +152,51 @@ describe('bwMultiple', () => {
 
   it('returns null when e1rm is 0', () => {
     expect(bwMultiple(0, 185)).toBe(null)
+  })
+})
+
+describe('calculatePlates', () => {
+  const defaultPlates = [45, 35, 25, 10, 5, 2.5]
+
+  it('returns empty for weight equal to bar', () => {
+    expect(calculatePlates(45, 45, defaultPlates)).toEqual([])
+  })
+
+  it('returns empty for weight less than bar', () => {
+    expect(calculatePlates(30, 45, defaultPlates)).toEqual([])
+  })
+
+  it('calculates single plate pair', () => {
+    expect(calculatePlates(135, 45, defaultPlates)).toEqual([45])
+  })
+
+  it('calculates multiple plates per side', () => {
+    // 225 - 45 = 180 / 2 = 90 per side → greedy: 45 + 45
+    expect(calculatePlates(225, 45, defaultPlates)).toEqual([45, 45])
+  })
+
+  it('handles repeated plates', () => {
+    expect(calculatePlates(315, 45, defaultPlates)).toEqual([45, 45, 45])
+  })
+
+  it('handles small increments', () => {
+    expect(calculatePlates(50, 45, defaultPlates)).toEqual([2.5])
+  })
+
+  it('returns empty when remainder cant be loaded', () => {
+    expect(calculatePlates(48, 45, defaultPlates)).toEqual([])
+  })
+
+  it('works with limited plate selection', () => {
+    expect(calculatePlates(155, 45, [45, 10])).toEqual([45, 10])
+  })
+
+  it('returns empty for non-finite input', () => {
+    expect(calculatePlates(NaN, 45, defaultPlates)).toEqual([])
+    expect(calculatePlates(225, NaN, defaultPlates)).toEqual([])
+  })
+
+  it('returns empty for negative weight', () => {
+    expect(calculatePlates(-100, 45, defaultPlates)).toEqual([])
   })
 })
