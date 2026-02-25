@@ -11,6 +11,7 @@ import { DayTabs } from './DayTabs'
 import { ProgressBar } from './ProgressBar'
 import { ExerciseCard, getExerciseTotalSets } from './ExerciseCard'
 import { WorkoutControls } from './WorkoutControls'
+import { RestTimer } from './RestTimer'
 import { NoteModal } from './NoteModal'
 import { ConfirmModal } from '../ui/ConfirmModal'
 
@@ -291,6 +292,7 @@ export function WorkoutView({
         />
       )}
 
+      <RestTimer durationSeconds={settings.restTimerSeconds} />
     </>
   )
 }

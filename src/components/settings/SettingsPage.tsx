@@ -388,6 +388,23 @@ export function SettingsPage({ onClose, programId }: SettingsPageProps) {
               onChange={(v) => setSetting('haptics_enabled', String(v))}
             />
           </SettingRow>
+          <SettingRow label="Rest Timer">
+            <div className="flex gap-1.5">
+              {[60, 90, 120, 180].map((secs) => (
+                <button
+                  key={secs}
+                  onClick={() => setSetting('rest_timer_seconds', String(secs))}
+                  className={`px-2 py-1 rounded-md text-[14px] font-mono cursor-pointer border min-h-[36px] ${
+                    settings.restTimerSeconds === secs
+                      ? 'bg-accent/[0.15] border-accent text-accent'
+                      : 'bg-transparent border-border-elevated text-faint'
+                  }`}
+                >
+                  {secs >= 60 ? `${secs / 60}m` : `${secs}s`}
+                </button>
+              ))}
+            </div>
+          </SettingRow>
           <SettingRow label="Auto-advance Week" last>
             <Toggle
               value={settings.autoAdvanceWeek}
