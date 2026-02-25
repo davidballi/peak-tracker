@@ -22,6 +22,8 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null)
+  const [editingDayInfo, setEditingDayInfo] = useState(false)
+  const [dayEditValues, setDayEditValues] = useState({ name: '', subtitle: '', focus: '' })
   const isDragging = useRef(false)
 
   const activeDay = program.days[activeDayIndex]
@@ -112,6 +114,29 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
     setIsAdding(false)
   }
 
+  function startEditDayInfo() {
+    setDayEditValues({
+      name: activeDay.name,
+      subtitle: activeDay.subtitle || '',
+      focus: activeDay.focus || '',
+    })
+    setEditingDayInfo(true)
+  }
+
+  function handleSaveDayInfo() {
+    const newDays = program.days.map((day, di) => {
+      if (di !== activeDayIndex) return day
+      return {
+        ...day,
+        name: dayEditValues.name.trim() || day.name,
+        subtitle: dayEditValues.subtitle.trim(),
+        focus: dayEditValues.focus.trim(),
+      }
+    })
+    onUpdate({ ...program, days: newDays })
+    setEditingDayInfo(false)
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="text-[18px] font-bold text-bright">
@@ -123,7 +148,7 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
         {program.days.map((day, i) => (
           <button
             key={i}
-            onClick={() => { setActiveDayIndex(i); setPendingDeleteIndex(null) }}
+            onClick={() => { setActiveDayIndex(i); setPendingDeleteIndex(null); setEditingDayInfo(false) }}
             className={`flex-shrink-0 px-3 py-2 rounded-lg text-[15px] font-medium cursor-pointer transition-colors border whitespace-nowrap min-h-[44px] ${
               i === activeDayIndex
                 ? 'bg-accent text-bg border-accent'
@@ -135,11 +160,69 @@ export function ReviewStep({ program, onUpdate, onConfirm }: ReviewStepProps) {
         ))}
       </div>
 
-      {/* Day name + focus */}
-      <div>
-        <div className="text-[16px] font-semibold text-bright">{activeDay.name}</div>
-        <div className="text-[14px] text-dim">{activeDay.focus}</div>
-      </div>
+      {/* Day name + focus — tappable to edit */}
+      {editingDayInfo ? (
+        <div className="flex flex-col gap-2 bg-card border border-border-elevated rounded-lg p-3">
+          <input
+            type="text"
+            value={dayEditValues.name}
+            onChange={(e) => setDayEditValues((v) => ({ ...v, name: e.target.value }))}
+            placeholder="Day name"
+            className="bg-bg border border-border-elevated rounded text-bright p-1.5 text-[16px] min-h-[44px] w-full outline-none focus:border-border-focus"
+          />
+          <input
+            type="text"
+            value={dayEditValues.subtitle}
+            onChange={(e) => setDayEditValues((v) => ({ ...v, subtitle: e.target.value }))}
+            placeholder="Tab label"
+            className="bg-bg border border-border-elevated rounded text-bright p-1.5 text-[16px] min-h-[44px] w-full outline-none focus:border-border-focus"
+          />
+          <input
+            type="text"
+            value={dayEditValues.focus}
+            onChange={(e) => setDayEditValues((v) => ({ ...v, focus: e.target.value }))}
+            placeholder="Focus area"
+            className="bg-bg border border-border-elevated rounded text-bright p-1.5 text-[16px] min-h-[44px] w-full outline-none focus:border-border-focus"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleSaveDayInfo}
+              className="bg-success text-white font-semibold text-[15px] px-4 py-1.5 rounded border-none cursor-pointer min-h-[44px]"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setEditingDayInfo(false)}
+              className="text-muted border border-border rounded bg-transparent font-medium text-[15px] px-4 py-1.5 cursor-pointer min-h-[44px]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          onClick={startEditDayInfo}
+          className="flex items-center gap-2 cursor-pointer group"
+        >
+          <div>
+            <div className="text-[16px] font-semibold text-bright">{activeDay.name}</div>
+            {activeDay.focus && <div className="text-[14px] text-dim">{activeDay.focus}</div>}
+          </div>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-faint group-hover:text-accent group-active:text-accent transition-colors flex-shrink-0"
+          >
+            <path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+          </svg>
+        </div>
+      )}
 
       <div className="text-[13px] text-faint">Drag to reorder</div>
 
