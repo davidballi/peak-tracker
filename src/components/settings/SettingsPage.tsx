@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../../hooks/useSettings'
 import { ConfirmModal } from '../ui/ConfirmModal'
 import { getDb } from '../../lib/db'
+import { buildCsvString, buildJsonBackup, shareFile } from '../../lib/export'
 import type { UnitSystem, Theme, TmRule } from '../../store/settingsStore'
 
 interface SettingsPageProps {
   onClose: () => void
+  programId: string
 }
 
 // ── Reusable row components ──────────────────────────────────────────────────
@@ -101,9 +103,11 @@ function Toggle({
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export function SettingsPage({ onClose }: SettingsPageProps) {
+export function SettingsPage({ onClose, programId }: SettingsPageProps) {
   const { settings, setSetting } = useSettings()
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [exportingCsv, setExportingCsv] = useState(false)
+  const [exportingJson, setExportingJson] = useState(false)
   const [editingBodyWeight, setEditingBodyWeight] = useState(false)
   const [bwValue, setBwValue] = useState('')
   const [editingBarWeight, setEditingBarWeight] = useState(false)
@@ -136,6 +140,30 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
     await db.execute(`DELETE FROM user_settings`)
     setShowResetConfirm(false)
     window.location.reload()
+  }
+
+  async function handleExportCsv() {
+    setExportingCsv(true)
+    try {
+      const csv = await buildCsvString(programId)
+      const date = new Date().toISOString().split('T')[0]
+      await shareFile(csv, `forge-export-${date}.csv`, 'text/csv')
+    } catch {
+      // User cancelled share sheet
+    }
+    setExportingCsv(false)
+  }
+
+  async function handleExportJson() {
+    setExportingJson(true)
+    try {
+      const json = await buildJsonBackup(programId)
+      const date = new Date().toISOString().split('T')[0]
+      await shareFile(json, `forge-backup-${date}.json`, 'application/json')
+    } catch {
+      // User cancelled share sheet
+    }
+    setExportingJson(false)
   }
 
   const ALL_PLATES = [45, 35, 25, 10, 5, 2.5]
@@ -372,10 +400,22 @@ export function SettingsPage({ onClose }: SettingsPageProps) {
         <SectionHeader title="Data" />
         <SectionCard>
           <SettingRow label="Export History (CSV)">
-            <span className="text-dim text-[16px]">Coming soon</span>
+            <button
+              onClick={handleExportCsv}
+              disabled={exportingCsv}
+              className="bg-transparent border border-border-elevated rounded text-accent px-2.5 py-1.5 min-h-[44px] text-[16px] cursor-pointer disabled:opacity-50"
+            >
+              {exportingCsv ? 'Exporting...' : 'Export'}
+            </button>
           </SettingRow>
           <SettingRow label="Export History (JSON)">
-            <span className="text-dim text-[16px]">Coming soon</span>
+            <button
+              onClick={handleExportJson}
+              disabled={exportingJson}
+              className="bg-transparent border border-border-elevated rounded text-accent px-2.5 py-1.5 min-h-[44px] text-[16px] cursor-pointer disabled:opacity-50"
+            >
+              {exportingJson ? 'Exporting...' : 'Export'}
+            </button>
           </SettingRow>
           <div className="px-4 py-3 min-h-[48px]">
             <button

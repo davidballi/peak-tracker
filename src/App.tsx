@@ -369,7 +369,7 @@ function MainApp({ programId }: { programId: string }) {
       <BottomNav />
       <AnimatePresence>
         {showSettings && (
-          <SettingsPage onClose={() => setShowSettings(false)} />
+          <SettingsPage onClose={() => setShowSettings(false)} programId={programId} />
         )}
       </AnimatePresence>
     </div>
