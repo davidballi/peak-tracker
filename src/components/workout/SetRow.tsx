@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import type { ComputedSet } from '../../lib/wave'
 import type { SetLogState } from '../../hooks/useWorkoutLog'
+import { calculatePlates } from '../../lib/calc'
 
 interface SetRowProps {
   set: ComputedSet | { index: number; label: string; weight: number; reps: number; isWarmup: false; isBackoff: false }
   exerciseId: string
   categoryBadge: string
   logState?: SetLogState
+  barWeight: number
+  availablePlates: number[]
   onWeightChange: (exerciseId: string, setIndex: number, value: string) => void
   onRepsChange: (exerciseId: string, setIndex: number, value: string) => void
   onToggleComplete: (exerciseId: string, setIndex: number, defaultWeight?: number, defaultReps?: number) => void
@@ -18,6 +21,8 @@ export function SetRow({
   exerciseId,
   categoryBadge,
   logState,
+  barWeight,
+  availablePlates,
   onWeightChange,
   onRepsChange,
   onToggleComplete,
@@ -132,6 +137,20 @@ export function SetRow({
           </button>
         )}
       </div>
+      {displayWeight != null && displayWeight > barWeight && (() => {
+        const plates = calculatePlates(displayWeight, barWeight, availablePlates)
+        if (plates.length === 0) return null
+        return (
+          <div className="flex items-center gap-1 pl-[58px] pb-1">
+            {plates.map((plate, i) => (
+              <span key={i} className="px-1 py-0.5 bg-border/50 rounded text-[11px] text-faint font-mono">
+                {plate}
+              </span>
+            ))}
+            <span className="text-[10px] text-faint ml-0.5">per side</span>
+          </div>
+        )
+      })()}
     </div>
   )
 }

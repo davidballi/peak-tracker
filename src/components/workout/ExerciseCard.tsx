@@ -9,6 +9,8 @@ interface ExerciseCardProps {
   weekIndex: number
   currentMax: number
   getSetLog: (exerciseId: string, setIndex: number) => SetLogState | undefined
+  barWeight: number
+  availablePlates: number[]
   onWeightChange: (exerciseId: string, setIndex: number, value: string) => void
   onRepsChange: (exerciseId: string, setIndex: number, value: string) => void
   onToggleComplete: (exerciseId: string, setIndex: number) => void
@@ -23,6 +25,8 @@ export function ExerciseCard({
   weekIndex,
   currentMax,
   getSetLog,
+  barWeight,
+  availablePlates,
   onWeightChange,
   onRepsChange,
   onToggleComplete,
@@ -117,6 +121,8 @@ export function ExerciseCard({
             exerciseId={exercise.id}
             categoryBadge={cat.badge}
             logState={getSetLog(exercise.id, s.index)}
+            barWeight={barWeight}
+            availablePlates={availablePlates}
             onWeightChange={onWeightChange}
             onRepsChange={onRepsChange}
             onToggleComplete={onToggleComplete}

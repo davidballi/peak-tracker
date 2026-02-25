@@ -4,6 +4,7 @@ import type { DayWithExercises, ExerciseWithWave } from '../../types/program'
 import { useWorkoutLog } from '../../hooks/useWorkoutLog'
 import { useTrainingMaxes } from '../../hooks/useTrainingMaxes'
 import { useNotes } from '../../hooks/useNotes'
+import { useSettings } from '../../hooks/useSettings'
 import { getDb } from '../../lib/db'
 import { DayTabs } from './DayTabs'
 import { ProgressBar } from './ProgressBar'
@@ -45,6 +46,8 @@ export function WorkoutView({
   onAdvanceBlock,
   onDeleteExercise,
 }: WorkoutViewProps) {
+  const { settings } = useSettings()
+
   const day = days[currentDay]
   if (!day) return null
 
@@ -202,6 +205,8 @@ export function WorkoutView({
             weekIndex={currentWeek}
             currentMax={getEffectiveMax(ex.id)}
             getSetLog={getSetLog}
+            barWeight={settings.barWeight}
+            availablePlates={settings.availablePlates}
             onWeightChange={handleWeightChange}
             onRepsChange={handleRepsChange}
             onToggleComplete={toggleComplete}
