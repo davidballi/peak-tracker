@@ -42,7 +42,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
   const [selectedDay, setSelectedDay] = useState(0)
   const [editingExercise, setEditingExercise] = useState<{ dayId: string; exercise?: ExRow } | null>(null)
   const [editingDay, setEditingDay] = useState<string | null>(null)
-  const [dayEditValue, setDayEditValue] = useState({ subtitle: '', focus: '' })
+  const [dayEditValue, setDayEditValue] = useState({ name: '', subtitle: '', focus: '' })
   const [programName, setProgramName] = useState('')
   const [pendingDeleteDay, setPendingDeleteDay] = useState<{ id: string; name: string; logCount: number } | null>(null)
   const [pendingDeleteExercise, setPendingDeleteExercise] = useState<{ id: string; dayId: string; name: string; logCount: number } | null>(null)
@@ -115,7 +115,8 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
 
   async function handleSaveDayEdit(dayId: string) {
     const db = await getDb()
-    await db.execute(`UPDATE days SET subtitle = ?, focus = ? WHERE id = ?`, [
+    await db.execute(`UPDATE days SET name = ?, subtitle = ?, focus = ? WHERE id = ?`, [
+      dayEditValue.name.trim().slice(0, 100),
       dayEditValue.subtitle.trim().slice(0, 100),
       dayEditValue.focus.trim().slice(0, 200),
       dayId,
@@ -260,11 +261,17 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
           {editingDay === currentDay.id ? (
             <div className="space-y-2">
               <input
+                value={dayEditValue.name}
+                onChange={(e) => setDayEditValue({ ...dayEditValue, name: e.target.value })}
+                className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[18px]"
+                placeholder="Day name"
+                autoFocus
+              />
+              <input
                 value={dayEditValue.subtitle}
                 onChange={(e) => setDayEditValue({ ...dayEditValue, subtitle: e.target.value })}
                 className="w-full bg-bg border border-border-elevated rounded text-bright p-1.5 text-[18px]"
-                placeholder="Day title"
-                autoFocus
+                placeholder="Day title (shown in tabs)"
               />
               <input
                 value={dayEditValue.focus}
@@ -281,11 +288,14 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
             <div className="flex justify-between items-start">
               <div>
                 <div className="text-[19px] font-bold text-bright">{currentDay.subtitle || currentDay.name}</div>
+                {currentDay.subtitle && currentDay.name !== currentDay.subtitle && (
+                  <div className="text-[15px] text-faint mt-0.5">{currentDay.name}</div>
+                )}
                 {currentDay.focus && <div className="text-[16px] text-dim mt-0.5">{currentDay.focus}</div>}
               </div>
               <div className="flex gap-1">
                 <button
-                  onClick={() => { setEditingDay(currentDay.id); setDayEditValue({ subtitle: currentDay.subtitle, focus: currentDay.focus }) }}
+                  onClick={() => { setEditingDay(currentDay.id); setDayEditValue({ name: currentDay.name, subtitle: currentDay.subtitle, focus: currentDay.focus }) }}
                   className="text-[16px] text-muted bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer active:text-bright"
                 >
                   Edit

@@ -4,7 +4,6 @@ import { estimatedOneRepMax, bwMultiple } from '../../lib/calc'
 import { MAIN_LIFTS } from '../../lib/constants'
 import { useAppStore } from '../../store/appStore'
 import { useSettings } from '../../hooks/useSettings'
-import { importWorkoutHistory } from '../../lib/import-history'
 
 interface DashboardViewProps {
   programId: string
@@ -22,9 +21,6 @@ interface LiftPr {
 export function DashboardView({ programId, programName, blockNum, currentWeek }: DashboardViewProps) {
   const [liftPrs, setLiftPrs] = useState<LiftPr[]>([])
   const [totalSessions, setTotalSessions] = useState(0)
-  const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'done' | 'error'>('idle')
-  const [importCount, setImportCount] = useState(0)
-  const [importError, setImportError] = useState('')
   const setCurrentView = useAppStore((s) => s.setCurrentView)
   const { settings } = useSettings()
 
@@ -71,22 +67,6 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
     loadDashboard()
   }, [loadDashboard])
 
-  const handleImport = useCallback(async () => {
-    setImportStatus('importing')
-    setImportError('')
-    try {
-      const count = await importWorkoutHistory(programId)
-      setImportCount(count)
-      setImportStatus('done')
-      if (count > 0) {
-        await loadDashboard()
-      }
-    } catch (err) {
-      setImportStatus('error')
-      setImportError(err instanceof Error ? err.message : String(err))
-    }
-  }, [programId, loadDashboard])
-
   return (
     <div className="px-4 py-4">
       {/* Header */}
@@ -116,45 +96,6 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
           <div className="text-[16px] text-muted">Charts & trends</div>
         </button>
       </div>
-
-      {/* Import History */}
-      {importStatus !== 'done' && (
-        <div className="mb-5 p-3 bg-card border border-border-elevated rounded-lg">
-          <div className="text-[16px] text-dim font-semibold tracking-wider mb-2">IMPORT DATA</div>
-          {importStatus === 'idle' && (
-            <button
-              onClick={handleImport}
-              className="w-full py-3 min-h-[44px] bg-accent text-bg rounded-lg text-[17px] font-semibold border-none cursor-pointer active:opacity-80"
-            >
-              Import Workout History
-            </button>
-          )}
-          {importStatus === 'importing' && (
-            <div className="text-[17px] text-accent text-center py-3">Importing... this may take a moment</div>
-          )}
-          {importStatus === 'error' && (
-            <div>
-              <div className="text-[16px] text-danger mb-2">Import failed: {importError}</div>
-              <button
-                onClick={handleImport}
-                className="w-full py-3 min-h-[44px] bg-danger text-white rounded-lg text-[17px] font-semibold border-none cursor-pointer active:opacity-80"
-              >
-                Retry Import
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-      {importStatus === 'done' && importCount > 0 && (
-        <div className="mb-5 p-3 bg-card border border-success rounded-lg">
-          <div className="text-[17px] text-success text-center">Imported {importCount} workout sessions</div>
-        </div>
-      )}
-      {importStatus === 'done' && importCount === 0 && totalSessions === 0 && (
-        <div className="mb-5 p-3 bg-card border border-border-elevated rounded-lg">
-          <div className="text-[16px] text-muted text-center">No history data to import (already imported or no data found)</div>
-        </div>
-      )}
 
       {/* Stats */}
       <div className="mb-5">
