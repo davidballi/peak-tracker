@@ -1,5 +1,10 @@
 use tauri_plugin_sql::{Builder as SqlBuilder, Migration, MigrationKind};
 
+#[tauri::command]
+fn haptic_feedback(style: String) {
+    let _ = style;
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -24,6 +29,7 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_log::Builder::default().build())
+        .invoke_handler(tauri::generate_handler![haptic_feedback])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
