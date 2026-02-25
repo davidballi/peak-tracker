@@ -6,6 +6,7 @@ import { useTrainingMaxes } from '../../hooks/useTrainingMaxes'
 import { useNotes } from '../../hooks/useNotes'
 import { useSettings } from '../../hooks/useSettings'
 import { getDb } from '../../lib/db'
+import { hapticMedium } from '../../lib/haptics'
 import { DayTabs } from './DayTabs'
 import { ProgressBar } from './ProgressBar'
 import { ExerciseCard, getExerciseTotalSets } from './ExerciseCard'
@@ -238,7 +239,10 @@ export function WorkoutView({
           </button>
         ) : (
           <button
-            onClick={onAdvanceBlock}
+            onClick={() => {
+              hapticMedium()
+              onAdvanceBlock()
+            }}
             className="w-full py-3 border-none rounded-lg bg-accent text-bg text-[17px] font-semibold cursor-pointer"
           >
             Start New Block →

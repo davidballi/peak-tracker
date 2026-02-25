@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ComputedSet } from '../../lib/wave'
 import type { SetLogState } from '../../hooks/useWorkoutLog'
 import { calculatePlates } from '../../lib/calc'
+import { hapticLight } from '../../lib/haptics'
 
 interface SetRowProps {
   set: ComputedSet | { index: number; label: string; weight: number; reps: number; isWarmup: false; isBackoff: false }
@@ -66,7 +67,10 @@ export function SetRow({
       >
         {/* Checkbox */}
         <button
-          onClick={() => onToggleComplete(exerciseId, set.index, set.weight, set.reps)}
+          onClick={() => {
+            hapticLight()
+            onToggleComplete(exerciseId, set.index, set.weight, set.reps)
+          }}
           className={`min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer shrink-0`}
         >
           <span className={`w-7 h-7 rounded-[5px] border-[1.5px] flex items-center justify-center text-[19px] ${

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { v4 as uuid } from 'uuid'
 import { getDb } from '../lib/db'
 import { estimatedOneRepMax } from '../lib/calc'
+import { hapticMedium } from '../lib/haptics'
 import type { GoalType } from '../types/goal'
 
 export interface GoalWithProgress {
@@ -174,6 +175,7 @@ export function useGoals(programId: string) {
     }
 
     if (achieved.length > 0) {
+      hapticMedium()
       await loadGoals()
     }
 
