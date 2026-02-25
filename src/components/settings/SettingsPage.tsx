@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSettings } from '../../hooks/useSettings'
+import { useBodyWeight } from '../../hooks/useBodyWeight'
 import { ConfirmModal } from '../ui/ConfirmModal'
 import { getDb } from '../../lib/db'
 import { buildCsvString, buildJsonBackup, shareFile } from '../../lib/export'
@@ -105,11 +106,12 @@ function Toggle({
 
 export function SettingsPage({ onClose, programId }: SettingsPageProps) {
   const { settings, setSetting } = useSettings()
+  const { history: bwHistory, logWeight } = useBodyWeight()
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const [exportingCsv, setExportingCsv] = useState(false)
   const [exportingJson, setExportingJson] = useState(false)
-  const [editingBodyWeight, setEditingBodyWeight] = useState(false)
-  const [bwValue, setBwValue] = useState('')
+  const [showBwLog, setShowBwLog] = useState(false)
+  const [bwLogValue, setBwLogValue] = useState('')
   const [editingBarWeight, setEditingBarWeight] = useState(false)
   const [barValue, setBarValue] = useState('')
   const [editingIncrement, setEditingIncrement] = useState(false)
@@ -212,44 +214,15 @@ export function SettingsPage({ onClose, programId }: SettingsPageProps) {
             />
           </SettingRow>
           <SettingRow label="Body Weight" last>
-            {editingBodyWeight ? (
-              <div className="flex gap-1">
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  value={bwValue}
-                  onChange={(e) => setBwValue(e.target.value)}
-                  className="w-[70px] bg-bg border border-border-elevated rounded text-accent px-1.5 py-1.5 text-[16px] font-mono"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      setSetting('body_weight', String(parseInputAsLb(bwValue)))
-                      setEditingBodyWeight(false)
-                    }
-                    if (e.key === 'Escape') setEditingBodyWeight(false)
-                  }}
-                />
-                <button
-                  onClick={() => {
-                    setSetting('body_weight', String(parseInputAsLb(bwValue)))
-                    setEditingBodyWeight(false)
-                  }}
-                  className="bg-success border-none rounded text-white px-3 py-1.5 min-h-[44px] text-[15px] cursor-pointer"
-                >
-                  Done
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  setBwValue(settings.bodyWeight > 0 ? displayWeight(settings.bodyWeight) : '')
-                  setEditingBodyWeight(true)
-                }}
-                className="bg-transparent border border-border-elevated rounded text-accent px-2.5 py-1.5 min-h-[44px] text-[16px] cursor-pointer font-mono"
-              >
-                {settings.bodyWeight > 0 ? `${displayWeight(settings.bodyWeight)} ${unitLabel}` : 'Not set'}
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setBwLogValue(settings.bodyWeight > 0 ? displayWeight(settings.bodyWeight) : '')
+                setShowBwLog(true)
+              }}
+              className="bg-transparent border border-border-elevated rounded text-accent px-2.5 py-1.5 min-h-[44px] text-[16px] cursor-pointer font-mono"
+            >
+              {settings.bodyWeight > 0 ? `${displayWeight(settings.bodyWeight)} ${unitLabel}` : 'Not set'}
+            </button>
           </SettingRow>
         </SectionCard>
 
@@ -458,6 +431,62 @@ export function SettingsPage({ onClose, programId }: SettingsPageProps) {
         </div>
 
       </div>
+
+      <AnimatePresence>
+        {showBwLog && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 z-[300] flex items-end justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowBwLog(false)}
+          >
+            <motion.div
+              className="bg-card w-full max-w-md rounded-t-2xl p-4 pb-[calc(16px+env(safe-area-inset-bottom))]"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-[17px] font-bold text-bright mb-3">Log Body Weight</div>
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={bwLogValue}
+                  onChange={(e) => setBwLogValue(e.target.value)}
+                  placeholder={unitLabel}
+                  className="flex-1 bg-bg border border-border-elevated rounded-lg text-accent px-3 py-2.5 text-[18px] font-mono"
+                  autoFocus
+                />
+                <button
+                  onClick={async () => {
+                    const num = parseFloat(bwLogValue)
+                    if (!Number.isFinite(num) || num <= 0) return
+                    await logWeight(num, settings.unitSystem)
+                    setShowBwLog(false)
+                  }}
+                  className="bg-accent border-none rounded-lg text-bg px-4 py-2.5 text-[16px] font-semibold cursor-pointer min-h-[44px]"
+                >
+                  Log
+                </button>
+              </div>
+              {bwHistory.slice(0, 5).length > 0 && (
+                <div>
+                  <div className="text-[12px] text-muted uppercase tracking-wide mb-2">Recent</div>
+                  {bwHistory.slice(0, 5).map((entry) => (
+                    <div key={entry.id} className="flex justify-between py-1.5 text-[15px]">
+                      <span className="text-dim">{entry.loggedAt}</span>
+                      <span className="text-text font-mono">{entry.weight} {entry.unit}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showResetConfirm && (
