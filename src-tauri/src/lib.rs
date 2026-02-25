@@ -20,6 +20,12 @@ pub fn run() {
             sql: include_str!("../migrations/002_security_hardening.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "body_weight_log",
+            sql: include_str!("../migrations/003_body_weight_log.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
