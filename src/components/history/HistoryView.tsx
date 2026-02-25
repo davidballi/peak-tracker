@@ -1,12 +1,14 @@
 import { useEffect, useState, useMemo } from 'react'
 import { getDb } from '../../lib/db'
 import { useHistory } from '../../hooks/useHistory'
+import { useBodyWeight } from '../../hooks/useBodyWeight'
 import { MAIN_LIFTS } from '../../lib/constants'
 import { StatCards } from './StatCards'
 import { E1rmChart } from './E1rmChart'
 import { VolumeChart } from './VolumeChart'
 import { AllLiftsOverlay } from './AllLiftsOverlay'
 import { SetLogList } from './SetLogList'
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts'
 
 interface HistoryViewProps {
   programId: string
@@ -21,6 +23,8 @@ interface ExRow {
 export function HistoryView({ programId }: HistoryViewProps) {
   const [exercises, setExercises] = useState<ExRow[]>([])
   const [showOverlay, setShowOverlay] = useState(false)
+  const [showBodyWeight, setShowBodyWeight] = useState(false)
+  const { chartData: bwChartData, bwStats, loading: bwLoading } = useBodyWeight()
   const {
     selectedExerciseId,
     e1rmData,
@@ -89,14 +93,15 @@ export function HistoryView({ programId }: HistoryViewProps) {
                 if (ml.exerciseId) {
                   loadExerciseHistory(ml.exerciseId)
                   setShowOverlay(false)
+                  setShowBodyWeight(false)
                 }
               }}
               className={`px-2.5 py-1 rounded-md text-[17px] border-none cursor-pointer transition-colors ${
-                selectedExerciseId === ml.exerciseId
+                !showBodyWeight && selectedExerciseId === ml.exerciseId
                   ? 'text-bg font-bold'
                   : 'bg-border text-muted hover:text-bright active:text-bright'
               }`}
-              style={selectedExerciseId === ml.exerciseId ? { background: ml.color } : undefined}
+              style={!showBodyWeight && selectedExerciseId === ml.exerciseId ? { background: ml.color } : undefined}
             >
               {ml.name}
             </button>
@@ -104,6 +109,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
           <button
             onClick={() => {
               setShowOverlay(true)
+              setShowBodyWeight(false)
               loadAllLiftsOverlay()
             }}
             className={`px-2.5 py-1 rounded-md text-[17px] border-none cursor-pointer transition-colors ${
@@ -111,6 +117,17 @@ export function HistoryView({ programId }: HistoryViewProps) {
             }`}
           >
             All Lifts
+          </button>
+          <button
+            onClick={() => {
+              setShowOverlay(false)
+              setShowBodyWeight(true)
+            }}
+            className={`px-2.5 py-1 rounded-md text-[17px] border-none cursor-pointer transition-colors ${
+              showBodyWeight ? 'bg-accent text-bg font-bold' : 'bg-border text-muted hover:text-bright active:text-bright'
+            }`}
+          >
+            BW
           </button>
         </div>
       )}
@@ -121,6 +138,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
           value={selectedExerciseId ?? ''}
           onChange={(e) => {
             setShowOverlay(false)
+            setShowBodyWeight(false)
             loadExerciseHistory(e.target.value)
           }}
           className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[18px]"
@@ -133,9 +151,53 @@ export function HistoryView({ programId }: HistoryViewProps) {
 
       {loading && <div className="text-center py-8 text-muted text-xs">Loading...</div>}
 
-      {!loading && showOverlay && <AllLiftsOverlay data={allLiftsData} />}
+      {!loading && !bwLoading && showBodyWeight && (
+        <>
+          {bwStats && (
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="bg-card border border-border rounded-lg p-3">
+                <div className="text-[11px] text-muted uppercase">Current</div>
+                <div className="text-[20px] font-bold text-bright font-mono">{bwStats.current}</div>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-3">
+                <div className="text-[11px] text-muted uppercase">30d Change</div>
+                <div className={`text-[20px] font-bold font-mono ${bwStats.change30d > 0 ? 'text-danger' : bwStats.change30d < 0 ? 'text-success' : 'text-muted'}`}>
+                  {bwStats.change30d > 0 ? '+' : ''}{bwStats.change30d}
+                </div>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-3">
+                <div className="text-[11px] text-muted uppercase">Heaviest</div>
+                <div className="text-[20px] font-bold text-bright font-mono">{bwStats.heaviest}</div>
+              </div>
+              <div className="bg-card border border-border rounded-lg p-3">
+                <div className="text-[11px] text-muted uppercase">Lightest</div>
+                <div className="text-[20px] font-bold text-bright font-mono">{bwStats.lightest}</div>
+              </div>
+            </div>
+          )}
+          {bwChartData.length > 0 && (
+            <div className="bg-card border border-border rounded-lg p-3 mb-4">
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={bwChartData}>
+                  <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8b949e' }} />
+                  <YAxis domain={['dataMin - 5', 'dataMax + 5']} tick={{ fontSize: 10, fill: '#8b949e' }} />
+                  <Line type="monotone" dataKey="weight" stroke="#f5a623" dot={false} strokeWidth={2} />
+                  <Line type="monotone" dataKey="rollingAvg" stroke="#636e72" dot={false} strokeWidth={1} strokeDasharray="4 4" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+          {bwChartData.length === 0 && !bwStats && (
+            <div className="text-center py-8 text-faint text-xs">
+              No body weight data yet. Log your weight in Settings.
+            </div>
+          )}
+        </>
+      )}
 
-      {!loading && !showOverlay && stats && (
+      {!loading && !showBodyWeight && showOverlay && <AllLiftsOverlay data={allLiftsData} />}
+
+      {!loading && !showBodyWeight && !showOverlay && stats && (
         <>
           <StatCards stats={stats} />
           <E1rmChart data={e1rmData} color={selectedColor} />
@@ -144,7 +206,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
         </>
       )}
 
-      {!loading && !showOverlay && !stats && (
+      {!loading && !showBodyWeight && !showOverlay && !stats && (
         <div className="text-center py-8 text-faint text-xs">
           Select an exercise to view history.
         </div>
