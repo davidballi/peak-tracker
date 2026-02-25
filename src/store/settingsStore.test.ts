@@ -42,6 +42,14 @@ describe('settingsStore', () => {
     it('falls back to default for invalid JSON', () => {
       expect(parseSettings({ available_plates: 'bad' }).availablePlates).toEqual([45, 35, 25, 10, 5, 2.5])
     })
+
+    it('parses rest_timer_seconds with default 90', () => {
+      expect(parseSettings({}).restTimerSeconds).toBe(90)
+    })
+
+    it('parses rest_timer_seconds from raw', () => {
+      expect(parseSettings({ rest_timer_seconds: '120' }).restTimerSeconds).toBe(120)
+    })
   })
 
   describe('store actions', () => {

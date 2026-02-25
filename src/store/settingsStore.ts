@@ -14,6 +14,7 @@ export type SettingsKey =
   | 'available_plates'
   | 'tm_rule_default'
   | 'tm_increment_default'
+  | 'rest_timer_seconds'
 
 export const SETTINGS_DEFAULTS: Record<SettingsKey, string> = {
   unit_system: 'lb',
@@ -25,6 +26,7 @@ export const SETTINGS_DEFAULTS: Record<SettingsKey, string> = {
   available_plates: '[45,35,25,10,5,2.5]',
   tm_rule_default: 'e1rm',
   tm_increment_default: '5',
+  rest_timer_seconds: '90',
 }
 
 export interface ParsedSettings {
@@ -37,6 +39,7 @@ export interface ParsedSettings {
   availablePlates: number[]
   tmRuleDefault: TmRule
   tmIncrementDefault: number
+  restTimerSeconds: number
 }
 
 export function parseSettings(raw: Record<string, string>): ParsedSettings {
@@ -60,6 +63,7 @@ export function parseSettings(raw: Record<string, string>): ParsedSettings {
     availablePlates: plates,
     tmRuleDefault: get('tm_rule_default') as TmRule,
     tmIncrementDefault: parseFloat(get('tm_increment_default')) || 5,
+    restTimerSeconds: parseInt(get('rest_timer_seconds'), 10) || 90,
   }
 }
 
