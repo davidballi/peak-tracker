@@ -26,6 +26,18 @@ pub fn run() {
             sql: include_str!("../migrations/003_body_weight_log.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "fix_deload_percentages",
+            sql: include_str!("../migrations/004_fix_deload_percentages.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 5,
+            description: "fix_wave_percentages",
+            sql: include_str!("../migrations/005_fix_wave_percentages.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
