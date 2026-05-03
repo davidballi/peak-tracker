@@ -17,7 +17,7 @@ For everything else (features, UI, bug fixes, new hooks, Zustand stores, charts,
 
 Forge is an iOS app for tracking workouts with wave-loaded periodization. Built with **Tauri v2 + React 18 + TypeScript + Vite + Tailwind CSS + SQLite**. Bundle ID: `com.forge.app`.
 
-The original PWA version is preserved as `index.pwa.html` for reference. Primary development branch is `forge`.
+The original PWA version is preserved as `index.pwa.html` for reference. Default branch is `main`; feature work happens on `feature/*` branches.
 
 ## Development
 
@@ -98,9 +98,22 @@ useEffect(() => {
 - **Capabilities:** need `windows: ["main"]` + `webviews: ["main"]` in `src-tauri/capabilities/default.json`
 - **ATS:** Info.plist needs `NSAllowsLocalNetworking` for dev mode
 - **`tauri ios init`** regenerates the Xcode project — re-apply Info.plist customizations after running it
+- **Wireless deploy flakes** (`npm run tauri ios dev` to a physical device): `xcrun devicectl` over Wi-Fi commonly hits `CoreDeviceError 4000` / `NWError 60` (timeout) when the phone is off-network or asleep, and `FBSOpenApplicationServiceErrorDomain 1 / Locked` if the phone is locked at the moment `devicectl device process launch` fires. Cure: phone unlocked + same Wi-Fi as the Mac + Xcode → Devices and Simulators showing the device (lightning bolt for wireless). The build/sign steps still succeed in these cases; only install/launch fails, so you can usually just retry without rebuilding the IPA
 
 ### DB Singleton
 `getDb()` in `src/lib/db.ts` caches the **Promise** (not the resolved value) to prevent race conditions when multiple callers request the DB simultaneously during init.
+
+### Migrations
+SQL migrations live in `src-tauri/migrations/NNN_description.sql` and must be registered in `src-tauri/src/lib.rs` with a `Migration { version, description, sql: include_str!(…), kind: MigrationKind::Up }` entry. tauri-plugin-sql runs each version once on app startup. **HMR does NOT reload migrations** — adding/editing a migration requires a full Tauri rebuild and reinstall before it executes on-device. Migrations can use `CREATE TEMPORARY TABLE` to capture a value before mutating other tables (see `006_renumber_post_import_blocks.sql` for the pattern when one UPDATE's intent depends on pre-update state of another).
+
+### Optimistic-ID writes (set_logs)
+`useWorkoutLog` assigns a fresh UUID in optimistic React state the first time a user touches a set, *before* any row exists in `set_logs`. Any debounced/deferred DB write must therefore use `INSERT OR REPLACE INTO set_logs … VALUES (id, …)` rather than `UPDATE … WHERE id = ?`, or the write silently no-ops. This same rule applies to `toggleComplete` when an in-memory log entry exists. Don't reintroduce `UPDATE`-only paths here.
+
+### History query ordering
+Workout-log `block_num` is **not chronologically monotonic** because the PWA importer stamped historical sessions with synthetic high block_nums (5–36) that can sit alongside real recent block_nums (1, 2, …). All history queries (`useHistory.ts`, all-lifts overlay) must `ORDER BY wl.started_at` (or `MIN(wl.started_at)` for grouped aggregates), not `wl.block_num` — otherwise imported data renders to the right of newer real data on charts.
+
+### Main-lift exercise lookup
+Match `MAIN_LIFTS` shortcuts to exercises by `exercise_key` first, falling back to display name. Users rename main lifts (e.g., "OHP" → "Overhead Press") via the program builder, which preserves `exercise_key` but breaks any name-only match. When multiple exercises match the same key/name (PWA imports can create duplicates if the original was renamed before importing), prefer the candidate with the most recent `set_logs.logged_at`.
 
 ## Code Review Rules
 
