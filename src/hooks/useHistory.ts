@@ -98,7 +98,8 @@ export function useHistory(programId: string) {
       setSelectedExerciseId(exerciseId)
       const db = await getDb()
 
-      // Get e1RM data per block/week
+      // Get e1RM data per block/week (chronological order so imported high-block_num
+      // data doesn't visually appear after current real data)
       const e1rmRows = await db.select<E1rmRow[]>(
         `SELECT wl.block_num, wl.week_index, sl.weight, sl.reps
          FROM set_logs sl
@@ -106,7 +107,7 @@ export function useHistory(programId: string) {
          WHERE sl.exercise_id = ? AND wl.program_id = ?
            AND sl.weight IS NOT NULL AND sl.weight > 0
            AND sl.reps IS NOT NULL AND sl.reps > 0
-         ORDER BY wl.block_num, wl.week_index, sl.set_index`,
+         ORDER BY wl.started_at, sl.set_index`,
         [exerciseId, programId],
       )
 
@@ -130,7 +131,7 @@ export function useHistory(programId: string) {
       )
       setE1rmData(e1rmPoints)
 
-      // Get volume per block/week
+      // Get volume per block/week (ordered by earliest timestamp in each group)
       const volumeRows = await db.select<VolumeRow[]>(
         `SELECT wl.block_num, wl.week_index, SUM(sl.weight * sl.reps) as volume
          FROM set_logs sl
@@ -139,7 +140,7 @@ export function useHistory(programId: string) {
            AND sl.weight IS NOT NULL AND sl.weight > 0
            AND sl.reps IS NOT NULL AND sl.reps > 0
          GROUP BY wl.block_num, wl.week_index
-         ORDER BY wl.block_num, wl.week_index`,
+         ORDER BY MIN(wl.started_at)`,
         [exerciseId, programId],
       )
       setVolumeData(
@@ -151,7 +152,7 @@ export function useHistory(programId: string) {
         })),
       )
 
-      // Get set log history
+      // Get set log history (newest first by workout date)
       const logRows = await db.select<SetLogRow[]>(
         `SELECT sl.id, sl.set_index, sl.weight, sl.reps, sl.is_completed, sl.logged_at,
                 wl.block_num, wl.week_index
@@ -159,7 +160,7 @@ export function useHistory(programId: string) {
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE sl.exercise_id = ? AND wl.program_id = ?
            AND sl.weight IS NOT NULL AND sl.weight > 0
-         ORDER BY wl.block_num DESC, wl.week_index DESC, sl.set_index`,
+         ORDER BY wl.started_at DESC, sl.set_index`,
         [exerciseId, programId],
       )
       setSetLogHistory(
@@ -208,13 +209,19 @@ export function useHistory(programId: string) {
     const results: AllLiftsData[] = []
 
     for (const lift of MAIN_LIFTS) {
-      // Find the exercise by name match
-      const exercises = await db.select<Array<{ id: string }>>(
-        `SELECT e.id FROM exercises e
+      // Match by exercise_key first (stable across renames), then name. Pick the
+      // candidate with the most recent set_log so import duplicates lose to
+      // actively-used exercises.
+      const exercises = await db.select<Array<{ id: string; last_logged: string }>>(
+        `SELECT e.id, COALESCE(MAX(sl.logged_at), '') AS last_logged
+         FROM exercises e
          JOIN days d ON e.day_id = d.id
-         WHERE d.program_id = ? AND e.name = ?
+         LEFT JOIN set_logs sl ON sl.exercise_id = e.id
+         WHERE d.program_id = ? AND (e.exercise_key = ? OR e.name = ?)
+         GROUP BY e.id
+         ORDER BY last_logged DESC
          LIMIT 1`,
-        [programId, lift.name],
+        [programId, lift.id, lift.name],
       )
       if (exercises.length === 0) continue
 
@@ -226,7 +233,7 @@ export function useHistory(programId: string) {
          WHERE sl.exercise_id = ? AND wl.program_id = ?
            AND sl.weight IS NOT NULL AND sl.weight > 0
            AND sl.reps IS NOT NULL AND sl.reps > 0
-         ORDER BY wl.block_num, wl.week_index`,
+         ORDER BY wl.started_at`,
         [exerciseId, programId],
       )
 

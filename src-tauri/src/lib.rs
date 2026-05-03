@@ -38,6 +38,18 @@ pub fn run() {
             sql: include_str!("../migrations/005_fix_wave_percentages.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 6,
+            description: "renumber_post_import_blocks",
+            sql: include_str!("../migrations/006_renumber_post_import_blocks.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 7,
+            description: "tune_top_set_reps",
+            sql: include_str!("../migrations/007_tune_top_set_reps.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

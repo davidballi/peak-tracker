@@ -22,9 +22,9 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
           wave: {
             warmup: [{ reps: 5, pct: 0.40 }, { reps: 3, pct: 0.55 }],
             weeks: [
-              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 3, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
               { label: 'Wk2 (4s)', sets: [{ reps: 4, pct: 0.75 }, { reps: 4, pct: 0.80 }, { reps: 4, pct: 0.85 }, { reps: 6, pct: 0.75, backoff: true }] },
-              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 3, pct: 0.85 }, { reps: 3, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
+              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 2, pct: 0.85 }, { reps: 2, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
               { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
             ],
             baseMax: 325,
@@ -51,9 +51,9 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
           wave: {
             warmup: [{ reps: 5, pct: 0.40 }, { reps: 3, pct: 0.55 }],
             weeks: [
-              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 3, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
               { label: 'Wk2 (4s)', sets: [{ reps: 4, pct: 0.75 }, { reps: 4, pct: 0.80 }, { reps: 4, pct: 0.85 }, { reps: 6, pct: 0.75, backoff: true }] },
-              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 3, pct: 0.85 }, { reps: 3, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
+              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 2, pct: 0.85 }, { reps: 2, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
               { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
             ],
             baseMax: 270,
@@ -79,9 +79,9 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
           wave: {
             warmup: [{ reps: 5, pct: 0.40 }, { reps: 3, pct: 0.55 }],
             weeks: [
-              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 3, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
               { label: 'Wk2 (4s)', sets: [{ reps: 4, pct: 0.75 }, { reps: 4, pct: 0.80 }, { reps: 4, pct: 0.85 }, { reps: 6, pct: 0.75, backoff: true }] },
-              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 3, pct: 0.85 }, { reps: 3, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
+              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 2, pct: 0.85 }, { reps: 2, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
               { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
             ],
             baseMax: 190,
@@ -107,9 +107,9 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
           wave: {
             warmup: [{ reps: 5, pct: 0.40 }, { reps: 3, pct: 0.55 }],
             weeks: [
-              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 5, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
+              { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 3, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
               { label: 'Wk2 (4s)', sets: [{ reps: 4, pct: 0.75 }, { reps: 4, pct: 0.80 }, { reps: 4, pct: 0.85 }, { reps: 6, pct: 0.75, backoff: true }] },
-              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 3, pct: 0.85 }, { reps: 3, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
+              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 2, pct: 0.85 }, { reps: 2, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
               { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }] },
             ],
             baseMax: 405,

@@ -18,7 +18,8 @@ interface HistoryViewProps {
 interface ExRow {
   id: string
   name: string
-  is_wave: number
+  exercise_key: string
+  last_logged: string
 }
 
 export function HistoryView({ programId }: HistoryViewProps) {
@@ -45,20 +46,26 @@ export function HistoryView({ programId }: HistoryViewProps) {
     async function load() {
       const db = await getDb()
       const rows = await db.select<ExRow[]>(
-        `SELECT e.id, e.name, e.is_wave FROM exercises e
+        `SELECT e.id, e.name, e.exercise_key,
+                COALESCE(MAX(sl.logged_at), '') AS last_logged
+         FROM exercises e
          JOIN days d ON e.day_id = d.id
+         LEFT JOIN set_logs sl ON sl.exercise_id = e.id
          WHERE d.program_id = ?
+         GROUP BY e.id, e.name, e.exercise_key, d.day_index, e.exercise_index
          ORDER BY d.day_index, e.exercise_index`,
         [programId],
       )
       setExercises(rows)
 
-      // Auto-select first wave exercise (main lift)
-      const firstWave = rows.find((e) => e.is_wave)
-      if (firstWave) {
-        loadExerciseHistory(firstWave.id)
-      } else if (rows.length > 0) {
-        loadExerciseHistory(rows[0].id)
+      // Auto-select first main lift that exists in this program (most recently
+      // logged candidate when multiple exercises share the same key/name).
+      for (const ml of MAIN_LIFTS) {
+        const matches = rows.filter((e) => e.exercise_key === ml.id || e.name === ml.name)
+        if (matches.length === 0) continue
+        const best = matches.slice().sort((a, b) => b.last_logged.localeCompare(a.last_logged))[0]
+        loadExerciseHistory(best.id)
+        return
       }
     }
     load()
@@ -69,15 +76,21 @@ export function HistoryView({ programId }: HistoryViewProps) {
     if (!selectedExerciseId) return '#f5a623'
     const ex = exercises.find((e) => e.id === selectedExerciseId)
     if (!ex) return '#f5a623'
-    const mainLift = MAIN_LIFTS.find((ml) => ml.name === ex.name)
+    const mainLift = MAIN_LIFTS.find((ml) => ml.name === ex.name || ex.exercise_key === ml.id)
     return mainLift?.color ?? '#f5a623'
   }, [selectedExerciseId, exercises])
 
-  // Main lift shortcuts
+  // Main lift shortcuts: match by exercise_key first (resilient to renames like
+  // OHP → Overhead Press), then by display name. Among multiple matches, pick
+  // the one with the most recent log so duplicates from imports don't win.
   const mainLiftExercises = useMemo(() => {
     return MAIN_LIFTS.map((ml) => {
-      const ex = exercises.find((e) => e.name === ml.name)
-      return { ...ml, exerciseId: ex?.id ?? null }
+      const matches = exercises.filter(
+        (e) => e.exercise_key === ml.id || e.name === ml.name,
+      )
+      if (matches.length === 0) return { ...ml, exerciseId: null }
+      const best = matches.slice().sort((a, b) => b.last_logged.localeCompare(a.last_logged))[0]
+      return { ...ml, exerciseId: best.id }
     }).filter((ml) => ml.exerciseId !== null)
   }, [exercises])
 
@@ -133,23 +146,6 @@ export function HistoryView({ programId }: HistoryViewProps) {
           </button>
         </div>
       )}
-
-      {/* All exercises dropdown */}
-      <div className="mb-4">
-        <select
-          value={selectedExerciseId ?? ''}
-          onChange={(e) => {
-            setShowOverlay(false)
-            setShowBodyWeight(false)
-            loadExerciseHistory(e.target.value)
-          }}
-          className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[18px]"
-        >
-          {exercises.map((ex) => (
-            <option key={ex.id} value={ex.id}>{ex.name}</option>
-          ))}
-        </select>
-      </div>
 
       {loading && <div className="text-center py-8 text-muted text-xs">Loading...</div>}
 
