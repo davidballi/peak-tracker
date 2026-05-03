@@ -184,10 +184,11 @@ export function WorkoutControls({
                         {editingId === ex.id ? (
                           <div className="flex gap-1">
                             <input
-                              type="number"
+                              type="text"
                               inputMode="decimal"
                               value={editValue}
                               onChange={(e) => setEditValue(e.target.value)}
+                              onFocus={(e) => e.currentTarget.select()}
                               className="w-[65px] bg-bg border border-border-elevated rounded text-accent px-1.5 py-1 text-[16px] font-mono"
                               autoFocus
                               onKeyDown={(e) => {

@@ -127,10 +127,11 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
             Target {goalType === 'reps' ? '(reps)' : '(lb)'}
           </label>
           <input
-            type="number"
+            type="text"
             inputMode="decimal"
             value={targetValue}
             onChange={(e) => setTargetValue(e.target.value)}
+            onFocus={(e) => e.currentTarget.select()}
             className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[18px] font-mono focus:border-accent outline-none"
             placeholder={goalType === 'reps' ? 'e.g. 10' : 'e.g. 350'}
             autoFocus

@@ -126,10 +126,11 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
           <div className="mb-3">
             <label className="text-[17px] text-muted block mb-1">Base Training Max (lb)</label>
             <input
-              type="number"
+              type="text"
               inputMode="decimal"
               value={data.baseMax || ''}
               onChange={(e) => setData({ ...data, baseMax: parseInt(e.target.value) || 0 })}
+              onFocus={(e) => e.currentTarget.select()}
               className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[18px] font-mono focus:border-accent outline-none"
               placeholder="e.g. 315"
             />
@@ -143,30 +144,33 @@ export function ExerciseEditor({ initial, onSave, onClose }: ExerciseEditorProps
             <div>
               <label className="text-[17px] text-muted block mb-1">Sets</label>
               <input
-                type="number"
+                type="text"
                 inputMode="decimal"
                 value={data.sets}
                 onChange={(e) => setData({ ...data, sets: parseInt(e.target.value) || 0 })}
+                onFocus={(e) => e.currentTarget.select()}
                 className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[18px] font-mono focus:border-accent outline-none"
               />
             </div>
             <div>
               <label className="text-[17px] text-muted block mb-1">Reps</label>
               <input
-                type="number"
+                type="text"
                 inputMode="decimal"
                 value={data.reps}
                 onChange={(e) => setData({ ...data, reps: parseInt(e.target.value) || 0 })}
+                onFocus={(e) => e.currentTarget.select()}
                 className="w-full bg-bg border border-border-elevated rounded-lg text-bright p-2 text-[18px] font-mono focus:border-accent outline-none"
               />
             </div>
             <div>
               <label className="text-[17px] text-muted block mb-1">Weight (lb)</label>
               <input
-                type="number"
+                type="text"
                 inputMode="decimal"
                 value={data.defaultWeight || ''}
                 onChange={(e) => setData({ ...data, defaultWeight: parseInt(e.target.value) || 0 })}
+                onFocus={(e) => e.currentTarget.select()}
                 className="w-full bg-bg border border-border-elevated rounded-lg text-accent p-2 text-[18px] font-mono focus:border-accent outline-none"
               />
             </div>

@@ -99,10 +99,11 @@ export function SetRow({
         {/* Weight input */}
         <div className="flex-1 flex items-center gap-0.5">
           <input
-            type="number"
+            type="text"
             inputMode="decimal"
             value={displayWeight ?? ''}
             onChange={(e) => onWeightChange(exerciseId, set.index, e.target.value)}
+            onFocus={(e) => e.currentTarget.select()}
             readOnly={isCompleted}
             className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[18px] font-mono text-right outline-none ${
               isCompleted ? 'text-success opacity-60' : 'text-bright focus:border-accent'
@@ -116,10 +117,11 @@ export function SetRow({
         {/* Reps input */}
         <div className="w-[50px] flex items-center gap-0.5">
           <input
-            type="number"
+            type="text"
             inputMode="decimal"
             value={displayReps ?? ''}
             onChange={(e) => onRepsChange(exerciseId, set.index, e.target.value)}
+            onFocus={(e) => e.currentTarget.select()}
             readOnly={isCompleted}
             className={`w-full bg-bg border border-border rounded px-1.5 py-2 text-[18px] font-mono text-right outline-none ${
               isCompleted ? 'text-success opacity-60' : 'text-bright focus:border-accent'

@@ -245,10 +245,11 @@ export function SettingsPage({ onClose, programId }: SettingsPageProps) {
               {editingIncrement ? (
                 <div className="flex gap-1">
                   <input
-                    type="number"
+                    type="text"
                     inputMode="decimal"
                     value={incrementValue}
                     onChange={(e) => setIncrementValue(e.target.value)}
+                    onFocus={(e) => e.currentTarget.select()}
                     className="w-[60px] bg-bg border border-border-elevated rounded text-accent px-1.5 py-1.5 text-[16px] font-mono"
                     autoFocus
                     onKeyDown={(e) => {
@@ -290,10 +291,11 @@ export function SettingsPage({ onClose, programId }: SettingsPageProps) {
             {editingBarWeight ? (
               <div className="flex gap-1">
                 <input
-                  type="number"
+                  type="text"
                   inputMode="decimal"
                   value={barValue}
                   onChange={(e) => setBarValue(e.target.value)}
+                  onFocus={(e) => e.currentTarget.select()}
                   className="w-[60px] bg-bg border border-border-elevated rounded text-accent px-1.5 py-1.5 text-[16px] font-mono"
                   autoFocus
                   onKeyDown={(e) => {
@@ -452,10 +454,11 @@ export function SettingsPage({ onClose, programId }: SettingsPageProps) {
               <div className="text-[17px] font-bold text-bright mb-3">Log Body Weight</div>
               <div className="flex gap-2 mb-4">
                 <input
-                  type="number"
+                  type="text"
                   inputMode="decimal"
                   value={bwLogValue}
                   onChange={(e) => setBwLogValue(e.target.value)}
+                  onFocus={(e) => e.currentTarget.select()}
                   placeholder={unitLabel}
                   className="flex-1 bg-bg border border-border-elevated rounded-lg text-accent px-3 py-2.5 text-[18px] font-mono"
                   autoFocus
