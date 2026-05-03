@@ -3,6 +3,7 @@ import { getDb } from '../../lib/db'
 import { useHistory } from '../../hooks/useHistory'
 import { useBodyWeight } from '../../hooks/useBodyWeight'
 import { MAIN_LIFTS } from '../../lib/constants'
+import { useAppStore } from '../../store/appStore'
 import { StatCards } from './StatCards'
 import { E1rmChart } from './E1rmChart'
 import { VolumeChart } from './VolumeChart'
@@ -24,6 +25,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
   const [exercises, setExercises] = useState<ExRow[]>([])
   const [showOverlay, setShowOverlay] = useState(false)
   const [showBodyWeight, setShowBodyWeight] = useState(false)
+  const dataVersion = useAppStore((s) => s.dataVersion)
   const { chartData: bwChartData, bwStats, loading: bwLoading } = useBodyWeight()
   const {
     selectedExerciseId,
@@ -60,7 +62,7 @@ export function HistoryView({ programId }: HistoryViewProps) {
       }
     }
     load()
-  }, [programId, loadExerciseHistory])
+  }, [programId, loadExerciseHistory, dataVersion])
 
   // Get color for selected exercise
   const selectedColor = useMemo(() => {

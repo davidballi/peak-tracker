@@ -154,30 +154,12 @@ export function useWorkoutLog(
         delete pendingWrites.current[timerKey]
         const db = await getDb()
         const current = setLogsRef.current[key]
+        if (!current) return
 
-        if (current) {
-          const sql = field === 'weight'
-            ? `UPDATE set_logs SET weight = ? WHERE id = ?`
-            : `UPDATE set_logs SET reps = ? WHERE id = ?`
-          await db.execute(sql, [numVal, current.id])
-        } else {
-          const newId = uuid()
-          const w = field === 'weight' ? numVal : null
-          const r = field === 'reps' ? (numVal !== null ? Math.round(numVal) : null) : null
-          await db.execute(
-            `INSERT OR REPLACE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, 0)`,
-            [newId, workoutLogId, exerciseId, setIndex, w, r],
-          )
-          setSetLogs((prev) => {
-            const entry = prev[key]
-            if (entry && entry.id !== newId) {
-              const updated = { ...prev, [key]: { ...entry, id: newId } }
-              setLogsRef.current = updated
-              return updated
-            }
-            return prev
-          })
-        }
+        await db.execute(
+          `INSERT OR REPLACE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [current.id, workoutLogId, exerciseId, setIndex, current.weight, current.reps !== null ? Math.round(current.reps) : null, current.isCompleted ? 1 : 0],
+        )
       }
 
       pendingWrites.current[timerKey] = doWrite
@@ -200,7 +182,11 @@ export function useWorkoutLog(
           return updated
         })
         const db = await getDb()
-        await db.execute(`UPDATE set_logs SET is_completed = ? WHERE id = ?`, [newVal ? 1 : 0, existing.id])
+        const current = setLogsRef.current[key]
+        await db.execute(
+          `INSERT OR REPLACE INTO set_logs (id, workout_log_id, exercise_id, set_index, weight, reps, is_completed) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [current.id, workoutLogId, exerciseId, setIndex, current.weight, current.reps !== null ? Math.round(current.reps) : null, newVal ? 1 : 0],
+        )
       } else {
         // Create a new set log marked as complete, preserving default values
         const w = defaultWeight ?? null

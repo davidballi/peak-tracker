@@ -192,6 +192,7 @@ function LandingPage({ templates, onBuildNew }: LandingPageProps) {
 function MainApp({ programId }: { programId: string }) {
   const { currentView } = useAppStore()
   const setActiveProgramId = useAppStore((s) => s.setActiveProgramId)
+  const bumpDataVersion = useAppStore((s) => s.bumpDataVersion)
   const { program, loading, reload, setCurrentDay, setCurrentWeek, deleteExercise } = useProgram(programId)
   const [showSettings, setShowSettings] = useState(false)
   const { settings } = useSettings()
@@ -229,7 +230,8 @@ function MainApp({ programId }: { programId: string }) {
   const handleAdvance = useCallback(async () => {
     await reload()
     await reloadMaxes()
-  }, [reload, reloadMaxes])
+    bumpDataVersion()
+  }, [reload, reloadMaxes, bumpDataVersion])
 
   const handleAdvanceWeek = useCallback(async () => {
     if (!program) return
@@ -237,7 +239,8 @@ function MainApp({ programId }: { programId: string }) {
     await setCurrentWeek(nextWeek)
     await setCurrentDay(0)
     await reload()
-  }, [program, setCurrentWeek, setCurrentDay, reload])
+    bumpDataVersion()
+  }, [program, setCurrentWeek, setCurrentDay, reload, bumpDataVersion])
 
   const handleAdvanceBlock = useCallback(async () => {
     if (!program) return
@@ -284,7 +287,8 @@ function MainApp({ programId }: { programId: string }) {
 
     await reload()
     await reloadMaxes()
-  }, [program, programId, waveExercises, getEffectiveMax, reload, reloadMaxes])
+    bumpDataVersion()
+  }, [program, programId, waveExercises, getEffectiveMax, reload, reloadMaxes, bumpDataVersion])
 
   if (loading || !program) {
     return (
