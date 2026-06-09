@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getDb } from '../../lib/db'
 import { estimatedOneRepMax, bwMultiple } from '../../lib/calc'
 import { MAIN_LIFTS } from '../../lib/constants'
+import { findMainLiftExerciseId } from '../../lib/main-lifts'
 import { useAppStore } from '../../store/appStore'
 import { useSettings } from '../../hooks/useSettings'
 
@@ -35,11 +36,8 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
 
     const prs: LiftPr[] = []
     for (const lift of MAIN_LIFTS) {
-      const exercises = await db.select<Array<{ id: string }>>(
-        `SELECT e.id FROM exercises e JOIN days d ON e.day_id = d.id WHERE d.program_id = ? AND e.name = ? LIMIT 1`,
-        [programId, lift.name],
-      )
-      if (exercises.length === 0) continue
+      const exerciseId = await findMainLiftExerciseId(db, programId, lift)
+      if (!exerciseId) continue
 
       const rows = await db.select<Array<{ weight: number; reps: number }>>(
         `SELECT sl.weight, sl.reps FROM set_logs sl
@@ -47,7 +45,7 @@ export function DashboardView({ programId, programName, blockNum, currentWeek }:
          WHERE sl.exercise_id = ? AND wl.program_id = ?
            AND sl.weight IS NOT NULL AND sl.weight > 0
            AND sl.reps IS NOT NULL AND sl.reps > 0`,
-        [exercises[0].id, programId],
+        [exerciseId, programId],
       )
 
       let best = 0

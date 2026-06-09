@@ -40,7 +40,7 @@ export async function buildCsvString(programId: string): Promise<string> {
        AND sl.is_completed = 1
        AND sl.weight IS NOT NULL
        AND sl.reps IS NOT NULL
-     ORDER BY wl.block_num, wl.week_index, d.day_index, e.exercise_index, sl.set_index`,
+     ORDER BY wl.started_at, d.day_index, e.exercise_index, sl.set_index`,
     [programId],
   )
 

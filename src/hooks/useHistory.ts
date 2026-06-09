@@ -2,14 +2,15 @@ import { useState, useCallback } from 'react'
 import { getDb } from '../lib/db'
 import { estimatedOneRepMax } from '../lib/calc'
 import { MAIN_LIFTS } from '../lib/constants'
+import { findMainLiftExerciseId } from '../lib/main-lifts'
+import {
+  addRollingAverage,
+  e1rmChangeFromPreviousBlock,
+  type E1rmDataPoint,
+  type AllLiftsData,
+} from '../lib/history-stats'
 
-export interface E1rmDataPoint {
-  label: string
-  e1rm: number
-  rollingAvg?: number
-  blockNum: number
-  weekIndex: number
-}
+export type { E1rmDataPoint, AllLiftsData }
 
 export interface VolumeDataPoint {
   label: string
@@ -34,13 +35,6 @@ export interface LiftStats {
   bestE1rm: number
   change: number
   trainingMax: number
-}
-
-export interface AllLiftsData {
-  liftId: string
-  liftName: string
-  color: string
-  data: E1rmDataPoint[]
 }
 
 interface SetLogRow {
@@ -69,18 +63,6 @@ interface VolumeRow {
 
 interface TmRow {
   value: number
-}
-
-// ~180 days at 1 data point per block/week (~7 days each)
-const ROLLING_WINDOW = 26
-
-function addRollingAverage(points: E1rmDataPoint[]): E1rmDataPoint[] {
-  return points.map((point, i) => {
-    const start = Math.max(0, i - ROLLING_WINDOW + 1)
-    const window = points.slice(start, i + 1)
-    const avg = window.reduce((sum, p) => sum + p.e1rm, 0) / window.length
-    return { ...point, rollingAvg: Math.round(avg) }
-  })
 }
 
 export function useHistory(programId: string) {
@@ -180,16 +162,7 @@ export function useHistory(programId: string) {
       const bestE1rm = e1rmPoints.reduce((max, p) => Math.max(max, p.e1rm), 0)
       const currentE1rm = e1rmPoints.length > 0 ? e1rmPoints[e1rmPoints.length - 1].e1rm : 0
 
-      // Change from previous block
-      let change = 0
-      if (e1rmPoints.length >= 2) {
-        const currentBlockNum = e1rmPoints[e1rmPoints.length - 1].blockNum
-        const prevBlockPoints = e1rmPoints.filter((p) => p.blockNum < currentBlockNum)
-        if (prevBlockPoints.length > 0) {
-          const prevBest = prevBlockPoints.reduce((max, p) => Math.max(max, p.e1rm), 0)
-          change = currentE1rm - prevBest
-        }
-      }
+      const change = e1rmChangeFromPreviousBlock(e1rmPoints)
 
       // Training max
       const tmRows = await db.select<TmRow[]>(
@@ -209,25 +182,11 @@ export function useHistory(programId: string) {
     const results: AllLiftsData[] = []
 
     for (const lift of MAIN_LIFTS) {
-      // Match by exercise_key first (stable across renames), then name. Pick the
-      // candidate with the most recent set_log so import duplicates lose to
-      // actively-used exercises.
-      const exercises = await db.select<Array<{ id: string; last_logged: string }>>(
-        `SELECT e.id, COALESCE(MAX(sl.logged_at), '') AS last_logged
-         FROM exercises e
-         JOIN days d ON e.day_id = d.id
-         LEFT JOIN set_logs sl ON sl.exercise_id = e.id
-         WHERE d.program_id = ? AND (e.exercise_key = ? OR e.name = ?)
-         GROUP BY e.id
-         ORDER BY last_logged DESC
-         LIMIT 1`,
-        [programId, lift.id, lift.name],
-      )
-      if (exercises.length === 0) continue
+      const exerciseId = await findMainLiftExerciseId(db, programId, lift)
+      if (!exerciseId) continue
 
-      const exerciseId = exercises[0].id
-      const rows = await db.select<E1rmRow[]>(
-        `SELECT wl.block_num, wl.week_index, sl.weight, sl.reps
+      const rows = await db.select<Array<E1rmRow & { started_at: string }>>(
+        `SELECT wl.block_num, wl.week_index, wl.started_at, sl.weight, sl.reps
          FROM set_logs sl
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE sl.exercise_id = ? AND wl.program_id = ?
@@ -237,13 +196,16 @@ export function useHistory(programId: string) {
         [exerciseId, programId],
       )
 
-      const grouped = new Map<string, { blockNum: number; weekIndex: number; bestE1rm: number }>()
+      const grouped = new Map<string, { blockNum: number; weekIndex: number; bestE1rm: number; startedAt: string }>()
       for (const r of rows) {
         const key = `${r.block_num}_${r.week_index}`
         const e1rm = estimatedOneRepMax(r.weight, r.reps)
         const existing = grouped.get(key)
-        if (!existing || e1rm > existing.bestE1rm) {
-          grouped.set(key, { blockNum: r.block_num, weekIndex: r.week_index, bestE1rm: e1rm })
+        if (!existing) {
+          grouped.set(key, { blockNum: r.block_num, weekIndex: r.week_index, bestE1rm: e1rm, startedAt: r.started_at })
+        } else if (e1rm > existing.bestE1rm) {
+          // keep the group's earliest startedAt for chronological chart ordering
+          existing.bestE1rm = e1rm
         }
       }
 
@@ -256,6 +218,7 @@ export function useHistory(programId: string) {
           e1rm: g.bestE1rm,
           blockNum: g.blockNum,
           weekIndex: g.weekIndex,
+          startedAt: g.startedAt,
         })),
       })
     }

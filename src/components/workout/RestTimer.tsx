@@ -100,20 +100,21 @@ export function RestTimer({ durationSeconds }: RestTimerProps) {
             cy="22"
             r={radius}
             fill="none"
-            stroke="#21262d"
+            stroke="currentColor"
             strokeWidth="3"
+            className="text-border"
           />
           <circle
             cx="22"
             cy="22"
             r={radius}
             fill="none"
-            stroke="#f5a623"
+            stroke="currentColor"
             strokeWidth="3"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={strokeOffset}
-            className="transition-[stroke-dashoffset] duration-300"
+            className="text-accent transition-[stroke-dashoffset] duration-300"
           />
         </svg>
         <span className="text-accent font-mono text-[17px] font-semibold">
@@ -134,19 +135,21 @@ export function RestTimer({ durationSeconds }: RestTimerProps) {
           cy="22"
           r={radius}
           fill="none"
-          stroke="#21262d"
+          stroke="currentColor"
           strokeWidth="3"
+          className="text-border"
         />
         <circle
           cx="22"
           cy="22"
           r={radius}
           fill="none"
-          stroke="#2ea043"
+          stroke="currentColor"
           strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={0}
+          className="text-success"
         />
       </svg>
       <span className="text-success font-mono text-[17px] font-semibold">

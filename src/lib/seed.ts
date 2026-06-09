@@ -352,20 +352,43 @@ async function cleanupDuplicateTemplates(db: Awaited<ReturnType<typeof getDb>>):
     }
   }
 
-  // Clean up duplicate exercises in already-forked programs.
-  // Keep the first exercise per (day_id, exercise_index) by rowid.
-  const dupeExercises = await db.select<Array<{ id: string }>>(
-    `SELECT e.id FROM exercises e
+  await dedupeForkedExercises(db)
+}
+
+/**
+ * Remove duplicate exercises in already-forked programs (same day_id +
+ * exercise_index), keeping the first row by rowid. User data hanging off the
+ * duplicate (set_logs, training_maxes, notes, goals) is re-pointed to the
+ * kept exercise before the delete — training_maxes is append-only and must
+ * never lose history, and set_logs has no ON DELETE CASCADE so leftover rows
+ * would block the delete.
+ */
+export async function dedupeForkedExercises(db: Awaited<ReturnType<typeof getDb>>): Promise<void> {
+  const dupeExercises = await db.select<Array<{ dupe_id: string; keep_id: string }>>(
+    `SELECT e.id AS dupe_id,
+            (SELECT e2.id FROM exercises e2
+              WHERE e2.day_id = e.day_id AND e2.exercise_index = e.exercise_index
+              ORDER BY e2.rowid LIMIT 1) AS keep_id
+     FROM exercises e
      WHERE e.rowid NOT IN (
-       SELECT MIN(e2.rowid) FROM exercises e2 GROUP BY e2.day_id, e2.exercise_index
+       SELECT MIN(e3.rowid) FROM exercises e3 GROUP BY e3.day_id, e3.exercise_index
      )`,
   )
 
-  for (const ex of dupeExercises) {
-    // Delete wave children
+  for (const { dupe_id: dupeId, keep_id: keepId } of dupeExercises) {
+    // OR IGNORE skips set_logs colliding with the keeper's unique
+    // (workout_log_id, exercise_id, set_index) rows; those true duplicates
+    // are deleted just below.
+    await db.execute(`UPDATE OR IGNORE set_logs SET exercise_id = ? WHERE exercise_id = ?`, [keepId, dupeId])
+    await db.execute(`DELETE FROM set_logs WHERE exercise_id = ?`, [dupeId])
+    await db.execute(`UPDATE training_maxes SET exercise_id = ? WHERE exercise_id = ?`, [keepId, dupeId])
+    await db.execute(`UPDATE exercise_notes SET exercise_id = ? WHERE exercise_id = ?`, [keepId, dupeId])
+    await db.execute(`UPDATE strength_goals SET exercise_id = ? WHERE exercise_id = ?`, [keepId, dupeId])
+
+    // Delete wave children, then the duplicate exercise row
     const wcs = await db.select<Array<{ id: string }>>(
       `SELECT id FROM wave_configs WHERE exercise_id = ?`,
-      [ex.id],
+      [dupeId],
     )
     for (const wc of wcs) {
       const wks = await db.select<Array<{ id: string }>>(
@@ -378,8 +401,7 @@ async function cleanupDuplicateTemplates(db: Awaited<ReturnType<typeof getDb>>):
       await db.execute(`DELETE FROM wave_weeks WHERE wave_config_id = ?`, [wc.id])
       await db.execute(`DELETE FROM wave_warmups WHERE wave_config_id = ?`, [wc.id])
     }
-    await db.execute(`DELETE FROM wave_configs WHERE exercise_id = ?`, [ex.id])
-    await db.execute(`DELETE FROM training_maxes WHERE exercise_id = ?`, [ex.id])
-    await db.execute(`DELETE FROM exercises WHERE id = ?`, [ex.id])
+    await db.execute(`DELETE FROM wave_configs WHERE exercise_id = ?`, [dupeId])
+    await db.execute(`DELETE FROM exercises WHERE id = ?`, [dupeId])
   }
 }

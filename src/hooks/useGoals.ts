@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { v4 as uuid } from 'uuid'
 import { getDb } from '../lib/db'
-import { estimatedOneRepMax } from '../lib/calc'
+import { computeGoalCurrentValue, type GoalSetRow } from '../lib/goal-progress'
 import { hapticMedium } from '../lib/haptics'
 import type { GoalType } from '../types/goal'
 
@@ -21,24 +21,12 @@ export interface GoalWithProgress {
 interface GoalRow {
   id: string
   exercise_id: string
+  exercise_name: string
   goal_type: string
   target_value: number
   deadline: string | null
   achieved_at: string | null
   created_at: string
-}
-
-interface ExNameRow {
-  name: string
-}
-
-interface E1rmRow {
-  weight: number
-  reps: number
-}
-
-interface MaxRow {
-  max_weight: number
 }
 
 export function useGoals(programId: string) {
@@ -49,7 +37,7 @@ export function useGoals(programId: string) {
     const db = await getDb()
 
     const rows = await db.select<GoalRow[]>(
-      `SELECT sg.id, sg.exercise_id, sg.goal_type, sg.target_value, sg.deadline, sg.achieved_at, sg.created_at
+      `SELECT sg.id, sg.exercise_id, e.name AS exercise_name, sg.goal_type, sg.target_value, sg.deadline, sg.achieved_at, sg.created_at
        FROM strength_goals sg
        JOIN exercises e ON sg.exercise_id = e.id
        JOIN days d ON e.day_id = d.id
@@ -58,65 +46,45 @@ export function useGoals(programId: string) {
       [programId],
     )
 
-    const enriched: GoalWithProgress[] = []
-    for (const row of rows) {
-      // Get exercise name
-      const nameRows = await db.select<ExNameRow[]>(
-        `SELECT name FROM exercises WHERE id = ?`,
-        [row.exercise_id],
+    // One set_logs fetch for all goal exercises instead of 3 queries per goal
+    // (each db call is a Tauri IPC round-trip)
+    const setsByExercise = new Map<string, GoalSetRow[]>()
+    const exerciseIds = [...new Set(rows.map((r) => r.exercise_id))]
+    if (exerciseIds.length > 0) {
+      // placeholders are generated, values stay parameterized
+      const placeholders = exerciseIds.map(() => '?').join(',')
+      const setRows = await db.select<Array<{ exercise_id: string; weight: number | null; reps: number | null }>>(
+        `SELECT sl.exercise_id, sl.weight, sl.reps
+         FROM set_logs sl
+         JOIN workout_logs wl ON sl.workout_log_id = wl.id
+         WHERE wl.program_id = ? AND sl.exercise_id IN (${placeholders})`,
+        [programId, ...exerciseIds],
       )
-      const exerciseName = nameRows.length > 0 ? nameRows[0].name : 'Unknown'
-
-      // Compute current value based on goal type
-      let currentValue = 0
-      if (row.goal_type === 'e1rm') {
-        const e1rmRows = await db.select<E1rmRow[]>(
-          `SELECT sl.weight, sl.reps FROM set_logs sl
-           JOIN workout_logs wl ON sl.workout_log_id = wl.id
-           WHERE sl.exercise_id = ? AND wl.program_id = ?
-             AND sl.weight IS NOT NULL AND sl.weight > 0
-             AND sl.reps IS NOT NULL AND sl.reps > 0`,
-          [row.exercise_id, programId],
-        )
-        for (const r of e1rmRows) {
-          const e1rm = estimatedOneRepMax(r.weight, r.reps)
-          if (e1rm > currentValue) currentValue = e1rm
-        }
-      } else if (row.goal_type === 'weight') {
-        const maxRows = await db.select<MaxRow[]>(
-          `SELECT MAX(sl.weight) as max_weight FROM set_logs sl
-           JOIN workout_logs wl ON sl.workout_log_id = wl.id
-           WHERE sl.exercise_id = ? AND wl.program_id = ?
-             AND sl.weight IS NOT NULL AND sl.weight > 0`,
-          [row.exercise_id, programId],
-        )
-        if (maxRows.length > 0 && maxRows[0].max_weight) currentValue = maxRows[0].max_weight
-      } else if (row.goal_type === 'reps') {
-        const maxRows = await db.select<Array<{ max_reps: number }>>(
-          `SELECT MAX(sl.reps) as max_reps FROM set_logs sl
-           JOIN workout_logs wl ON sl.workout_log_id = wl.id
-           WHERE sl.exercise_id = ? AND wl.program_id = ?
-             AND sl.reps IS NOT NULL AND sl.reps > 0`,
-          [row.exercise_id, programId],
-        )
-        if (maxRows.length > 0 && maxRows[0].max_reps) currentValue = maxRows[0].max_reps
+      for (const r of setRows) {
+        const list = setsByExercise.get(r.exercise_id) ?? []
+        list.push({ weight: r.weight, reps: r.reps })
+        setsByExercise.set(r.exercise_id, list)
       }
+    }
 
+    const enriched: GoalWithProgress[] = rows.map((row) => {
+      const goalType = row.goal_type as GoalType
+      const currentValue = computeGoalCurrentValue(goalType, setsByExercise.get(row.exercise_id) ?? [])
       const progress = row.target_value > 0 ? Math.min(100, Math.round((currentValue / row.target_value) * 100)) : 0
 
-      enriched.push({
+      return {
         id: row.id,
         exerciseId: row.exercise_id,
-        exerciseName,
-        goalType: row.goal_type as GoalType,
+        exerciseName: row.exercise_name,
+        goalType,
         targetValue: row.target_value,
         currentValue,
         progress,
         deadline: row.deadline,
         achievedAt: row.achieved_at,
         createdAt: row.created_at,
-      })
-    }
+      }
+    })
 
     setGoals(enriched)
     setLoading(false)

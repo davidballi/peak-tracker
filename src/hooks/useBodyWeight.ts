@@ -50,22 +50,12 @@ export function useBodyWeight() {
       const db = await getDb()
       const today = new Date().toISOString().split('T')[0]
 
-      const existing = await db.select<{ id: string }[]>(
-        `SELECT id FROM body_weight_log WHERE logged_at = ?`,
-        [today],
+      // The unique index on logged_at makes this an upsert — one statement,
+      // so a rapid double-tap can't race a SELECT-then-INSERT
+      await db.execute(
+        `INSERT OR REPLACE INTO body_weight_log (id, weight, unit, logged_at) VALUES (?, ?, ?, ?)`,
+        [uuid(), weight, unit, today],
       )
-
-      if (existing.length > 0) {
-        await db.execute(
-          `UPDATE body_weight_log SET weight = ?, unit = ? WHERE logged_at = ?`,
-          [weight, unit, today],
-        )
-      } else {
-        await db.execute(
-          `INSERT INTO body_weight_log (id, weight, unit, logged_at) VALUES (?, ?, ?, ?)`,
-          [uuid(), weight, unit, today],
-        )
-      }
 
       // Convert to lb for user_settings storage
       const lbValue = unit === 'kg' ? Math.round(weight / 0.453592) : weight

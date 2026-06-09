@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
+import { mergeLiftSeries } from '../../lib/history-stats'
 import type { AllLiftsData } from '../../hooks/useHistory'
 
 interface AllLiftsOverlayProps {
@@ -14,22 +15,7 @@ export function AllLiftsOverlay({ data }: AllLiftsOverlayProps) {
     )
   }
 
-  // Merge all lifts into a single dataset keyed by label
-  const merged = new Map<string, Record<string, number>>()
-  for (const lift of data) {
-    for (const point of lift.data) {
-      const existing = merged.get(point.label) ?? {}
-      existing[lift.liftId] = point.e1rm
-      merged.set(point.label, existing)
-    }
-  }
-
-  const chartData = Array.from(merged.entries())
-    .map(([label, values]) => ({ label, ...values }))
-    .sort((a, b) => {
-      // Sort by block then week from the label
-      return a.label.localeCompare(b.label)
-    })
+  const chartData = mergeLiftSeries(data)
 
   return (
     <div className="mb-4">

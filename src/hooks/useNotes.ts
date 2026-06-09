@@ -126,7 +126,7 @@ export function useNotes(workoutLogId: string | null) {
          FROM exercise_notes en
          JOIN workout_logs wl ON en.workout_log_id = wl.id
          WHERE en.exercise_id = ? AND en.workout_log_id != ?
-         ORDER BY en.created_at DESC
+         ORDER BY wl.started_at DESC
          LIMIT ?`,
         [exerciseId, workoutLogId ?? '', limit],
       )
@@ -151,7 +151,7 @@ export function useNotes(workoutLogId: string | null) {
          FROM exercise_notes en
          JOIN workout_logs wl ON en.workout_log_id = wl.id
          WHERE en.exercise_id IS NULL AND wl.day_id = ? AND en.workout_log_id != ?
-         ORDER BY en.created_at DESC
+         ORDER BY wl.started_at DESC
          LIMIT ?`,
         [dayId, workoutLogId ?? '', limit],
       )
