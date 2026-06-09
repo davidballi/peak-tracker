@@ -97,7 +97,7 @@ export function useProgram(programId: string) {
     for (const d of dayRows) {
       // Load exercises for this day
       const exRows = await db.select<ExerciseRow[]>(
-        `SELECT id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave FROM exercises WHERE day_id = ? ORDER BY exercise_index`,
+        `SELECT id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave FROM exercises WHERE day_id = ? AND archived_at IS NULL ORDER BY exercise_index`,
         [d.id],
       )
 
@@ -216,12 +216,14 @@ export function useProgram(programId: string) {
     setProgram((prev) => prev ? { ...prev, currentWeek: weekIndex } : prev)
   }, [programId])
 
-  const deleteExercise = useCallback(async (exerciseId: string, dayId: string) => {
+  // Soft-delete: history stays intact and the exercise can be restored from
+  // the program builder's Archived section.
+  const archiveExercise = useCallback(async (exerciseId: string, dayId: string) => {
     const db = await getDb()
     await withWriteLock(async () => {
-      await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
+      await db.execute(`UPDATE exercises SET archived_at = datetime('now') WHERE id = ?`, [exerciseId])
       const remaining = await db.select<Array<{ id: string }>>(
-        `SELECT id FROM exercises WHERE day_id = ? ORDER BY exercise_index`,
+        `SELECT id FROM exercises WHERE day_id = ? AND archived_at IS NULL ORDER BY exercise_index`,
         [dayId],
       )
       for (let i = 0; i < remaining.length; i++) {
@@ -231,5 +233,23 @@ export function useProgram(programId: string) {
     await load()
   }, [load])
 
-  return { program, loading, reload: load, setCurrentDay, setCurrentWeek, deleteExercise }
+  const setDefaultWeight = useCallback(async (exerciseId: string, weight: number) => {
+    const db = await getDb()
+    await db.execute(`UPDATE exercises SET default_weight = ? WHERE id = ?`, [weight, exerciseId])
+    setProgram((prev) =>
+      prev
+        ? {
+            ...prev,
+            days: prev.days.map((d) => ({
+              ...d,
+              exercises: d.exercises.map((e) =>
+                e.id === exerciseId ? { ...e, defaultWeight: weight } : e,
+              ),
+            })),
+          }
+        : prev,
+    )
+  }, [])
+
+  return { program, loading, reload: load, setCurrentDay, setCurrentWeek, archiveExercise, setDefaultWeight }
 }

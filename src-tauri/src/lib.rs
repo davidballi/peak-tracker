@@ -50,6 +50,12 @@ pub fn run() {
             sql: include_str!("../migrations/007_tune_top_set_reps.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 8,
+            description: "archive_exercises",
+            sql: include_str!("../migrations/008_archive_exercises.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

@@ -116,14 +116,15 @@ async function _importWorkouts(
     }
   }
 
-  // Create exercises that don't exist yet
+  // Create exercises that don't exist yet. They only anchor imported
+  // set_logs, so they're born archived and never appear in the day tabs.
   const defaultDayId = dayByIndex.get(0)!
   let nextIndex = exerciseRows.length
   for (const name of allNames) {
     if (!exerciseByName.has(name)) {
       const exId = uuid()
       await db.execute(
-        `INSERT OR IGNORE INTO exercises (id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave) VALUES (?, ?, ?, ?, ?, 'acc', 0, 0, 0, '', 0)`,
+        `INSERT OR IGNORE INTO exercises (id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave, archived_at) VALUES (?, ?, ?, ?, ?, 'acc', 0, 0, 0, '', 0, datetime('now'))`,
         [exId, defaultDayId, nextIndex, name.toLowerCase().replace(/\s+/g, '_'), name],
       )
       exerciseByName.set(name, exId)

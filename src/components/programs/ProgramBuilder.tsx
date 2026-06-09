@@ -39,6 +39,7 @@ interface ExRow {
 export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: ProgramBuilderProps) {
   const [days, setDays] = useState<DayRow[]>([])
   const [exercises, setExercises] = useState<Map<string, ExRow[]>>(new Map())
+  const [archivedExercises, setArchivedExercises] = useState<Map<string, ExRow[]>>(new Map())
   const [selectedDay, setSelectedDay] = useState(0)
   const [editingExercise, setEditingExercise] = useState<{ dayId: string; exercise?: ExRow } | null>(null)
   const [editingDay, setEditingDay] = useState<string | null>(null)
@@ -60,15 +61,24 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
     setDays(dayRows)
 
     const exMap = new Map<string, ExRow[]>()
+    const archivedMap = new Map<string, ExRow[]>()
     for (const day of dayRows) {
       const exRows = await db.select<ExRow[]>(
         `SELECT id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave
-         FROM exercises WHERE day_id = ? ORDER BY exercise_index`,
+         FROM exercises WHERE day_id = ? AND archived_at IS NULL ORDER BY exercise_index`,
         [day.id],
       )
       exMap.set(day.id, exRows)
+
+      const archivedRows = await db.select<ExRow[]>(
+        `SELECT id, day_id, exercise_index, exercise_key, name, category, sets, reps, default_weight, note, is_wave
+         FROM exercises WHERE day_id = ? AND archived_at IS NOT NULL ORDER BY name`,
+        [day.id],
+      )
+      archivedMap.set(day.id, archivedRows)
     }
     setExercises(exMap)
+    setArchivedExercises(archivedMap)
   }, [programId])
 
   useEffect(() => {
@@ -77,6 +87,7 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
 
   const currentDay = days[selectedDay]
   const currentExercises = currentDay ? exercises.get(currentDay.id) ?? [] : []
+  const currentArchived = currentDay ? archivedExercises.get(currentDay.id) ?? [] : []
 
   async function handleAddDay() {
     const db = await getDb()
@@ -184,15 +195,40 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
     setPendingDeleteExercise({ id: exerciseId, dayId, name: ex?.name || 'this exercise', logCount: logs[0]?.cnt ?? 0 })
   }
 
-  async function handleDeleteExercise(exerciseId: string, dayId: string) {
+  async function handleArchiveExercise(exerciseId: string, dayId: string) {
     const db = await getDb()
     const remaining = (exercises.get(dayId) ?? []).filter((e) => e.id !== exerciseId)
     await withWriteLock(async () => {
-      await db.execute(`DELETE FROM exercises WHERE id = ?`, [exerciseId])
+      await db.execute(`UPDATE exercises SET archived_at = datetime('now') WHERE id = ?`, [exerciseId])
       for (let i = 0; i < remaining.length; i++) {
         await db.execute(`UPDATE exercises SET exercise_index = ? WHERE id = ?`, [i, remaining[i].id])
       }
     })
+    await loadProgram()
+  }
+
+  async function handleRestoreExercise(exerciseId: string, dayId: string) {
+    const db = await getDb()
+    const nextIndex = (exercises.get(dayId) ?? []).length
+    await db.execute(
+      `UPDATE exercises SET archived_at = NULL, exercise_index = ? WHERE id = ?`,
+      [nextIndex, exerciseId],
+    )
+    await loadProgram()
+  }
+
+  async function handleMoveDay(direction: -1 | 1) {
+    if (!currentDay) return
+    const newIdx = selectedDay + direction
+    if (newIdx < 0 || newIdx >= days.length) return
+
+    const db = await getDb()
+    const other = days[newIdx]
+    await withWriteLock(async () => {
+      await db.execute(`UPDATE days SET day_index = ? WHERE id = ?`, [newIdx, currentDay.id])
+      await db.execute(`UPDATE days SET day_index = ? WHERE id = ?`, [selectedDay, other.id])
+    })
+    setSelectedDay(newIdx)
     await loadProgram()
   }
 
@@ -294,6 +330,26 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
                 {currentDay.focus && <div className="text-[16px] text-dim mt-0.5">{currentDay.focus}</div>}
               </div>
               <div className="flex gap-1">
+                {days.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => handleMoveDay(-1)}
+                      disabled={selectedDay === 0}
+                      aria-label="Move day earlier"
+                      className="text-[16px] text-muted bg-transparent border border-border rounded px-3 py-2 min-w-[44px] min-h-[44px] cursor-pointer disabled:opacity-20 active:text-bright"
+                    >
+                      &#9664;
+                    </button>
+                    <button
+                      onClick={() => handleMoveDay(1)}
+                      disabled={selectedDay === days.length - 1}
+                      aria-label="Move day later"
+                      className="text-[16px] text-muted bg-transparent border border-border rounded px-3 py-2 min-w-[44px] min-h-[44px] cursor-pointer disabled:opacity-20 active:text-bright"
+                    >
+                      &#9654;
+                    </button>
+                  </>
+                )}
                 <button
                   onClick={() => { setEditingDay(currentDay.id); setDayEditValue({ name: currentDay.name, subtitle: currentDay.subtitle, focus: currentDay.focus }) }}
                   className="text-[16px] text-muted bg-transparent border border-border rounded px-3 py-2 min-h-[44px] cursor-pointer active:text-bright"
@@ -383,6 +439,24 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
               + Add Exercise
             </button>
           )}
+
+          {/* Archived exercises */}
+          {currentArchived.length > 0 && (
+            <div className="pt-3">
+              <div className="text-[14px] text-dim font-semibold tracking-wider mb-1.5">ARCHIVED</div>
+              {currentArchived.map((ex) => (
+                <div key={ex.id} className="flex items-center justify-between gap-2 p-2.5 mb-1.5 bg-card/50 border border-border rounded-lg">
+                  <span className="text-[17px] text-muted truncate">{ex.name}</span>
+                  <button
+                    onClick={() => handleRestoreExercise(ex.id, currentDay.id)}
+                    className="text-[16px] text-accent bg-transparent border border-border rounded px-3 py-1.5 min-h-[44px] cursor-pointer shrink-0 hover:border-accent active:border-accent"
+                  >
+                    Restore
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -401,16 +475,20 @@ export function ProgramBuilder({ programId, onBrowseTemplates, onCreateNew }: Pr
       )}
       </AnimatePresence>
 
-      {/* Confirm delete exercise */}
+      {/* Confirm archive exercise */}
       <AnimatePresence>
       {pendingDeleteExercise && (
         <ConfirmModal
-          title="Delete Exercise?"
-          message={`Delete "${pendingDeleteExercise.name}"?`}
-          detail={pendingDeleteExercise.logCount > 0 ? `This will also delete ${pendingDeleteExercise.logCount} set log(s) and all associated data.` : undefined}
-          confirmLabel="Delete"
+          title="Remove Exercise?"
+          message={`Remove "${pendingDeleteExercise.name}" from this day?`}
+          detail={
+            pendingDeleteExercise.logCount > 0
+              ? `Your ${pendingDeleteExercise.logCount} logged set(s) are kept. Restore it anytime from the Archived section.`
+              : 'You can restore it anytime from the Archived section.'
+          }
+          confirmLabel="Remove"
           danger
-          onConfirm={() => { handleDeleteExercise(pendingDeleteExercise.id, pendingDeleteExercise.dayId); setPendingDeleteExercise(null) }}
+          onConfirm={() => { handleArchiveExercise(pendingDeleteExercise.id, pendingDeleteExercise.dayId); setPendingDeleteExercise(null) }}
           onCancel={() => setPendingDeleteExercise(null)}
         />
       )}

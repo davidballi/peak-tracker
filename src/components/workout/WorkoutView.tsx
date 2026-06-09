@@ -7,6 +7,7 @@ import { useNotes } from '../../hooks/useNotes'
 import { useSettings } from '../../hooks/useSettings'
 import { getDb } from '../../lib/db'
 import { hapticMedium } from '../../lib/haptics'
+import { adoptedDefaultWeight } from '../../lib/default-weight'
 import { DayTabs } from './DayTabs'
 import { ProgressBar } from './ProgressBar'
 import { ExerciseCard, getExerciseTotalSets } from './ExerciseCard'
@@ -29,7 +30,8 @@ interface WorkoutViewProps {
   onReload: () => void
   onAdvanceWeek: () => void
   onAdvanceBlock: () => void
-  onDeleteExercise: (exerciseId: string, dayId: string) => Promise<void>
+  onArchiveExercise: (exerciseId: string, dayId: string) => Promise<void>
+  onSetDefaultWeight: (exerciseId: string, weight: number) => Promise<void>
 }
 
 export function WorkoutView({
@@ -46,7 +48,8 @@ export function WorkoutView({
   onReload,
   onAdvanceWeek,
   onAdvanceBlock,
-  onDeleteExercise,
+  onArchiveExercise,
+  onSetDefaultWeight,
 }: WorkoutViewProps) {
   const { settings } = useSettings()
 
@@ -81,21 +84,21 @@ export function WorkoutView({
     exerciseName?: string
   } | null>(null)
 
-  // Delete exercise confirmation
-  const [pendingDelete, setPendingDelete] = useState<{
+  // Archive exercise confirmation
+  const [pendingArchive, setPendingArchive] = useState<{
     id: string
     dayId: string
     name: string
     logCount: number
   } | null>(null)
 
-  const confirmDeleteExercise = useCallback(async (exerciseId: string, exerciseName: string) => {
+  const confirmArchiveExercise = useCallback(async (exerciseId: string, exerciseName: string) => {
     const db = await getDb()
     const logs = await db.select<Array<{ cnt: number }>>(
       `SELECT COUNT(*) as cnt FROM set_logs WHERE exercise_id = ?`,
       [exerciseId],
     )
-    setPendingDelete({ id: exerciseId, dayId: day.id, name: exerciseName, logCount: logs[0]?.cnt ?? 0 })
+    setPendingArchive({ id: exerciseId, dayId: day.id, name: exerciseName, logCount: logs[0]?.cnt ?? 0 })
   }, [day.id])
 
   // Compute completion percentage
@@ -121,6 +124,21 @@ export function WorkoutView({
       upsertSetLog(exerciseId, setIndex, 'reps', value)
     },
     [upsertSetLog],
+  )
+
+  // Completing an aux set at a new weight makes that weight the exercise's
+  // default, so next week/block prefills with what was actually lifted
+  const handleToggleComplete = useCallback(
+    (exerciseId: string, setIndex: number, prefillWeight?: number, prefillReps?: number) => {
+      const exercise = day.exercises.find((e) => e.id === exerciseId)
+      const log = getSetLog(exerciseId, setIndex)
+      toggleComplete(exerciseId, setIndex, prefillWeight, prefillReps)
+      if (exercise) {
+        const newDefault = adoptedDefaultWeight(exercise, log, prefillWeight)
+        if (newDefault !== null) onSetDefaultWeight(exerciseId, newDefault)
+      }
+    },
+    [day.exercises, getSetLog, toggleComplete, onSetDefaultWeight],
   )
 
   const loadPreviousNotesForModal = useCallback(async () => {
@@ -211,9 +229,9 @@ export function WorkoutView({
             availablePlates={settings.availablePlates}
             onWeightChange={handleWeightChange}
             onRepsChange={handleRepsChange}
-            onToggleComplete={toggleComplete}
+            onToggleComplete={handleToggleComplete}
             onClearSet={clearSet}
-            onDelete={() => confirmDeleteExercise(ex.id, ex.name)}
+            onDelete={() => confirmArchiveExercise(ex.id, ex.name)}
             exerciseNote={exerciseNotes[ex.id]}
             onNoteClick={() =>
               setNoteModal({ type: 'exercise', exerciseId: ex.id, exerciseName: ex.name })
@@ -280,15 +298,19 @@ export function WorkoutView({
       )}
       </AnimatePresence>
 
-      {pendingDelete && (
+      {pendingArchive && (
         <ConfirmModal
-          title="Delete Exercise"
-          message={`Remove "${pendingDelete.name}" from this day?`}
-          detail={pendingDelete.logCount > 0 ? `This will also delete ${pendingDelete.logCount} logged set(s).` : undefined}
-          confirmLabel="Delete"
+          title="Remove Exercise"
+          message={`Remove "${pendingArchive.name}" from this day?`}
+          detail={
+            pendingArchive.logCount > 0
+              ? `Your ${pendingArchive.logCount} logged set(s) are kept. Restore it anytime from the Programs tab.`
+              : 'You can restore it anytime from the Programs tab.'
+          }
+          confirmLabel="Remove"
           danger
-          onConfirm={() => { onDeleteExercise(pendingDelete.id, pendingDelete.dayId); setPendingDelete(null) }}
-          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => { onArchiveExercise(pendingArchive.id, pendingArchive.dayId); setPendingArchive(null) }}
+          onCancel={() => setPendingArchive(null)}
         />
       )}
 

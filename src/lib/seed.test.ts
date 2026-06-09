@@ -27,6 +27,18 @@ describe('dedupeForkedExercises', () => {
     expect(executes).toEqual([])
   })
 
+  it('ignores archived exercises entirely', async () => {
+    const { db } = fakeDb([[]])
+    await dedupeForkedExercises(db)
+
+    // Archived exercises may legitimately share (day_id, exercise_index) with
+    // active ones — they must be neither dupe candidates nor keepers.
+    const [sql] = (db.select as ReturnType<typeof vi.fn>).mock.calls[0] as [string]
+    expect(sql).toContain('e.archived_at IS NULL')
+    expect(sql).toContain('e2.archived_at IS NULL')
+    expect(sql).toContain('e3.archived_at IS NULL')
+  })
+
   it('re-points user data to the kept exercise instead of deleting it', async () => {
     const { executes, db } = fakeDb([
       [{ dupe_id: 'dupe-1', keep_id: 'keep-1' }], // duplicate exercises

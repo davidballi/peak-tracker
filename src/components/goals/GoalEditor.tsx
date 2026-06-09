@@ -31,7 +31,7 @@ export function GoalEditor({ programId, editingGoal, onSave, onUpdate, onClose }
       const rows = await db.select<ExRow[]>(
         `SELECT e.id, e.name FROM exercises e
          JOIN days d ON e.day_id = d.id
-         WHERE d.program_id = ?
+         WHERE d.program_id = ? AND e.archived_at IS NULL
          ORDER BY d.day_index, e.exercise_index`,
         [programId],
       )

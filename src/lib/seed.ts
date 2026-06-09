@@ -364,15 +364,21 @@ async function cleanupDuplicateTemplates(db: Awaited<ReturnType<typeof getDb>>):
  * would block the delete.
  */
 export async function dedupeForkedExercises(db: Awaited<ReturnType<typeof getDb>>): Promise<void> {
+  // Archived exercises may legitimately share (day_id, exercise_index) with
+  // active ones, so they are excluded as both dupe candidates and keepers.
   const dupeExercises = await db.select<Array<{ dupe_id: string; keep_id: string }>>(
     `SELECT e.id AS dupe_id,
             (SELECT e2.id FROM exercises e2
               WHERE e2.day_id = e.day_id AND e2.exercise_index = e.exercise_index
+                AND e2.archived_at IS NULL
               ORDER BY e2.rowid LIMIT 1) AS keep_id
      FROM exercises e
-     WHERE e.rowid NOT IN (
-       SELECT MIN(e3.rowid) FROM exercises e3 GROUP BY e3.day_id, e3.exercise_index
-     )`,
+     WHERE e.archived_at IS NULL
+       AND e.rowid NOT IN (
+         SELECT MIN(e3.rowid) FROM exercises e3
+         WHERE e3.archived_at IS NULL
+         GROUP BY e3.day_id, e3.exercise_index
+       )`,
   )
 
   for (const { dupe_id: dupeId, keep_id: keepId } of dupeExercises) {

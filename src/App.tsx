@@ -193,7 +193,7 @@ function MainApp({ programId }: { programId: string }) {
   const { currentView } = useAppStore()
   const setActiveProgramId = useAppStore((s) => s.setActiveProgramId)
   const bumpDataVersion = useAppStore((s) => s.bumpDataVersion)
-  const { program, loading, reload, setCurrentDay, setCurrentWeek, deleteExercise } = useProgram(programId)
+  const { program, loading, reload, setCurrentDay, setCurrentWeek, archiveExercise, setDefaultWeight } = useProgram(programId)
   const [showSettings, setShowSettings] = useState(false)
   const { settings } = useSettings()
 
@@ -328,7 +328,8 @@ function MainApp({ programId }: { programId: string }) {
             onReload={handleAdvance}
             onAdvanceWeek={handleAdvanceWeek}
             onAdvanceBlock={handleAdvanceBlock}
-            onDeleteExercise={deleteExercise}
+            onArchiveExercise={archiveExercise}
+            onSetDefaultWeight={setDefaultWeight}
           />
         )
 
