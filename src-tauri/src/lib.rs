@@ -56,6 +56,12 @@ pub fn run() {
             sql: include_str!("../migrations/008_archive_exercises.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 9,
+            description: "revise_wave_plan",
+            sql: include_str!("../migrations/009_revise_wave_plan.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
