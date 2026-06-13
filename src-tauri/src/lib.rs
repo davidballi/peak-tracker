@@ -62,6 +62,12 @@ pub fn run() {
             sql: include_str!("../migrations/009_revise_wave_plan.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 10,
+            description: "complete_box_jump_pairing",
+            sql: include_str!("../migrations/010_complete_box_jump_pairing.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
