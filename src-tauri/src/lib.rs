@@ -80,6 +80,12 @@ pub fn run() {
             sql: include_str!("../migrations/012_add_landmine_press.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 13,
+            description: "revise_biceps_work",
+            sql: include_str!("../migrations/013_revise_biceps_work.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
