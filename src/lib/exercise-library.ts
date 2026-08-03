@@ -239,6 +239,16 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
 
   // ── Shoulder Accessories (category: 'acc') ───────────────────────────
   {
+    key: 'landmine_press',
+    name: 'Single-Arm Landmine Press',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 45,
+    waveEligible: false,
+    muscles: ['shoulders', 'chest', 'core'],
+  },
+  {
     key: 'lat_raise',
     name: 'Lateral Raise',
     category: 'acc',

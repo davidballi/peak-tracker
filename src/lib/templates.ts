@@ -90,6 +90,7 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
           },
         },
         { id: 'hang_leg_raise', name: 'Hanging Leg Raise', category: 'ss', sets: 4, reps: 10, defaultWeight: 0, note: 'Superset w/ OHP. Trunk control.' },
+        { id: 'landmine_press', name: 'Single-Arm Landmine Press', category: 'acc', sets: 3, reps: 10, defaultWeight: 45, note: 'Each arm. Standing - resist the trunk rotation. Weight is the plate load.' },
         { id: 'copenhagen', name: 'Copenhagen Plank', category: 'acc', sets: 3, reps: 1, defaultWeight: 0, note: '30s each side. Adductor - start knee-supported, progress to full.' },
         { id: 'lat_raise', name: 'Lateral Raise', category: 'acc', sets: 3, reps: 12, defaultWeight: 22.5, note: '' },
         { id: 'bicep_curl', name: 'Bicep Curl', category: 'acc', sets: 3, reps: 10, defaultWeight: 27.5, note: '' },

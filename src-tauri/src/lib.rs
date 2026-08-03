@@ -74,6 +74,12 @@ pub fn run() {
             sql: include_str!("../migrations/011_knee_resilience_revision.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 12,
+            description: "add_landmine_press",
+            sql: include_str!("../migrations/012_add_landmine_press.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
