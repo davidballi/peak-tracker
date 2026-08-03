@@ -68,6 +68,12 @@ pub fn run() {
             sql: include_str!("../migrations/010_complete_box_jump_pairing.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 11,
+            description: "knee_resilience_revision",
+            sql: include_str!("../migrations/011_knee_resilience_revision.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

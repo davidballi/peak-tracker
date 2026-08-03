@@ -18,25 +18,26 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
       exercises: [
         { id: 'db_snatch', name: 'DB Snatch (each arm)', category: 'tech', sets: 3, reps: 3, defaultWeight: 55, note: 'Explosive from floor. CNS primer.' },
         {
-          id: 'squat', name: 'Back Squat', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: '', isWave: true,
+          id: 'squat', name: 'Back Squat', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: 'Parallel depth this cycle - stop at ~90 deg knee flexion. Control the descent.', isWave: true,
           wave: {
             warmup: [{ reps: 5, pct: 0.40 }, { reps: 3, pct: 0.55 }],
             weeks: [
               { label: 'Wk1 (5s)', sets: [{ reps: 5, pct: 0.70 }, { reps: 5, pct: 0.75 }, { reps: 3, pct: 0.80 }, { reps: 8, pct: 0.70, backoff: true }] },
               { label: 'Wk2 (4s)', sets: [{ reps: 4, pct: 0.75 }, { reps: 4, pct: 0.80 }, { reps: 4, pct: 0.825 }, { reps: 6, pct: 0.75, backoff: true }] },
-              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 2, pct: 0.85 }, { reps: 2, pct: 0.90 }, { reps: 5, pct: 0.80, backoff: true }] },
+              { label: 'Wk3 (3s)', sets: [{ reps: 3, pct: 0.80 }, { reps: 2, pct: 0.85 }, { reps: 2, pct: 0.875 }, { reps: 5, pct: 0.80, backoff: true }] },
               { label: 'Wk4 (deload)', sets: [{ reps: 5, pct: 0.40 }, { reps: 5, pct: 0.50 }, { reps: 5, pct: 0.60 }, { reps: 1, pct: 0.75 }] },
             ],
             baseMax: 325,
           },
         },
-        { id: 'box_jump', name: 'Box Jump', category: 'ss', sets: 3, reps: 5, defaultWeight: 0, note: 'Superset w/ squat. Jump between squat sets, reset each rep.' },
+        { id: 'side_plank_abd', name: 'Side Plank w/ Hip Abduction', category: 'ss', sets: 3, reps: 1, defaultWeight: 0, note: '30s each side. Superset w/ squat. Top leg lifts and holds - glute med.' },
         { id: 'rdl', name: 'Romanian Deadlift', category: 'acc', sets: 3, reps: 8, defaultWeight: 225, note: 'Control the eccentric.' },
-        { id: 'pistol_squat', name: 'Pistol Squat (each leg)', category: 'ss', sets: 2, reps: 8, defaultWeight: 0, note: 'Superset w/ RDL.' },
-        { id: 'leg_ext', name: 'Leg Extension', category: 'acc', sets: 3, reps: 12, defaultWeight: 155, note: 'Slow eccentric.' },
+        { id: 'bulgarian_split_squat', name: 'Bulgarian Split Squat', category: 'acc', sets: 3, reps: 8, defaultWeight: 40, note: 'Each leg. Front shin near vertical, moderate depth. Control the descent.' },
+        { id: 'leg_ext', name: 'Leg Extension', category: 'acc', sets: 3, reps: 12, defaultWeight: 100, note: 'Slow 3s eccentric. Partial range - stop short of lockout.' },
         { id: 'leg_curl', name: 'Prone Leg Curl', category: 'acc', sets: 3, reps: 12, defaultWeight: 110, note: '' },
         { id: 'calf_raise', name: 'Calf Raise', category: 'acc', sets: 2, reps: 20, defaultWeight: 185, note: '' },
         { id: 'dorsi', name: 'Toe Dorsiflexion', category: 'acc', sets: 2, reps: 20, defaultWeight: 0, note: '' },
+        { id: 'spanish_squat_iso', name: 'Spanish Squat (Isometric)', category: 'acc', sets: 5, reps: 1, defaultWeight: 0, note: '45s hold @ ~70% effort. Quad tendon - do before squats if it barks.' },
       ],
     },
     {
@@ -74,7 +75,7 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
       subtitle: 'Athletic / Dynamic',
       focus: 'OHP + Unilateral + Core',
       exercises: [
-        { id: 'hang_clean', name: 'Hang Power Clean', category: 'tech', sets: 4, reps: 3, defaultWeight: 150, note: 'Fast & aggressive. Sub KB swings if needed.' },
+        { id: 'kettlebell_swing', name: 'Kettlebell Swing', category: 'tech', sets: 4, reps: 8, defaultWeight: 70, note: 'Hip hinge power. No catch - protects the knee.' },
         {
           id: 'ohp', name: 'Overhead Press', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: '', isWave: true,
           wave: {
@@ -89,11 +90,12 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
           },
         },
         { id: 'hang_leg_raise', name: 'Hanging Leg Raise', category: 'ss', sets: 4, reps: 10, defaultWeight: 0, note: 'Superset w/ OHP. Trunk control.' },
-        { id: 'front_squat', name: 'Front Squat', category: 'acc', sets: 3, reps: 6, defaultWeight: 195, note: 'Trunk control + quad emphasis.' },
-        { id: 'lat_raise', name: 'Lateral Raise', category: 'ss', sets: 3, reps: 12, defaultWeight: 22.5, note: 'Superset w/ front squat.' },
+        { id: 'copenhagen', name: 'Copenhagen Plank', category: 'acc', sets: 3, reps: 1, defaultWeight: 0, note: '30s each side. Adductor - start knee-supported, progress to full.' },
+        { id: 'lat_raise', name: 'Lateral Raise', category: 'acc', sets: 3, reps: 12, defaultWeight: 22.5, note: '' },
         { id: 'bicep_curl', name: 'Bicep Curl', category: 'acc', sets: 3, reps: 10, defaultWeight: 27.5, note: '' },
         { id: 'hammer_curl', name: 'Hammer Curl', category: 'acc', sets: 3, reps: 10, defaultWeight: 27.5, note: '' },
-        { id: 'farmer_carry', name: "Farmer's Carry", category: 'acc', sets: 3, reps: 1, defaultWeight: 70, note: '40 yards each. Each hand.' },
+        { id: 'farmer_carry', name: 'Suitcase Carry (each side)', category: 'acc', sets: 3, reps: 1, defaultWeight: 70, note: '40 yards each side. Unilateral - resist the side-bend.' },
+        { id: 'side_lying_abd', name: 'Side-Lying Hip Abduction', category: 'acc', sets: 3, reps: 15, defaultWeight: 0, note: 'Each side. Slow, no hip rotation - glute med.' },
       ],
     },
     {
@@ -102,7 +104,7 @@ export const PEAK_STRENGTH_TEMPLATE: ProgramTemplate = {
       subtitle: 'Upper Hypertrophy + Pull',
       focus: 'Deadlift + Back/Bicep',
       exercises: [
-        { id: 'trap_jump', name: 'Trap Bar Jump / DB Snatch', category: 'tech', sets: 3, reps: 3, defaultWeight: 0, note: 'Explosive intent. Moderate load.' },
+        { id: 'trap_jump', name: 'Trap Bar Pull (from blocks)', category: 'tech', sets: 3, reps: 3, defaultWeight: 0, note: 'Explosive intent, no jump. Moderate load.' },
         {
           id: 'deadlift', name: 'Deadlift', category: 'absolute', sets: 0, reps: 0, defaultWeight: 0, note: '', isWave: true,
           wave: {
