@@ -1,12 +1,12 @@
 import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { v4 as uuid } from 'uuid'
-import { getDb, withWriteLock } from '../../lib/db'
-import { estimatedOneRepMax, roundToNearest5, validateWeight } from '../../lib/calc'
+import { getDb } from '../../lib/db'
+import { validateWeight } from '../../lib/calc'
+import { advanceBlock } from '../../lib/blocks'
 import { ConfirmModal } from '../ui/ConfirmModal'
 import type { ExerciseWithWave } from '../../types/program'
 
-const MAX_TM_INCREASE_RATIO = 1.2
 const WEEK_LABELS = ['Wk1 (5s)', 'Wk2 (4s)', 'Wk3 (3s)', 'Wk4 (deload)']
 
 interface WorkoutControlsProps {
@@ -24,7 +24,7 @@ export function WorkoutControls({
   programId,
   blockNum,
   currentWeek,
-  cycle: _cycle,
+  cycle,
   waveExercises,
   getEffectiveMax,
   onWeekChange,
@@ -69,51 +69,14 @@ export function WorkoutControls({
         await db.execute(`UPDATE programs SET current_week = ? WHERE id = ?`, [nextWeek, programId])
         onWeekChange(nextWeek)
       } else {
-        await withWriteLock(async () => {
-          for (const ex of waveExercises) {
-            const currentMax = getEffectiveMax(ex.id)
-            let bestE1rm = currentMax
-
-            const rows = await db.select<Array<{ weight: number; reps: number }>>(
-              `SELECT sl.weight, sl.reps FROM set_logs sl
-               JOIN workout_logs wl ON sl.workout_log_id = wl.id
-               WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
-                 AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0
-                 AND sl.is_completed = 1`,
-              [programId, ex.id, blockNum],
-            )
-
-            for (const r of rows) {
-              const e1rm = estimatedOneRepMax(r.weight, r.reps)
-              if (e1rm > bestE1rm) bestE1rm = e1rm
-            }
-
-            let newTm: number
-            if (bestE1rm > currentMax) {
-              const capped = Math.min(bestE1rm, currentMax * MAX_TM_INCREASE_RATIO)
-              newTm = roundToNearest5(capped)
-            } else {
-              newTm = roundToNearest5(currentMax + 5)
-            }
-
-            await db.execute(
-              `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,
-              [uuid(), ex.id, newTm, blockNum + 1],
-            )
-          }
-
-          await db.execute(
-            `UPDATE programs SET block_num = block_num + 1, current_week = 0 WHERE id = ?`,
-            [programId],
-          )
-        })
+        await advanceBlock(programId, blockNum, cycle, waveExercises, getEffectiveMax)
         onAdvance()
       }
     } finally {
       advancingRef.current = false
       setAdvancing(false)
     }
-  }, [currentWeek, programId, blockNum, waveExercises, getEffectiveMax, onAdvance, onWeekChange])
+  }, [currentWeek, programId, blockNum, cycle, waveExercises, getEffectiveMax, onAdvance, onWeekChange])
 
   const handleAdvanceClick = useCallback(() => {
     if (currentWeek >= 3) {
