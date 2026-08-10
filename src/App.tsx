@@ -319,6 +319,7 @@ function MainApp({ programId }: { programId: string }) {
             blockNum={program.blockNum}
             currentWeek={program.currentWeek}
             currentDay={program.currentDay}
+            cycle={program.cycle}
             days={program.days}
             waveExercises={waveExercises}
             getEffectiveMax={getEffectiveMax}

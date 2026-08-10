@@ -8,6 +8,7 @@ interface ProgramData {
   blockNum: number
   currentWeek: number
   currentDay: number
+  cycle: number
   days: DayWithExercises[]
 }
 
@@ -17,6 +18,7 @@ interface ProgramRow {
   block_num: number
   current_week: number
   current_day: number
+  cycle: number
 }
 
 interface DayRow {
@@ -80,7 +82,7 @@ export function useProgram(programId: string) {
     const db = await getDb()
 
     const programs = await db.select<ProgramRow[]>(
-      `SELECT id, name, block_num, current_week, current_day FROM programs WHERE id = ?`,
+      `SELECT id, name, block_num, current_week, current_day, cycle FROM programs WHERE id = ?`,
       [programId],
     )
     if (programs.length === 0) return
@@ -195,6 +197,7 @@ export function useProgram(programId: string) {
       blockNum: p.block_num,
       currentWeek: p.current_week,
       currentDay: p.current_day,
+      cycle: p.cycle,
       days,
     })
     setLoading(false)

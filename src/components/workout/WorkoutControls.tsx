@@ -13,6 +13,7 @@ interface WorkoutControlsProps {
   programId: string
   blockNum: number
   currentWeek: number
+  cycle: number
   waveExercises: ExerciseWithWave[]
   getEffectiveMax: (exerciseId: string) => number
   onWeekChange: (week: number) => void
@@ -23,6 +24,7 @@ export function WorkoutControls({
   programId,
   blockNum,
   currentWeek,
+  cycle: _cycle,
   waveExercises,
   getEffectiveMax,
   onWeekChange,
