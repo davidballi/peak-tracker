@@ -86,6 +86,12 @@ pub fn run() {
             sql: include_str!("../migrations/013_revise_biceps_work.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 14,
+            description: "add_block_cycle",
+            sql: include_str!("../migrations/014_add_block_cycle.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
