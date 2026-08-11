@@ -239,6 +239,16 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
 
   // ── Shoulder Accessories (category: 'acc') ───────────────────────────
   {
+    key: 'landmine_press',
+    name: 'Single-Arm Landmine Press',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 10,
+    defaultWeight: 45,
+    waveEligible: false,
+    muscles: ['shoulders', 'chest', 'core'],
+  },
+  {
     key: 'lat_raise',
     name: 'Lateral Raise',
     category: 'acc',
@@ -341,6 +351,50 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     muscles: ['legs'],
   },
 
+  // ── Hip / Knee Resilience (category: 'acc') ──────────────────────────
+  // Frontal-plane hip work and tendon loading. Hold-style movements follow
+  // the `plank` convention: reps 1, duration lives in the exercise note.
+  {
+    key: 'side_lying_abd',
+    name: 'Side-Lying Hip Abduction',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 15,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+  {
+    key: 'side_plank_abd',
+    name: 'Side Plank w/ Hip Abduction',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 1,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['legs', 'core'],
+  },
+  {
+    key: 'copenhagen',
+    name: 'Copenhagen Plank',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 1,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['legs', 'core'],
+  },
+  {
+    key: 'spanish_squat_iso',
+    name: 'Spanish Squat (Isometric)',
+    category: 'acc',
+    defaultSets: 5,
+    defaultReps: 1,
+    defaultWeight: 0,
+    waveEligible: false,
+    muscles: ['legs'],
+  },
+
   // ── Arm Accessories (category: 'acc') ────────────────────────────────
   {
     key: 'bb_curl',
@@ -349,6 +403,26 @@ export const EXERCISE_LIBRARY: LibraryExercise[] = [
     defaultSets: 3,
     defaultReps: 10,
     defaultWeight: 80,
+    waveEligible: false,
+    muscles: ['arms'],
+  },
+  {
+    key: 'incline_db_curl',
+    name: 'Incline DB Curl',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 20,
+    waveEligible: false,
+    muscles: ['arms'],
+  },
+  {
+    key: 'preacher_curl',
+    name: 'Preacher Curl',
+    category: 'acc',
+    defaultSets: 3,
+    defaultReps: 12,
+    defaultWeight: 50,
     waveEligible: false,
     muscles: ['arms'],
   },

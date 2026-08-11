@@ -17,6 +17,16 @@ export interface AllLiftsData {
 // ~180 days at 1 data point per block/week (~7 days each)
 const ROLLING_WINDOW = 26
 
+/**
+ * Label suffix that disambiguates a re-run of a block (cycle > 0) from its
+ * original run, e.g. cycle 1 -> ' (run 2)'. Cycle-0 data (the common case,
+ * and all pre-rollback history) gets no suffix so existing labels/charts
+ * are unchanged.
+ */
+export function runSuffix(cycle: number): string {
+  return cycle > 0 ? ` (run ${cycle + 1})` : ''
+}
+
 export function addRollingAverage(points: E1rmDataPoint[]): E1rmDataPoint[] {
   return points.map((point, i) => {
     const start = Math.max(0, i - ROLLING_WINDOW + 1)

@@ -29,6 +29,7 @@ describe('buildCsvString', () => {
         started_at: '2026-01-05 10:00:00',
         block_num: 1,
         week_index: 0,
+        cycle: 0,
         day_name: 'Day A',
         exercise_name: 'Bench, Press',
         set_index: 0,
@@ -38,7 +39,26 @@ describe('buildCsvString', () => {
     ])
     const csv = await buildCsvString('prog-1')
     const lines = csv.split('\n')
-    expect(lines[0]).toBe('date,block,week,day,exercise,set,weight,reps,e1rm')
-    expect(lines[1]).toBe('2026-01-05,1,1,Day A,"Bench, Press",1,100,5,117')
+    expect(lines[0]).toBe('date,block,week,cycle,day,exercise,set,weight,reps,e1rm')
+    expect(lines[1]).toBe('2026-01-05,1,1,0,Day A,"Bench, Press",1,100,5,117')
+  })
+
+  it('includes the cycle for a re-run block session', async () => {
+    selectMock.mockResolvedValueOnce([
+      {
+        started_at: '2026-02-10 10:00:00',
+        block_num: 42,
+        week_index: 1,
+        cycle: 1,
+        day_name: 'Day B',
+        exercise_name: 'Squat',
+        set_index: 0,
+        weight: 225,
+        reps: 5,
+      },
+    ])
+    const csv = await buildCsvString('prog-1')
+    const lines = csv.split('\n')
+    expect(lines[1]).toBe('2026-02-10,42,2,1,Day B,Squat,1,225,5,263')
   })
 })

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { estimatedOneRepMax } from '../../lib/calc'
+import { runSuffix } from '../../lib/history-stats'
 import type { SetLogEntry } from '../../hooks/useHistory'
 
 interface SetLogListProps {
@@ -16,16 +17,17 @@ export function SetLogList({ entries, onDelete }: SetLogListProps) {
     )
   }
 
-  // Group by block/week
+  // Group by block/week/cycle (a re-run block gets its own group so it
+  // doesn't interleave with the original run's sets)
   const groups = new Map<string, { label: string; entries: SetLogEntry[] }>()
   for (const e of entries) {
-    const key = `${e.blockNum}_${e.weekIndex}`
+    const key = `${e.blockNum}_${e.weekIndex}_${e.cycle}`
     const existing = groups.get(key)
     if (existing) {
       existing.entries.push(e)
     } else {
       groups.set(key, {
-        label: `Block ${e.blockNum} · Week ${e.weekIndex + 1}`,
+        label: `Block ${e.blockNum} · Week ${e.weekIndex + 1}${runSuffix(e.cycle)}`,
         entries: [e],
       })
     }

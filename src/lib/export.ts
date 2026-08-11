@@ -5,6 +5,7 @@ interface CsvRow {
   started_at: string
   block_num: number
   week_index: number
+  cycle: number
   day_name: string
   exercise_name: string
   set_index: number
@@ -27,6 +28,7 @@ export async function buildCsvString(programId: string): Promise<string> {
        wl.started_at,
        wl.block_num,
        wl.week_index,
+       wl.cycle,
        d.name AS day_name,
        e.name AS exercise_name,
        sl.set_index,
@@ -44,7 +46,7 @@ export async function buildCsvString(programId: string): Promise<string> {
     [programId],
   )
 
-  const header = 'date,block,week,day,exercise,set,weight,reps,e1rm'
+  const header = 'date,block,week,cycle,day,exercise,set,weight,reps,e1rm'
   const lines = rows.map((r) => {
     const date = r.started_at.split(/[T ]/)[0]
     const week = r.week_index + 1
@@ -54,6 +56,7 @@ export async function buildCsvString(programId: string): Promise<string> {
       csvEscape(date),
       r.block_num,
       week,
+      r.cycle,
       csvEscape(r.day_name),
       csvEscape(r.exercise_name),
       set,
@@ -81,6 +84,7 @@ interface WorkoutLogRow {
   day_id: string
   block_num: number
   week_index: number
+  cycle: number
   started_at: string
 }
 
@@ -120,7 +124,7 @@ export async function buildJsonBackup(programId: string): Promise<string> {
   const db = await getDb()
 
   const workoutLogs = await db.select<WorkoutLogRow[]>(
-    `SELECT id, day_id, block_num, week_index, started_at
+    `SELECT id, day_id, block_num, week_index, cycle, started_at
      FROM workout_logs
      WHERE program_id = ?
      ORDER BY started_at`,

@@ -62,6 +62,36 @@ pub fn run() {
             sql: include_str!("../migrations/009_revise_wave_plan.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 10,
+            description: "complete_box_jump_pairing",
+            sql: include_str!("../migrations/010_complete_box_jump_pairing.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 11,
+            description: "knee_resilience_revision",
+            sql: include_str!("../migrations/011_knee_resilience_revision.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 12,
+            description: "add_landmine_press",
+            sql: include_str!("../migrations/012_add_landmine_press.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 13,
+            description: "revise_biceps_work",
+            sql: include_str!("../migrations/013_revise_biceps_work.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 14,
+            description: "add_block_cycle",
+            sql: include_str!("../migrations/014_add_block_cycle.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

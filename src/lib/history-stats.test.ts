@@ -3,6 +3,7 @@ import {
   addRollingAverage,
   e1rmChangeFromPreviousBlock,
   mergeLiftSeries,
+  runSuffix,
   type E1rmDataPoint,
   type AllLiftsData,
 } from './history-stats'
@@ -51,6 +52,20 @@ describe('e1rmChangeFromPreviousBlock', () => {
   it('only treats the trailing run of the current block as current', () => {
     const points = [point(2, 0, 100), point(1, 0, 140), point(1, 1, 150)]
     expect(e1rmChangeFromPreviousBlock(points)).toBe(50)
+  })
+})
+
+describe('runSuffix', () => {
+  it('returns empty string for cycle 0 (existing data, unaffected users)', () => {
+    expect(runSuffix(0)).toBe('')
+  })
+
+  it('labels the second run as "run 2" for cycle 1', () => {
+    expect(runSuffix(1)).toBe(' (run 2)')
+  })
+
+  it('labels the third run as "run 3" for cycle 2', () => {
+    expect(runSuffix(2)).toBe(' (run 3)')
   })
 })
 

@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { AnimatePresence } from 'framer-motion'
-import { v4 as uuid } from 'uuid'
 import { useAppStore } from './store/appStore'
-import { getDb, withWriteLock } from './lib/db'
+import { getDb } from './lib/db'
 import { seedIfNeeded, forkTemplate } from './lib/seed'
-import { estimatedOneRepMax, roundToNearest5 } from './lib/calc'
 import { PEAK_STRENGTH_TEMPLATE } from './lib/templates'
+import { advanceBlock } from './lib/blocks'
 import { useProgram } from './hooks/useProgram'
 import { useTrainingMaxes } from './hooks/useTrainingMaxes'
 import { BottomNav } from './components/layout/BottomNav'
@@ -244,47 +243,7 @@ function MainApp({ programId }: { programId: string }) {
 
   const handleAdvanceBlock = useCallback(async () => {
     if (!program) return
-    await withWriteLock(async () => {
-      const db = await getDb()
-
-      for (const ex of waveExercises) {
-        const currentMax = getEffectiveMax(ex.id)
-        let bestE1rm = currentMax
-
-        const rows = await db.select<Array<{ weight: number; reps: number }>>(
-          `SELECT sl.weight, sl.reps FROM set_logs sl
-           JOIN workout_logs wl ON sl.workout_log_id = wl.id
-           WHERE wl.program_id = ? AND sl.exercise_id = ? AND wl.block_num = ? AND wl.week_index = 2
-             AND sl.weight IS NOT NULL AND sl.reps IS NOT NULL AND sl.weight > 0 AND sl.reps > 0
-             AND sl.is_completed = 1`,
-          [programId, ex.id, program.blockNum],
-        )
-
-        for (const r of rows) {
-          const e1rm = estimatedOneRepMax(r.weight, r.reps)
-          if (e1rm > bestE1rm) bestE1rm = e1rm
-        }
-
-        let newTm: number
-        if (bestE1rm > currentMax) {
-          const capped = Math.min(bestE1rm, currentMax * 1.2)
-          newTm = roundToNearest5(capped)
-        } else {
-          newTm = roundToNearest5(currentMax + 5)
-        }
-
-        await db.execute(
-          `INSERT INTO training_maxes (id, exercise_id, value, block_num, source) VALUES (?, ?, ?, ?, 'auto')`,
-          [uuid(), ex.id, newTm, program.blockNum + 1],
-        )
-      }
-
-      await db.execute(
-        `UPDATE programs SET block_num = block_num + 1, current_week = 0, current_day = 0 WHERE id = ?`,
-        [programId],
-      )
-    })
-
+    await advanceBlock(programId, program.blockNum, program.cycle, waveExercises, getEffectiveMax)
     await reload()
     await reloadMaxes()
     bumpDataVersion()
@@ -319,6 +278,7 @@ function MainApp({ programId }: { programId: string }) {
             blockNum={program.blockNum}
             currentWeek={program.currentWeek}
             currentDay={program.currentDay}
+            cycle={program.cycle}
             days={program.days}
             waveExercises={waveExercises}
             getEffectiveMax={getEffectiveMax}

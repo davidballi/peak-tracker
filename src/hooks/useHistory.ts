@@ -6,6 +6,7 @@ import { findMainLiftExerciseId } from '../lib/main-lifts'
 import {
   addRollingAverage,
   e1rmChangeFromPreviousBlock,
+  runSuffix,
   type E1rmDataPoint,
   type AllLiftsData,
 } from '../lib/history-stats'
@@ -28,6 +29,7 @@ export interface SetLogEntry {
   loggedAt: string
   blockNum: number
   weekIndex: number
+  cycle: number
 }
 
 export interface LiftStats {
@@ -46,11 +48,13 @@ interface SetLogRow {
   logged_at: string
   block_num: number
   week_index: number
+  cycle: number
 }
 
 interface E1rmRow {
   block_num: number
   week_index: number
+  cycle: number
   weight: number
   reps: number
 }
@@ -58,6 +62,7 @@ interface E1rmRow {
 interface VolumeRow {
   block_num: number
   week_index: number
+  cycle: number
   volume: number
 }
 
@@ -83,7 +88,7 @@ export function useHistory(programId: string) {
       // Get e1RM data per block/week (chronological order so imported high-block_num
       // data doesn't visually appear after current real data)
       const e1rmRows = await db.select<E1rmRow[]>(
-        `SELECT wl.block_num, wl.week_index, sl.weight, sl.reps
+        `SELECT wl.block_num, wl.week_index, wl.cycle, sl.weight, sl.reps
          FROM set_logs sl
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE sl.exercise_id = ? AND wl.program_id = ?
@@ -93,19 +98,20 @@ export function useHistory(programId: string) {
         [exerciseId, programId],
       )
 
-      // Group by block/week, compute best e1RM per period
-      const grouped = new Map<string, { blockNum: number; weekIndex: number; bestE1rm: number }>()
+      // Group by block/week/cycle (a re-run block keeps its own group so it
+      // doesn't merge into the original run), compute best e1RM per period
+      const grouped = new Map<string, { blockNum: number; weekIndex: number; cycle: number; bestE1rm: number }>()
       for (const r of e1rmRows) {
-        const key = `${r.block_num}_${r.week_index}`
+        const key = `${r.block_num}_${r.week_index}_${r.cycle}`
         const e1rm = estimatedOneRepMax(r.weight, r.reps)
         const existing = grouped.get(key)
         if (!existing || e1rm > existing.bestE1rm) {
-          grouped.set(key, { blockNum: r.block_num, weekIndex: r.week_index, bestE1rm: e1rm })
+          grouped.set(key, { blockNum: r.block_num, weekIndex: r.week_index, cycle: r.cycle, bestE1rm: e1rm })
         }
       }
       const e1rmPoints = addRollingAverage(
         Array.from(grouped.values()).map((g) => ({
-          label: `B${g.blockNum} W${g.weekIndex + 1}`,
+          label: `B${g.blockNum} W${g.weekIndex + 1}${runSuffix(g.cycle)}`,
           e1rm: g.bestE1rm,
           blockNum: g.blockNum,
           weekIndex: g.weekIndex,
@@ -113,21 +119,21 @@ export function useHistory(programId: string) {
       )
       setE1rmData(e1rmPoints)
 
-      // Get volume per block/week (ordered by earliest timestamp in each group)
+      // Get volume per block/week/cycle (ordered by earliest timestamp in each group)
       const volumeRows = await db.select<VolumeRow[]>(
-        `SELECT wl.block_num, wl.week_index, SUM(sl.weight * sl.reps) as volume
+        `SELECT wl.block_num, wl.week_index, wl.cycle, SUM(sl.weight * sl.reps) as volume
          FROM set_logs sl
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE sl.exercise_id = ? AND wl.program_id = ?
            AND sl.weight IS NOT NULL AND sl.weight > 0
            AND sl.reps IS NOT NULL AND sl.reps > 0
-         GROUP BY wl.block_num, wl.week_index
+         GROUP BY wl.block_num, wl.week_index, wl.cycle
          ORDER BY MIN(wl.started_at)`,
         [exerciseId, programId],
       )
       setVolumeData(
         volumeRows.map((r) => ({
-          label: `B${r.block_num} W${r.week_index + 1}`,
+          label: `B${r.block_num} W${r.week_index + 1}${runSuffix(r.cycle)}`,
           volume: Math.round(r.volume),
           blockNum: r.block_num,
           weekIndex: r.week_index,
@@ -137,7 +143,7 @@ export function useHistory(programId: string) {
       // Get set log history (newest first by workout date)
       const logRows = await db.select<SetLogRow[]>(
         `SELECT sl.id, sl.set_index, sl.weight, sl.reps, sl.is_completed, sl.logged_at,
-                wl.block_num, wl.week_index
+                wl.block_num, wl.week_index, wl.cycle
          FROM set_logs sl
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE sl.exercise_id = ? AND wl.program_id = ?
@@ -155,6 +161,7 @@ export function useHistory(programId: string) {
           loggedAt: r.logged_at,
           blockNum: r.block_num,
           weekIndex: r.week_index,
+          cycle: r.cycle,
         })),
       )
 
@@ -186,7 +193,7 @@ export function useHistory(programId: string) {
       if (!exerciseId) continue
 
       const rows = await db.select<Array<E1rmRow & { started_at: string }>>(
-        `SELECT wl.block_num, wl.week_index, wl.started_at, sl.weight, sl.reps
+        `SELECT wl.block_num, wl.week_index, wl.cycle, wl.started_at, sl.weight, sl.reps
          FROM set_logs sl
          JOIN workout_logs wl ON sl.workout_log_id = wl.id
          WHERE sl.exercise_id = ? AND wl.program_id = ?
@@ -196,13 +203,13 @@ export function useHistory(programId: string) {
         [exerciseId, programId],
       )
 
-      const grouped = new Map<string, { blockNum: number; weekIndex: number; bestE1rm: number; startedAt: string }>()
+      const grouped = new Map<string, { blockNum: number; weekIndex: number; cycle: number; bestE1rm: number; startedAt: string }>()
       for (const r of rows) {
-        const key = `${r.block_num}_${r.week_index}`
+        const key = `${r.block_num}_${r.week_index}_${r.cycle}`
         const e1rm = estimatedOneRepMax(r.weight, r.reps)
         const existing = grouped.get(key)
         if (!existing) {
-          grouped.set(key, { blockNum: r.block_num, weekIndex: r.week_index, bestE1rm: e1rm, startedAt: r.started_at })
+          grouped.set(key, { blockNum: r.block_num, weekIndex: r.week_index, cycle: r.cycle, bestE1rm: e1rm, startedAt: r.started_at })
         } else if (e1rm > existing.bestE1rm) {
           // keep the group's earliest startedAt for chronological chart ordering
           existing.bestE1rm = e1rm
@@ -214,7 +221,7 @@ export function useHistory(programId: string) {
         liftName: lift.name,
         color: lift.color,
         data: Array.from(grouped.values()).map((g) => ({
-          label: `B${g.blockNum} W${g.weekIndex + 1}`,
+          label: `B${g.blockNum} W${g.weekIndex + 1}${runSuffix(g.cycle)}`,
           e1rm: g.bestE1rm,
           blockNum: g.blockNum,
           weekIndex: g.weekIndex,

@@ -17,7 +17,7 @@ export function useTrainingMaxes(exercises: ExerciseWithWave[]) {
     for (const ex of waveExercises) {
       // Get the latest training max entry
       const rows = await db.select<Array<{ value: number }>>(
-        `SELECT value FROM training_maxes WHERE exercise_id = ? ORDER BY created_at DESC LIMIT 1`,
+        `SELECT value FROM training_maxes WHERE exercise_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1`,
         [ex.id],
       )
       if (rows.length > 0) {

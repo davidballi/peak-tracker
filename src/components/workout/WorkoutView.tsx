@@ -21,6 +21,7 @@ interface WorkoutViewProps {
   blockNum: number
   currentWeek: number
   currentDay: number
+  cycle: number
   days: DayWithExercises[]
   waveExercises: ExerciseWithWave[]
   getEffectiveMax: (exerciseId: string) => number
@@ -39,6 +40,7 @@ export function WorkoutView({
   blockNum,
   currentWeek,
   currentDay,
+  cycle,
   days,
   waveExercises,
   getEffectiveMax: getEffectiveMaxProp,
@@ -66,7 +68,7 @@ export function WorkoutView({
     toggleComplete,
     clearSet,
     getCompletionPercentage,
-  } = useWorkoutLog(programId, day.id, blockNum, currentWeek)
+  } = useWorkoutLog(programId, day.id, blockNum, currentWeek, cycle)
 
   const {
     exerciseNotes,
@@ -180,6 +182,7 @@ export function WorkoutView({
         programId={programId}
         blockNum={blockNum}
         currentWeek={currentWeek}
+        cycle={cycle}
         waveExercises={waveExercises}
         getEffectiveMax={getEffectiveMaxProp}
         onWeekChange={onWeekChange}

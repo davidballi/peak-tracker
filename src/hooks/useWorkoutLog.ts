@@ -26,6 +26,7 @@ export function useWorkoutLog(
   dayId: string,
   blockNum: number,
   weekIndex: number,
+  cycle: number,
 ) {
   const [workoutLogId, setWorkoutLogId] = useState<string | null>(null)
   const [setLogs, setSetLogs] = useState<Record<string, SetLogState>>({})
@@ -40,8 +41,8 @@ export function useWorkoutLog(
 
       // Check for existing workout log
       const existing = await db.select<Array<{ id: string }>>(
-        `SELECT id FROM workout_logs WHERE program_id = ? AND day_id = ? AND block_num = ? AND week_index = ?`,
-        [programId, dayId, blockNum, weekIndex],
+        `SELECT id FROM workout_logs WHERE program_id = ? AND day_id = ? AND block_num = ? AND week_index = ? AND cycle = ?`,
+        [programId, dayId, blockNum, weekIndex, cycle],
       )
 
       let logId: string
@@ -50,13 +51,13 @@ export function useWorkoutLog(
       } else {
         logId = uuid()
         await db.execute(
-          `INSERT OR IGNORE INTO workout_logs (id, program_id, day_id, block_num, week_index) VALUES (?, ?, ?, ?, ?)`,
-          [logId, programId, dayId, blockNum, weekIndex],
+          `INSERT OR IGNORE INTO workout_logs (id, program_id, day_id, block_num, week_index, cycle) VALUES (?, ?, ?, ?, ?, ?)`,
+          [logId, programId, dayId, blockNum, weekIndex, cycle],
         )
         // Re-fetch in case INSERT OR IGNORE hit a duplicate (StrictMode double-effect race)
         const refetch = await db.select<Array<{ id: string }>>(
-          `SELECT id FROM workout_logs WHERE program_id = ? AND day_id = ? AND block_num = ? AND week_index = ?`,
-          [programId, dayId, blockNum, weekIndex],
+          `SELECT id FROM workout_logs WHERE program_id = ? AND day_id = ? AND block_num = ? AND week_index = ? AND cycle = ?`,
+          [programId, dayId, blockNum, weekIndex, cycle],
         )
         if (refetch.length > 0) logId = refetch[0].id
       }
@@ -102,7 +103,7 @@ export function useWorkoutLog(
       window.removeEventListener('pagehide', flushPendingWrites)
       Object.values(debounceTimers.current).forEach(clearTimeout)
     }
-  }, [programId, dayId, blockNum, weekIndex])
+  }, [programId, dayId, blockNum, weekIndex, cycle])
 
   const getSetLog = useCallback(
     (exerciseId: string, setIndex: number): SetLogState | undefined => {
