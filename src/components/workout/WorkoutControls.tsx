@@ -38,6 +38,7 @@ export function WorkoutControls({
   const [showBlockConfirm, setShowBlockConfirm] = useState(false)
   const [showRollbackConfirm, setShowRollbackConfirm] = useState(false)
   const [rollingBack, setRollingBack] = useState(false)
+  const rollingBackRef = useRef(false)
 
   const handleSaveMax = useCallback(
     async (exerciseId: string) => {
@@ -89,15 +90,17 @@ export function WorkoutControls({
   }, [currentWeek, handleAdvanceWeek])
 
   const handleRollback = useCallback(async () => {
-    if (rollingBack) return
+    if (rollingBackRef.current) return
+    rollingBackRef.current = true
     setRollingBack(true)
     try {
       await rollbackBlock(programId, blockNum, waveExercises, getEffectiveMax)
       onAdvance()
     } finally {
+      rollingBackRef.current = false
       setRollingBack(false)
     }
-  }, [rollingBack, programId, blockNum, waveExercises, getEffectiveMax, onAdvance])
+  }, [programId, blockNum, waveExercises, getEffectiveMax, onAdvance])
 
   return (
     <div className="border-b border-border">
@@ -198,7 +201,7 @@ export function WorkoutControls({
               {/* Advance button */}
               <button
                 onClick={handleAdvanceClick}
-                disabled={advancing}
+                disabled={advancing || rollingBack}
                 className="w-full py-2 border-none rounded-md cursor-pointer bg-success text-white text-[15px] font-semibold disabled:opacity-50"
               >
                 {currentWeek < 3 ? `Advance to Week ${currentWeek + 2}` : 'Start New Block →'}
@@ -207,7 +210,7 @@ export function WorkoutControls({
               {blockNum > 1 && (
                 <button
                   onClick={() => setShowRollbackConfirm(true)}
-                  disabled={rollingBack}
+                  disabled={advancing || rollingBack}
                   className="w-full mt-2 py-2 min-h-[44px] rounded-md cursor-pointer bg-transparent border border-border-elevated text-muted text-[15px] hover:border-accent active:border-accent disabled:opacity-50"
                 >
                   ← Back to Block {blockNum - 1}
@@ -230,7 +233,7 @@ export function WorkoutControls({
                 <ConfirmModal
                   title="Go Back One Block?"
                   message={`This will return to Block ${blockNum - 1} and restore its training maxes.`}
-                  detail="Your logged workouts stay in History; you'll get fresh sessions for the re-run."
+                  detail="Your logged workouts stay in History; you'll get fresh sessions for the re-run. Any training maxes you edited this block will be replaced."
                   confirmLabel="Go Back"
                   onConfirm={() => { setShowRollbackConfirm(false); handleRollback() }}
                   onCancel={() => setShowRollbackConfirm(false)}

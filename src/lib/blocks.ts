@@ -89,7 +89,7 @@ export async function rollbackBlock(
     }
 
     await db.execute(
-      `UPDATE programs SET block_num = block_num - 1, current_week = 0, cycle = cycle + 1 WHERE id = ?`,
+      `UPDATE programs SET block_num = block_num - 1, current_week = 0, current_day = 0, cycle = cycle + 1 WHERE id = ?`,
       [programId],
     )
   })

@@ -137,10 +137,12 @@ async function _importWorkouts(
   for (const w of data) {
     const dayId = dayByIndex.get(w.day) ?? dayByIndex.get(0)!
 
-    // Find existing workout_log or create one
+    // Find existing workout_log or create one. Imported PWA history always
+    // belongs to cycle 0, so scope the lookup there — post-rollback, a
+    // (program, day, block, week) tuple can have a cycle-1+ row too.
     let workoutLogId: string
     const existing = await db.select<Array<{ id: string }>>(
-      `SELECT id FROM workout_logs WHERE program_id = ? AND day_id = ? AND block_num = ? AND week_index = ?`,
+      `SELECT id FROM workout_logs WHERE program_id = ? AND day_id = ? AND block_num = ? AND week_index = ? AND cycle = 0`,
       [programId, dayId, w.block, w.week],
     )
 
@@ -151,7 +153,7 @@ async function _importWorkouts(
     } else {
       workoutLogId = uuid()
       await db.execute(
-        `INSERT INTO workout_logs (id, program_id, day_id, block_num, week_index) VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO workout_logs (id, program_id, day_id, block_num, week_index, cycle) VALUES (?, ?, ?, ?, ?, 0)`,
         [workoutLogId, programId, dayId, w.block, w.week],
       )
     }

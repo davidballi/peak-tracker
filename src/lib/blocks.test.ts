@@ -95,13 +95,14 @@ describe('rollbackBlock', () => {
     expect(inserts).toHaveLength(0)
   })
 
-  it('decrements block, resets week, and increments cycle', async () => {
+  it('decrements block, resets week and day, and increments cycle', async () => {
     selectMock.mockResolvedValueOnce([])
     await rollbackBlock('p1', 43, [{ id: 'ex1' }], () => 300)
 
     const progUpdate = executeMock.mock.calls.at(-1) as [string, unknown[]]
     expect(progUpdate[0]).toContain('block_num = block_num - 1')
     expect(progUpdate[0]).toContain('current_week = 0')
+    expect(progUpdate[0]).toContain('current_day = 0')
     expect(progUpdate[0]).toContain('cycle = cycle + 1')
     expect(progUpdate[1]).toEqual(['p1'])
   })

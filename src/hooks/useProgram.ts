@@ -8,7 +8,7 @@ interface ProgramData {
   blockNum: number
   currentWeek: number
   currentDay: number
-  cycle: number
+  cycle: number // rollback generation: incremented each time the user backs up a block
   days: DayWithExercises[]
 }
 
